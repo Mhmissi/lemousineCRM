@@ -357,12 +357,21 @@ function DriverDashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              {activeTab === 'trips' ? 'My Trips' : 
-               activeTab === 'earnings' ? 'Earnings' : 'Profile'}
-            </h1>
-            <p className="text-sm text-gray-600">Welcome back, {user.name}</p>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8">
+              <img 
+                src="/logo.png" 
+                alt="Lemousine CRM Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {activeTab === 'trips' ? 'My Trips' : 
+                 activeTab === 'earnings' ? 'Earnings' : 'Profile'}
+              </h1>
+              <p className="text-sm text-gray-600">Welcome back, {user.name}</p>
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             <button className="p-2 text-gray-600 hover:text-gray-900">

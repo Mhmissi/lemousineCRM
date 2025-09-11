@@ -29,8 +29,12 @@ function Login() {
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
-            <Car className="w-8 h-8 text-white" />
+          <div className="mx-auto w-20 h-20 mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Lemousine CRM Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Lemousine CRM</h1>
           <p className="text-gray-600">Professional limousine service management</p>

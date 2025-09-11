@@ -55,8 +55,12 @@ function OwnerDashboard() {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4 mb-8">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
-              <Car className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 mr-3">
+              <img 
+                src="/logo.png" 
+                alt="Lemousine CRM Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-xl font-bold text-gray-900">Lemousine CRM</h1>
           </div>
@@ -140,8 +144,12 @@ function OwnerDashboard() {
             {/* Mobile Navigation */}
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4 mb-8">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
-                  <Car className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 mr-3">
+                  <img 
+                    src="/logo.png" 
+                    alt="Lemousine CRM Logo" 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Lemousine CRM</h1>
               </div>
