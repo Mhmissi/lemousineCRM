@@ -1,0 +1,429 @@
+import { useState, useEffect } from 'react'
+import { X, MapPin, Clock, Car, Users, DollarSign, User, Calendar } from 'lucide-react'
+
+function AddTripForm({ onClose, onTripAdded }) {
+  const [formData, setFormData] = useState({
+    driver: '',
+    vehicle: '',
+    pickup: '',
+    destination: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    passengers: '',
+    client: '',
+    revenue: '',
+    notes: ''
+  })
+
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Mock data for dropdowns - in real app, this would come from API
+  const drivers = [
+    { id: 1, name: 'John Driver', status: 'active' },
+    { id: 2, name: 'Mike Wilson', status: 'active' },
+    { id: 3, name: 'Sarah Johnson', status: 'offline' }
+  ]
+
+  const vehicles = [
+    { id: 1, name: 'Bus #12', type: 'Luxury Bus', capacity: 25, status: 'active' },
+    { id: 2, name: 'Limousine #5', type: 'Stretch Limo', capacity: 8, status: 'active' },
+    { id: 3, name: 'Bus #8', type: 'Standard Bus', capacity: 20, status: 'maintenance' }
+  ]
+
+  // Set default date to today
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    setFormData(prev => ({ ...prev, date: today }))
+  }, [])
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.driver) newErrors.driver = 'Driver is required'
+    if (!formData.vehicle) newErrors.vehicle = 'Vehicle is required'
+    if (!formData.pickup.trim()) newErrors.pickup = 'Pickup location is required'
+    if (!formData.destination.trim()) newErrors.destination = 'Destination is required'
+    if (!formData.date) newErrors.date = 'Date is required'
+    if (!formData.startTime) newErrors.startTime = 'Start time is required'
+    if (!formData.endTime) newErrors.endTime = 'End time is required'
+    if (!formData.passengers || formData.passengers < 1) newErrors.passengers = 'Number of passengers is required'
+    if (!formData.client.trim()) newErrors.client = 'Client name is required'
+    if (!formData.revenue || formData.revenue < 0) newErrors.revenue = 'Revenue must be a positive number'
+
+    // Validate time range
+    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
+      newErrors.endTime = 'End time must be after start time'
+    }
+
+    // Validate passenger count against vehicle capacity
+    const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle))
+    if (selectedVehicle && formData.passengers > selectedVehicle.capacity) {
+      newErrors.passengers = `Cannot exceed vehicle capacity (${selectedVehicle.capacity})`
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validateForm()) return
+
+    setIsSubmitting(true)
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const newTrip = {
+        id: Date.now(), // In real app, this would come from the server
+        driver: drivers.find(d => d.id === parseInt(formData.driver))?.name || '',
+        vehicle: vehicles.find(v => v.id === parseInt(formData.vehicle))?.name || '',
+        pickup: formData.pickup,
+        destination: formData.destination,
+        date: formData.date,
+        time: `${formData.startTime} - ${formData.endTime}`,
+        status: 'assigned',
+        passengers: parseInt(formData.passengers),
+        revenue: parseFloat(formData.revenue),
+        client: formData.client,
+        notes: formData.notes
+      }
+
+      // Call the callback to add the trip
+      if (onTripAdded) {
+        onTripAdded(newTrip)
+      }
+
+      // Reset form
+      setFormData({
+        driver: '',
+        vehicle: '',
+        pickup: '',
+        destination: '',
+        date: new Date().toISOString().split('T')[0],
+        startTime: '',
+        endTime: '',
+        passengers: '',
+        client: '',
+        revenue: '',
+        notes: ''
+      })
+
+      // Close the form
+      onClose()
+    } catch (error) {
+      console.error('Error creating trip:', error)
+      setErrors({ submit: 'Failed to create trip. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle))
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900">Create New Trip</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Driver and Vehicle Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <User className="w-4 h-4 inline mr-2" />
+                Driver *
+              </label>
+              <select
+                name="driver"
+                value={formData.driver}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  errors.driver ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select a driver</option>
+                {drivers.map(driver => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.name} ({driver.status})
+                  </option>
+                ))}
+              </select>
+              {errors.driver && <p className="text-red-500 text-sm mt-1">{errors.driver}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Car className="w-4 h-4 inline mr-2" />
+                Vehicle *
+              </label>
+              <select
+                name="vehicle"
+                value={formData.vehicle}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  errors.vehicle ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select a vehicle</option>
+                {vehicles.map(vehicle => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.name} - {vehicle.type} ({vehicle.capacity} seats) - {vehicle.status}
+                  </option>
+                ))}
+              </select>
+              {errors.vehicle && <p className="text-red-500 text-sm mt-1">{errors.vehicle}</p>}
+              {selectedVehicle && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Capacity: {selectedVehicle.capacity} passengers
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Route Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Route Information
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pickup Location *
+                </label>
+                <input
+                  type="text"
+                  name="pickup"
+                  value={formData.pickup}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Airport Terminal 1"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.pickup ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.pickup && <p className="text-red-500 text-sm mt-1">{errors.pickup}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Destination *
+                </label>
+                <input
+                  type="text"
+                  name="destination"
+                  value={formData.destination}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Downtown Hotel"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.destination ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.destination && <p className="text-red-500 text-sm mt-1">{errors.destination}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Date and Time */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Clock className="w-5 h-5 mr-2" />
+              Schedule
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-2" />
+                  Date *
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.date ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Time *
+                </label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.startTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.startTime && <p className="text-red-500 text-sm mt-1">{errors.startTime}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Time *
+                </label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.endTime ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.endTime && <p className="text-red-500 text-sm mt-1">{errors.endTime}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Trip Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Trip Details
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Passengers *
+                </label>
+                <input
+                  type="number"
+                  name="passengers"
+                  value={formData.passengers}
+                  onChange={handleInputChange}
+                  min="1"
+                  max={selectedVehicle?.capacity || 50}
+                  placeholder="1"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.passengers ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.passengers && <p className="text-red-500 text-sm mt-1">{errors.passengers}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Client Name *
+                </label>
+                <input
+                  type="text"
+                  name="client"
+                  value={formData.client}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Corporate Group"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.client ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.client && <p className="text-red-500 text-sm mt-1">{errors.client}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <DollarSign className="w-4 h-4 inline mr-2" />
+                  Revenue *
+                </label>
+                <input
+                  type="number"
+                  name="revenue"
+                  value={formData.revenue}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    errors.revenue ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.revenue && <p className="text-red-500 text-sm mt-1">{errors.revenue}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Additional Notes
+              </label>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="Any special instructions or notes for this trip..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+          </div>
+
+          {/* Error Messages */}
+          {errors.submit && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-600">{errors.submit}</p>
+            </div>
+          )}
+
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-primary flex items-center"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                'Create Trip'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default AddTripForm
