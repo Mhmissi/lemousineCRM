@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import { Car, Clock, MapPin, LogOut, Bell, Home, DollarSign, User, Settings, Navigation, Phone, Mail } from 'lucide-react'
+import { Car, Clock, MapPin, LogOut, Bell, Home, DollarSign, User, Settings, Navigation, Phone, Mail, Calendar } from 'lucide-react'
+import DriverCalendar from './DriverCalendar'
 
 function DriverDashboard() {
   const { user, logout } = useAuth()
@@ -370,6 +371,7 @@ function DriverDashboard() {
             <div>
              <h1 className="text-xl font-semibold text-gray-900">
                {activeTab === 'trips' ? t('myTrips') :
+                activeTab === 'calendar' ? t('schedule') :
                 activeTab === 'earnings' ? t('earnings') : t('profile')}
              </h1>
              <p className="text-sm text-gray-600">{t('welcomeBack')}, {user.name}</p>
@@ -386,6 +388,7 @@ function DriverDashboard() {
       {/* Main Content */}
       <main className="max-w-md mx-auto px-4 py-6 pb-20">
         {activeTab === 'trips' && renderTripsTab()}
+        {activeTab === 'calendar' && <DriverCalendar />}
         {activeTab === 'earnings' && renderEarningsTab()}
         {activeTab === 'profile' && renderProfileTab()}
       </main>
@@ -400,7 +403,16 @@ function DriverDashboard() {
             }`}
           >
             <Home className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Trips</span>
+            <span className="text-xs font-medium">{t('myTrips')}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex-1 flex flex-col items-center py-3 px-2 ${
+              activeTab === 'calendar' ? 'text-primary-600' : 'text-gray-400'
+            }`}
+          >
+            <Calendar className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">{t('schedule')}</span>
           </button>
           <button
             onClick={() => setActiveTab('earnings')}
