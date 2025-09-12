@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { Car, Plus, MapPin, Users, Fuel, Settings, CheckCircle, XCircle } from 'lucide-react'
 
 function Vehicles() {
+  const { t } = useLanguage()
   const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -108,8 +110,8 @@ function Vehicles() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Vehicles</h1>
-            <p className="text-gray-600">Manage your vehicle fleet</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('vehicles')}</h1>
+            <p className="text-gray-600">{t('manageVehicleFleet')}</p>
           </div>
           <div className="mt-4 sm:mt-0">
             <button 
@@ -117,7 +119,7 @@ function Vehicles() {
               className="btn-primary flex items-center"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Add Vehicle
+              {t('addVehicle')}
             </button>
           </div>
         </div>
@@ -131,7 +133,7 @@ function Vehicles() {
               <Car className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Vehicles</p>
+              <p className="text-sm font-medium text-gray-600">{t('totalVehicles')}</p>
               <p className="text-2xl font-bold text-gray-900">{vehicles.length}</p>
             </div>
           </div>
@@ -157,7 +159,7 @@ function Vehicles() {
               <Settings className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Maintenance</p>
+              <p className="text-sm font-medium text-gray-600">{t('maintenance')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {vehicles.filter(v => v.status === 'maintenance').length}
               </p>
@@ -171,7 +173,7 @@ function Vehicles() {
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Capacity</p>
+              <p className="text-sm font-medium text-gray-600">{t('totalCapacity')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {vehicles.reduce((sum, v) => sum + v.capacity, 0)}
               </p>
@@ -198,7 +200,9 @@ function Vehicles() {
               <div className="flex items-center">
                 {getStatusIcon(vehicle.status)}
                 <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(vehicle.status)}`}>
-                  {vehicle.status}
+                  {vehicle.status === 'active' ? t('activeStatus') : 
+                   vehicle.status === 'maintenance' ? t('maintenance') : 
+                   vehicle.status === 'out_of_service' ? t('outOfService') : vehicle.status}
                 </span>
               </div>
             </div>
@@ -208,15 +212,15 @@ function Vehicles() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-sm text-gray-600">
                   <Users className="w-4 h-4 mr-2" />
-                  Capacity
+                  {t('capacity')}
                 </div>
-                <span className="text-sm font-medium text-gray-900">{vehicle.capacity} passengers</span>
+                <span className="text-sm font-medium text-gray-900">{vehicle.capacity} {t('passengers')}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-2" />
-                  Location
+                  {t('location')}
                 </div>
                 <span className="text-sm font-medium text-gray-900">{vehicle.currentLocation}</span>
               </div>
@@ -224,7 +228,7 @@ function Vehicles() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-sm text-gray-600">
                   <Fuel className={`w-4 h-4 mr-2 ${getFuelColor(vehicle.fuelLevel)}`} />
-                  Fuel
+                  {t('fuel')}
                 </div>
                 <span className={`text-sm font-medium ${getFuelColor(vehicle.fuelLevel)}`}>
                   {vehicle.fuelLevel}%
@@ -232,8 +236,8 @@ function Vehicles() {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Mileage</span>
-                <span className="text-sm font-medium text-gray-900">{vehicle.mileage.toLocaleString()} mi</span>
+                <span className="text-sm text-gray-600">{t('mileage')}</span>
+                <span className="text-sm font-medium text-gray-900">{vehicle.mileage.toLocaleString()} {t('mi')}</span>
               </div>
             </div>
 
@@ -241,11 +245,11 @@ function Vehicles() {
             <div className="border-t border-gray-200 pt-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-600">Last Service</p>
+                  <p className="text-gray-600">{t('lastService')}</p>
                   <p className="font-medium text-gray-900">{vehicle.lastService}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600">Next Service</p>
+                  <p className="text-gray-600">{t('nextService')}</p>
                   <p className="font-medium text-gray-900">{vehicle.nextService}</p>
                 </div>
               </div>
@@ -257,13 +261,13 @@ function Vehicles() {
                 onClick={() => alert(`Viewing details for ${vehicle.name}`)}
                 className="flex-1 btn-secondary text-sm"
               >
-                View Details
+                {t('viewDetails')}
               </button>
               <button 
                 onClick={() => alert(`Tracking location of ${vehicle.name} - ${vehicle.currentLocation}`)}
                 className="flex-1 btn-primary text-sm"
               >
-                Track Location
+                {t('trackLocation')}
               </button>
             </div>
           </div>

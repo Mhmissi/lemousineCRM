@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { Users, Plus, Phone, Mail, MapPin, Clock, CheckCircle, XCircle } from 'lucide-react'
 
 function Drivers() {
+  const { t } = useLanguage()
   const [drivers, setDrivers] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -95,8 +97,8 @@ function Drivers() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Drivers</h1>
-            <p className="text-gray-600">Manage your driver team</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('drivers')}</h1>
+            <p className="text-gray-600">{t('manageDriverTeam')}</p>
           </div>
           <div className="mt-4 sm:mt-0">
             <button 
@@ -104,7 +106,7 @@ function Drivers() {
               className="btn-primary flex items-center"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Add Driver
+              {t('addDriver')}
             </button>
           </div>
         </div>
@@ -118,7 +120,7 @@ function Drivers() {
               <Users className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Drivers</p>
+              <p className="text-sm font-medium text-gray-600">{t('totalDrivers')}</p>
               <p className="text-2xl font-bold text-gray-900">{drivers.length}</p>
             </div>
           </div>
@@ -130,7 +132,7 @@ function Drivers() {
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active</p>
+              <p className="text-sm font-medium text-gray-600">{t('active')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {drivers.filter(d => d.status === 'active').length}
               </p>
@@ -144,7 +146,7 @@ function Drivers() {
               <XCircle className="w-6 h-6 text-gray-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Offline</p>
+              <p className="text-sm font-medium text-gray-600">{t('offline')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {drivers.filter(d => d.status === 'offline').length}
               </p>
@@ -160,19 +162,19 @@ function Drivers() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Driver
+                  {t('driver')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
+                  {t('contact')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {t('status')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Performance
+                  {t('performance')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
+                  {t('location')}
                 </th>
               </tr>
             </thead>
@@ -188,7 +190,7 @@ function Drivers() {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{driver.name}</div>
-                        <div className="text-sm text-gray-500">Last active: {driver.lastActive}</div>
+                        <div className="text-sm text-gray-500">{t('lastActive')}: {driver.lastActive}</div>
                       </div>
                     </div>
                   </td>
@@ -208,13 +210,14 @@ function Drivers() {
                     <div className="flex items-center">
                       {getStatusIcon(driver.status)}
                       <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(driver.status)}`}>
-                        {driver.status}
+                        {driver.status === 'active' ? t('activeStatus') : 
+                         driver.status === 'offline' ? t('offlineStatus') : driver.status}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{driver.totalTrips} trips</div>
-                    <div className="text-sm text-gray-500">Rating: {driver.rating}/5</div>
+                    <div className="text-sm text-gray-900">{driver.totalTrips} {t('trips')}</div>
+                    <div className="text-sm text-gray-500">{t('rating')}: {driver.rating}/5</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-900">
