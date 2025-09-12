@@ -4,6 +4,7 @@ import Login from './components/Login'
 import DriverDashboard from './components/DriverDashboard'
 import OwnerDashboard from './components/OwnerDashboard'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -37,11 +38,13 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
-        <AppRoutes />
-      </div>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50">
+          <AppRoutes />
+        </div>
+      </AuthProvider>
+    </LanguageProvider>
   )
 }
 

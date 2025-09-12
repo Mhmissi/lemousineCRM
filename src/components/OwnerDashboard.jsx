@@ -6,6 +6,7 @@ import {
   Car, 
   MapPin, 
   BarChart3, 
+  Settings,
   Plus, 
   Menu, 
   X,
@@ -17,6 +18,7 @@ import Drivers from './owner/Drivers'
 import Vehicles from './owner/Vehicles'
 import Trips from './owner/Trips'
 import Reports from './owner/Reports'
+import SettingsPage from './owner/Settings'
 
 function OwnerDashboard() {
   const { user, logout } = useAuth()
@@ -29,6 +31,7 @@ function OwnerDashboard() {
     { id: 'vehicles', label: 'Vehicles', icon: Car },
     { id: 'trips', label: 'Trips', icon: MapPin },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
   const renderContent = () => {
@@ -43,6 +46,8 @@ function OwnerDashboard() {
         return <Trips />
       case 'reports':
         return <Reports />
+      case 'settings':
+        return <SettingsPage />
       default:
         return <Dashboard onNavigate={setActiveTab} />
     }
@@ -220,35 +225,35 @@ function OwnerDashboard() {
       </div>
 
       {/* Bottom Navigation (Mobile) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-brand-dark border-t border-brand-gold px-4 py-2">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-brand-dark border-t border-brand-gold px-2 py-2">
         <div className="flex justify-around">
-          {tabs.slice(0, 4).map((tab) => {
+          {tabs.slice(0, 5).map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center py-2 px-3 text-xs font-medium ${
+                className={`flex flex-col items-center py-2 px-1 text-xs font-medium ${
                   activeTab === tab.id
                     ? 'text-brand-gold'
                     : 'text-gray-400'
                 }`}
               >
-                <Icon className="w-5 h-5 mb-1" />
+                <Icon className="w-4 h-4 mb-1" />
                 {tab.label}
               </button>
             )
           })}
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex flex-col items-center py-2 px-3 text-xs font-medium ${
+            className={`flex flex-col items-center py-2 px-1 text-xs font-medium ${
               activeTab === 'reports'
                 ? 'text-brand-gold'
                 : 'text-gray-400'
             }`}
           >
-            <BarChart3 className="w-5 h-5 mb-1" />
-            More
+            <BarChart3 className="w-4 h-4 mb-1" />
+            Reports
           </button>
         </div>
       </div>
