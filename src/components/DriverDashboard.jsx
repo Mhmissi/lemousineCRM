@@ -361,7 +361,7 @@ function DriverDashboard() {
             <div className="w-8 h-8">
               <img 
                 src="/logo.png" 
-                alt="Lemousine CRM Logo" 
+                alt="Limostar Logo" 
                 className="w-full h-full object-contain"
               />
             </div>

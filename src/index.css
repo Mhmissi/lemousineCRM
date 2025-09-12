@@ -14,6 +14,32 @@
 }
 
 @layer components {
+  .brand-name {
+    font-family: 'Proxima Nova Soft', sans-serif;
+    color: #daa520;
+    font-weight: 700;
+  }
+  
+  .brand-accent {
+    color: #daa520;
+  }
+  
+  .brand-dark {
+    color: #1a1a1a;
+  }
+  
+  .brand-bg-gold {
+    background-color: #daa520;
+  }
+  
+  .brand-bg-dark {
+    background-color: #1a1a1a;
+  }
+  
+  .brand-border-gold {
+    border-color: #daa520;
+  }
+  
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200;
   }

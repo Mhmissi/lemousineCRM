@@ -32,11 +32,11 @@ function Login() {
           <div className="mx-auto w-20 h-20 mb-4">
             <img 
               src="/logo.png" 
-              alt="Lemousine CRM Logo" 
+              alt="Limostar Logo" 
               className="w-full h-full object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Lemousine CRM</h1>
+          <h1 className="text-3xl font-bold mb-2 brand-name">Limostar</h1>
           <p className="text-gray-600">Professional limousine service management</p>
         </div>
 

@@ -1,4 +1,4 @@
-# Lemousine CRM
+# Limostar
 
 A modern, responsive web application for professional limousine service management, designed with mobile-first principles and optimized for both drivers and service owners.
 

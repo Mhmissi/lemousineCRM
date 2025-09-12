@@ -10,10 +10,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'logo.png'],
       manifest: {
-        name: 'Lemousine CRM',
-        short_name: 'Lemousine',
-        description: 'Professional limousine service management system',
-        theme_color: '#1f2937',
+        name: 'Limostar',
+        short_name: 'Limostar',
+        description: 'Limostar - Professional limousine service management system',
+        theme_color: '#daa520',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
@@ -21,12 +21,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png'
           }
