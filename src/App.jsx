@@ -3,8 +3,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './components/Login'
 import DriverDashboard from './components/DriverDashboard'
 import OwnerDashboard from './components/OwnerDashboard'
+import NotificationCenter from './components/NotificationCenter'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -40,9 +42,12 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
-          <AppRoutes />
-        </div>
+        <NotificationProvider>
+          <div className="min-h-screen bg-gray-50">
+            <AppRoutes />
+            <NotificationCenter />
+          </div>
+        </NotificationProvider>
       </AuthProvider>
     </LanguageProvider>
   )

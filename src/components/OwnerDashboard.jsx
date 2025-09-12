@@ -14,6 +14,7 @@ import {
   LogOut,
   Bell
 } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 import Dashboard from './owner/Dashboard'
 import Drivers from './owner/Drivers'
 import Vehicles from './owner/Vehicles'
@@ -127,9 +128,7 @@ function OwnerDashboard() {
           </button>
           <h1 className="text-lg font-semibold text-white">Limostar</h1>
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-white hover:text-brand-gold">
-              <Bell className="w-5 h-5" />
-            </button>
+            <NotificationBell />
           </div>
         </div>
       </div>

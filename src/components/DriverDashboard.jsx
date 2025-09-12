@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useNotifications } from '../contexts/NotificationContext'
 import { Car, Clock, MapPin, LogOut, Bell, Home, DollarSign, User, Settings, Navigation, Phone, Mail, Calendar } from 'lucide-react'
 import DriverCalendar from './DriverCalendar'
+import NotificationBell from './NotificationBell'
 
 function DriverDashboard() {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
+  const { addNotification } = useNotifications()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('trips')
@@ -79,9 +82,25 @@ function DriverDashboard() {
   }, [])
 
   const updateTripStatus = (tripId, newStatus) => {
+    const trip = trips.find(t => t.id === tripId)
     setTrips(trips.map(trip => 
       trip.id === tripId ? { ...trip, status: newStatus } : trip
     ))
+    
+    // Add notification for status change
+    if (trip) {
+      addNotification({
+        type: 'trip',
+        title: t('tripStatusChanged'),
+        message: `${trip.client} - ${trip.pickup} to ${trip.destination}`,
+        priority: 'medium',
+        data: {
+          tripId: trip.id,
+          status: newStatus,
+          client: trip.client
+        }
+      })
+    }
   }
 
   const getStatusButton = (trip) => {
@@ -378,9 +397,7 @@ function DriverDashboard() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <button className="p-2 text-gray-600 hover:text-gray-900">
-              <Bell className="w-5 h-5" />
-            </button>
+            <NotificationBell />
           </div>
         </div>
       </header>
