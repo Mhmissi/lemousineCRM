@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { BarChart3, TrendingUp, Calendar, Download, Filter } from 'lucide-react'
 
 function Reports() {
+  const { t } = useLanguage()
   const [reports, setReports] = useState({
     revenue: {
       today: 2450,
@@ -59,8 +61,8 @@ function Reports() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-600">Analytics and performance insights</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('reports')}</h1>
+            <p className="text-gray-600">{t('analyticsPerformanceInsights')}</p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-2">
             <button 
@@ -68,14 +70,14 @@ function Reports() {
               className="btn-secondary flex items-center"
             >
               <Filter className="w-4 h-4 mr-2" />
-              Filter
+              {t('filter')}
             </button>
             <button 
               onClick={() => alert('Exporting reports...')}
               className="btn-primary flex items-center"
             >
               <Download className="w-4 h-4 mr-2" />
-              Export
+              {t('export')}
             </button>
           </div>
         </div>
@@ -86,7 +88,7 @@ function Reports() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
+              <p className="text-sm font-medium text-gray-600">{t('todaysRevenue')}</p>
               <p className="text-2xl font-bold text-gray-900">${reports.revenue.today.toLocaleString()}</p>
             </div>
             <div className="p-2 bg-green-100 rounded-lg">
@@ -96,7 +98,7 @@ function Reports() {
           <div className="mt-4">
             <div className="flex items-center text-sm">
               <span className="text-green-600">+12.5%</span>
-              <span className="text-gray-600 ml-2">vs yesterday</span>
+              <span className="text-gray-600 ml-2">{t('vsYesterday')}</span>
             </div>
           </div>
         </div>
@@ -104,7 +106,7 @@ function Reports() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">This Week</p>
+              <p className="text-sm font-medium text-gray-600">{t('thisWeek')}</p>
               <p className="text-2xl font-bold text-gray-900">${reports.revenue.thisWeek.toLocaleString()}</p>
             </div>
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -114,7 +116,7 @@ function Reports() {
           <div className="mt-4">
             <div className="flex items-center text-sm">
               <span className="text-green-600">+8.2%</span>
-              <span className="text-gray-600 ml-2">vs last week</span>
+              <span className="text-gray-600 ml-2">{t('vsLastWeek')}</span>
             </div>
           </div>
         </div>
@@ -122,7 +124,7 @@ function Reports() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">This Month</p>
+              <p className="text-sm font-medium text-gray-600">{t('thisMonth')}</p>
               <p className="text-2xl font-bold text-gray-900">${reports.revenue.thisMonth.toLocaleString()}</p>
             </div>
             <div className="p-2 bg-purple-100 rounded-lg">
@@ -132,7 +134,7 @@ function Reports() {
           <div className="mt-4">
             <div className="flex items-center text-sm">
               <span className="text-green-600">+16.3%</span>
-              <span className="text-gray-600 ml-2">vs last month</span>
+              <span className="text-gray-600 ml-2">{t('vsLastMonth')}</span>
             </div>
           </div>
         </div>
@@ -140,7 +142,7 @@ function Reports() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Last Month</p>
+              <p className="text-sm font-medium text-gray-600">{t('lastMonth')}</p>
               <p className="text-2xl font-bold text-gray-900">${reports.revenue.lastMonth.toLocaleString()}</p>
             </div>
             <div className="p-2 bg-gray-100 rounded-lg">
@@ -153,12 +155,12 @@ function Reports() {
       {/* Trip Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Trip Statistics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('tripStatistics')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">Completed Trips</span>
+                <span className="font-medium text-gray-900">{t('completedTrips')}</span>
               </div>
               <span className="text-xl font-bold text-green-600">{reports.trips.completed}</span>
             </div>
@@ -166,7 +168,7 @@ function Reports() {
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">Active Trips</span>
+                <span className="font-medium text-gray-900">{t('activeTrips')}</span>
               </div>
               <span className="text-xl font-bold text-blue-600">{reports.trips.active}</span>
             </div>
@@ -174,7 +176,7 @@ function Reports() {
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">Cancelled Trips</span>
+                <span className="font-medium text-gray-900">{t('cancelledTrips')}</span>
               </div>
               <span className="text-xl font-bold text-red-600">{reports.trips.cancelled}</span>
             </div>
@@ -183,7 +185,7 @@ function Reports() {
 
         {/* Top Drivers */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Drivers</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('topPerformingDrivers')}</h3>
           <div className="space-y-4">
             {reports.topDrivers.map((driver, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -195,12 +197,12 @@ function Reports() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{driver.name}</p>
-                    <p className="text-sm text-gray-600">{driver.trips} trips</p>
+                    <p className="text-sm text-gray-600">{driver.trips} {t('trips')}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-gray-900">${driver.revenue.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600">revenue</p>
+                  <p className="text-sm text-gray-600">{t('revenue')}</p>
                 </div>
               </div>
             ))}
@@ -210,22 +212,22 @@ function Reports() {
 
       {/* Vehicle Utilization */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Utilization & Revenue</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('vehicleUtilizationRevenue')}</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vehicle
+                  {t('vehicle')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Utilization
+                  {t('utilization')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
+                  {t('revenue')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Performance
+                  {t('performance')}
                 </th>
               </tr>
             </thead>
@@ -260,8 +262,8 @@ function Reports() {
                       vehicle.utilization >= 75 ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {vehicle.utilization >= 90 ? 'Excellent' :
-                       vehicle.utilization >= 75 ? 'Good' : 'Needs Attention'}
+                      {vehicle.utilization >= 90 ? t('excellent') :
+                       vehicle.utilization >= 75 ? t('good') : t('needsAttention')}
                     </span>
                   </td>
                 </tr>

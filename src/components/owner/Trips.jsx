@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { MapPin, Plus, Clock, Car, Users, Filter, Search } from 'lucide-react'
 import AddTripForm from './AddTripForm'
 
 function Trips() {
+  const { t } = useLanguage()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -124,8 +126,8 @@ function Trips() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Trips</h1>
-            <p className="text-gray-600">Manage all your service trips</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('trips')}</h1>
+            <p className="text-gray-600">{t('manageAllServiceTrips')}</p>
           </div>
           <div className="mt-4 sm:mt-0">
             <button 
@@ -133,7 +135,7 @@ function Trips() {
               className="btn-primary flex items-center"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Create Trip
+              {t('createTrip')}
             </button>
           </div>
         </div>
@@ -147,7 +149,7 @@ function Trips() {
               <MapPin className="w-6 h-6 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Trips</p>
+              <p className="text-sm font-medium text-gray-600">{t('totalTrips')}</p>
               <p className="text-2xl font-bold text-gray-900">{trips.length}</p>
             </div>
           </div>
@@ -173,7 +175,7 @@ function Trips() {
               <Car className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Assigned</p>
+              <p className="text-sm font-medium text-gray-600">{t('assigned')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {trips.filter(t => t.status === 'assigned').length}
               </p>
@@ -187,7 +189,7 @@ function Trips() {
               <Users className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
+              <p className="text-sm font-medium text-gray-600">{t('todaysRevenue')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 ${trips.reduce((sum, t) => sum + t.revenue, 0).toLocaleString()}
               </p>
@@ -204,7 +206,7 @@ function Trips() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search trips..."
+                placeholder={t('searchTrips')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -219,10 +221,10 @@ function Trips() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
-                <option value="all">All Status</option>
-                <option value="assigned">Assigned</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
+                <option value="all">{t('allStatus')}</option>
+                <option value="assigned">{t('assigned')}</option>
+                <option value="active">{t('active')}</option>
+                <option value="completed">{t('completed')}</option>
               </select>
             </div>
           </div>
@@ -243,11 +245,13 @@ function Trips() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{trip.vehicle}</h3>
-                      <p className="text-sm text-gray-600">Driver: {trip.driver}</p>
+                      <p className="text-sm text-gray-600">{t('driver')}: {trip.driver}</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(trip.status)}`}>
-                    {trip.status}
+                    {trip.status === 'completed' ? t('completedStatus') : 
+                     trip.status === 'active' ? t('activeStatus') : 
+                     trip.status === 'assigned' ? t('assignedStatus') : trip.status}
                   </span>
                 </div>
 
@@ -255,7 +259,7 @@ function Trips() {
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Route</p>
+                      <p className="text-sm text-gray-600">{t('route')}</p>
                       <p className="font-medium text-gray-900">{trip.pickup} → {trip.destination}</p>
                     </div>
                   </div>
@@ -263,7 +267,7 @@ function Trips() {
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Date & Time</p>
+                      <p className="text-sm text-gray-600">{t('dateTime')}</p>
                       <p className="font-medium text-gray-900">{trip.date} • {trip.time}</p>
                     </div>
                   </div>
@@ -271,13 +275,13 @@ function Trips() {
                   <div className="flex items-center space-x-2">
                     <Users className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Passengers</p>
+                      <p className="text-sm text-gray-600">{t('passengers')}</p>
                       <p className="font-medium text-gray-900">{trip.passengers}</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-600">Client</p>
+                    <p className="text-sm text-gray-600">{t('client')}</p>
                     <p className="font-medium text-gray-900">{trip.client}</p>
                   </div>
                 </div>
@@ -287,20 +291,20 @@ function Trips() {
               <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4">
                 <div className="text-center lg:text-right mb-4 lg:mb-0">
                   <p className="text-2xl font-bold text-green-600">${trip.revenue}</p>
-                  <p className="text-sm text-gray-600">Revenue</p>
+                  <p className="text-sm text-gray-600">{t('revenue')}</p>
                 </div>
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => alert(`Viewing details for trip ${trip.id}`)}
                     className="btn-secondary text-sm"
                   >
-                    View Details
+                    {t('viewDetails')}
                   </button>
                   <button 
                     onClick={() => alert(`Tracking trip ${trip.id} - ${trip.vehicle}`)}
                     className="btn-primary text-sm"
                   >
-                    Track Trip
+                    {t('trackTrip')}
                   </button>
                 </div>
               </div>
@@ -312,8 +316,8 @@ function Trips() {
       {filteredTrips.length === 0 && (
         <div className="text-center py-12">
           <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No trips found</h3>
-          <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noTripsFound')}</h3>
+          <p className="text-gray-600">{t('tryAdjustingSearch')}</p>
         </div>
       )}
 
