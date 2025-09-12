@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { Car, Clock, MapPin, LogOut, Bell, Home, DollarSign, User, Settings, Navigation, Phone, Mail } from 'lucide-react'
 
 function DriverDashboard() {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('trips')
@@ -225,35 +227,35 @@ function DriverDashboard() {
         <div className="card text-center">
           <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-900">${driverStats.thisWeekEarnings}</div>
-          <div className="text-sm text-gray-600">This Week</div>
+          <div className="text-sm text-gray-600">{t('thisWeek')}</div>
         </div>
         <div className="card text-center">
           <DollarSign className="w-8 h-8 text-blue-600 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-900">${driverStats.totalEarnings}</div>
-          <div className="text-sm text-gray-600">Total Earnings</div>
+          <div className="text-sm text-gray-600">{t('totalEarnings')}</div>
         </div>
       </div>
 
       {/* Trip Statistics */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Trip Statistics</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('tripStatistics')}</h3>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600">Total Trips</span>
+            <span className="text-gray-600">{t('totalTrips')}</span>
             <span className="font-medium">{driverStats.totalTrips}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Completed</span>
+            <span className="text-gray-600">{t('completed')}</span>
             <span className="font-medium text-green-600">{driverStats.completedTrips}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Success Rate</span>
+            <span className="text-gray-600">{t('successRate')}</span>
             <span className="font-medium text-green-600">
               {Math.round((driverStats.completedTrips / driverStats.totalTrips) * 100)}%
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Rating</span>
+            <span className="text-gray-600">{t('rating')}</span>
             <span className="font-medium text-yellow-600">⭐ {driverStats.rating}</span>
           </div>
         </div>
@@ -261,7 +263,7 @@ function DriverDashboard() {
 
       {/* Recent Earnings */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Trips</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recentTrips')}</h3>
         <div className="space-y-3">
           {trips.filter(trip => trip.status === 'completed').slice(0, 5).map((trip) => (
             <div key={trip.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
@@ -319,11 +321,11 @@ function DriverDashboard() {
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{driverStats.totalTrips}</div>
-            <div className="text-sm text-gray-600">Total Trips</div>
+            <div className="text-sm text-gray-600">{t('totalTrips')}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">{driverStats.completedTrips}</div>
-            <div className="text-sm text-gray-600">Completed</div>
+            <div className="text-sm text-gray-600">{t('completed')}</div>
           </div>
         </div>
       </div>
@@ -366,11 +368,11 @@ function DriverDashboard() {
               />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {activeTab === 'trips' ? 'My Trips' : 
-                 activeTab === 'earnings' ? 'Earnings' : 'Profile'}
-              </h1>
-              <p className="text-sm text-gray-600">Welcome back, {user.name}</p>
+             <h1 className="text-xl font-semibold text-gray-900">
+               {activeTab === 'trips' ? t('myTrips') :
+                activeTab === 'earnings' ? t('earnings') : t('profile')}
+             </h1>
+             <p className="text-sm text-gray-600">{t('welcomeBack')}, {user.name}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -407,7 +409,7 @@ function DriverDashboard() {
             }`}
           >
             <DollarSign className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Earnings</span>
+            <span className="text-xs font-medium">{t('earnings')}</span>
           </button>
           <button
             onClick={() => setActiveTab('profile')}
@@ -416,7 +418,7 @@ function DriverDashboard() {
             }`}
           >
             <User className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Profile</span>
+            <span className="text-xs font-medium">{t('profile')}</span>
           </button>
         </div>
       </nav>

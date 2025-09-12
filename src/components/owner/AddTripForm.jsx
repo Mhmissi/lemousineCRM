@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { X, MapPin, Clock, Car, Users, DollarSign, User, Calendar } from 'lucide-react'
 
 function AddTripForm({ onClose, onTripAdded }) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     driver: '',
     vehicle: '',
@@ -51,26 +53,26 @@ function AddTripForm({ onClose, onTripAdded }) {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.driver) newErrors.driver = 'Driver is required'
-    if (!formData.vehicle) newErrors.vehicle = 'Vehicle is required'
-    if (!formData.pickup.trim()) newErrors.pickup = 'Pickup location is required'
-    if (!formData.destination.trim()) newErrors.destination = 'Destination is required'
-    if (!formData.date) newErrors.date = 'Date is required'
-    if (!formData.startTime) newErrors.startTime = 'Start time is required'
-    if (!formData.endTime) newErrors.endTime = 'End time is required'
-    if (!formData.passengers || formData.passengers < 1) newErrors.passengers = 'Number of passengers is required'
-    if (!formData.client.trim()) newErrors.client = 'Client name is required'
-    if (!formData.revenue || formData.revenue < 0) newErrors.revenue = 'Revenue must be a positive number'
+    if (!formData.driver) newErrors.driver = t('driverRequired')
+    if (!formData.vehicle) newErrors.vehicle = t('vehicleRequired')
+    if (!formData.pickup.trim()) newErrors.pickup = t('pickupRequired')
+    if (!formData.destination.trim()) newErrors.destination = t('destinationRequired')
+    if (!formData.date) newErrors.date = t('dateRequired')
+    if (!formData.startTime) newErrors.startTime = t('startTimeRequired')
+    if (!formData.endTime) newErrors.endTime = t('endTimeRequired')
+    if (!formData.passengers || formData.passengers < 1) newErrors.passengers = t('passengersRequired')
+    if (!formData.client.trim()) newErrors.client = t('clientRequired')
+    if (!formData.revenue || formData.revenue < 0) newErrors.revenue = t('revenueRequired')
 
     // Validate time range
     if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
-      newErrors.endTime = 'End time must be after start time'
+      newErrors.endTime = t('endTimeAfterStart')
     }
 
     // Validate passenger count against vehicle capacity
     const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle))
     if (selectedVehicle && formData.passengers > selectedVehicle.capacity) {
-      newErrors.passengers = `Cannot exceed vehicle capacity (${selectedVehicle.capacity})`
+      newErrors.passengers = `${t('cannotExceedCapacity')} (${selectedVehicle.capacity})`
     }
 
     setErrors(newErrors)

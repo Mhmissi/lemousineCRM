@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { 
   Home, 
   Users, 
@@ -22,16 +23,17 @@ import SettingsPage from './owner/Settings'
 
 function OwnerDashboard() {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'drivers', label: 'Drivers', icon: Users },
-    { id: 'vehicles', label: 'Vehicles', icon: Car },
-    { id: 'trips', label: 'Trips', icon: MapPin },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard', label: t('dashboard'), icon: Home },
+    { id: 'drivers', label: t('drivers'), icon: Users },
+    { id: 'vehicles', label: t('vehicles'), icon: Car },
+    { id: 'trips', label: t('trips'), icon: MapPin },
+    { id: 'reports', label: t('reports'), icon: BarChart3 },
+    { id: 'settings', label: t('settings'), icon: Settings },
   ]
 
   const renderContent = () => {

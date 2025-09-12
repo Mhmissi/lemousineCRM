@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { Car, User, Eye, EyeOff } from 'lucide-react'
 
 function Login() {
@@ -9,6 +10,7 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
+  const { t } = useLanguage()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,7 +39,7 @@ function Login() {
             />
           </div>
           <h1 className="text-3xl font-bold mb-2 brand-name">Limostar</h1>
-          <p className="text-gray-600">Professional limousine service management</p>
+          <p className="text-gray-600">{t('professionalLimousineService')}</p>
         </div>
 
         {/* Login Form */}
@@ -45,7 +47,7 @@ function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                {t('emailAddress')}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -55,7 +57,7 @@ function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Enter your email"
+                  placeholder={t('enterEmail')}
                   required
                 />
               </div>
@@ -63,7 +65,7 @@ function Login() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                {t('password')}
               </label>
               <div className="relative">
                 <input
@@ -72,7 +74,7 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Enter your password"
+                  placeholder={t('enterPassword')}
                   required
                 />
                 <button
@@ -99,25 +101,25 @@ function Login() {
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               ) : (
-                'Sign In'
+                t('signIn')
               )}
             </button>
           </form>
 
           {/* Demo Credentials */}
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center mb-3">Demo Credentials:</p>
+            <p className="text-sm text-gray-600 text-center mb-3">{t('demoCredentials')}:</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Driver:</span>
+                <span className="text-gray-500">{t('driver')}:</span>
                 <span className="font-mono text-gray-700">driver@lemousine.com</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Owner:</span>
+                <span className="text-gray-500">{t('owner')}:</span>
                 <span className="font-mono text-gray-700">owner@lemousine.com</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Password:</span>
+                <span className="text-gray-500">{t('password')}:</span>
                 <span className="font-mono text-gray-700">password</span>
               </div>
             </div>

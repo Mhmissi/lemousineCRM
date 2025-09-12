@@ -24,14 +24,7 @@ function Settings() {
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-    { code: 'pt', name: 'Português', flag: '🇵🇹' },
-    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'ja', name: '日本語', flag: '🇯🇵' },
-    { code: 'ko', name: '한국어', flag: '🇰🇷' }
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' }
   ]
 
   const timezones = [
@@ -95,25 +88,25 @@ function Settings() {
     const newErrors = {}
 
     if (!settings.name.trim()) {
-      newErrors.name = 'Name is required'
+      newErrors.name = t('nameRequired')
     }
 
     if (!settings.email.trim()) {
-      newErrors.email = 'Email is required'
+      newErrors.email = t('emailRequired')
     } else if (!/\S+@\S+\.\S+/.test(settings.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = t('emailInvalid')
     }
 
     if (settings.newPassword && settings.newPassword.length < 6) {
-      newErrors.newPassword = 'Password must be at least 6 characters'
+      newErrors.newPassword = t('passwordMinLength')
     }
 
     if (settings.newPassword && settings.newPassword !== settings.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = t('passwordsNotMatch')
     }
 
     if (settings.newPassword && !settings.currentPassword) {
-      newErrors.currentPassword = 'Current password is required to change password'
+      newErrors.currentPassword = t('currentPasswordRequired')
     }
 
     setErrors(newErrors)
@@ -134,7 +127,7 @@ function Settings() {
 
       setMessage({ 
         type: 'success', 
-        text: 'Settings saved successfully!' 
+        text: t('settingsSaved')
       })
 
       // Clear password fields after successful save
@@ -151,7 +144,7 @@ function Settings() {
     } catch (error) {
       setMessage({ 
         type: 'error', 
-        text: 'Failed to save settings. Please try again.' 
+        text: t('failedToSave')
       })
     } finally {
       setIsLoading(false)
@@ -177,7 +170,7 @@ function Settings() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
-        <p className="text-gray-600">Manage your account settings and preferences</p>
+        <p className="text-gray-600">{t('manageAccountSettings')}</p>
       </div>
 
       <div className="max-w-2xl space-y-8">
@@ -185,14 +178,14 @@ function Settings() {
         <div className="card">
           <div className="flex items-center mb-6">
             <User className="w-6 h-6 text-brand-gold mr-3" />
-            <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('profileInformation')}</h2>
           </div>
 
           <form onSubmit={handleSave} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
+                  {t('fullName')} *
                 </label>
                 <input
                   type="text"
@@ -209,7 +202,7 @@ function Settings() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address *
+                  {t('emailAddress')} *
                 </label>
                 <input
                   type="email"
@@ -227,12 +220,12 @@ function Settings() {
 
             {/* Password Section */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-md font-medium text-gray-900 mb-4">Change Password</h3>
+              <h3 className="text-md font-medium text-gray-900 mb-4">{t('changePassword')}</h3>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password
+                    {t('currentPassword')}
                   </label>
                   <div className="relative">
                     <input
@@ -259,7 +252,7 @@ function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      New Password
+                      {t('newPassword')}
                     </label>
                     <div className="relative">
                       <input
@@ -285,7 +278,7 @@ function Settings() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Confirm New Password
+                      {t('confirmPassword')}
                     </label>
                     <div className="relative">
                       <input
@@ -334,12 +327,12 @@ function Settings() {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Saving...
+                    {t('saving')}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    {t('saveChanges')}
                   </>
                 )}
               </button>
@@ -349,15 +342,15 @@ function Settings() {
 
         {/* Language & Regional Settings */}
         <div className="card">
-          <div className="flex items-center mb-6">
+            <div className="flex items-center mb-6">
             <Globe className="w-6 h-6 text-brand-gold mr-3" />
-            <h2 className="text-lg font-semibold text-gray-900">Language & Regional</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('languageRegional')}</h2>
           </div>
 
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Language
+                {t('language')}
               </label>
               <select
                 name="language"
@@ -375,7 +368,7 @@ function Settings() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Timezone
+                {t('timezone')}
               </label>
               <select
                 name="timezone"
@@ -392,12 +385,12 @@ function Settings() {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Language Preview</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-2">{t('languagePreview')}</h4>
               <p className="text-sm text-blue-700">
-                Current language: <strong>{languages.find(l => l.code === settings.language)?.name}</strong>
+                {t('currentLanguage')}: <strong>{languages.find(l => l.code === settings.language)?.name}</strong>
               </p>
               <p className="text-xs text-blue-600 mt-1">
-                Language changes will be applied after saving and refreshing the page.
+                {t('languageChangesNote')}
               </p>
             </div>
           </div>
@@ -405,22 +398,22 @@ function Settings() {
 
         {/* App Information */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Application Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('applicationInformation')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">App Version:</span>
+              <span className="text-gray-600">{t('appVersion')}:</span>
               <span className="ml-2 font-medium">1.0.0</span>
             </div>
             <div>
-              <span className="text-gray-600">Last Updated:</span>
+              <span className="text-gray-600">{t('lastUpdated')}:</span>
               <span className="ml-2 font-medium">January 2024</span>
             </div>
             <div>
-              <span className="text-gray-600">Build:</span>
+              <span className="text-gray-600">{t('build')}:</span>
               <span className="ml-2 font-medium">Production</span>
             </div>
             <div>
-              <span className="text-gray-600">Environment:</span>
+              <span className="text-gray-600">{t('environment')}:</span>
               <span className="ml-2 font-medium">Live</span>
             </div>
           </div>
