@@ -12,14 +12,30 @@ import {
   Menu, 
   X,
   LogOut,
-  Bell
+  Bell,
+  Calendar,
+  FileText,
+  CreditCard,
+  FileEdit,
+  Grid3X3,
+  User,
+  UserCheck,
+  Building
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import Dashboard from './owner/Dashboard'
+import Plannings from './owner/Plannings'
+import Reports from './owner/Reports'
+import Invoicing from './owner/Invoicing'
+import CreditNotes from './owner/CreditNotes'
+import Quotes from './owner/Quotes'
+import Proforma from './owner/Proforma'
 import Drivers from './owner/Drivers'
+import Clients from './owner/Clients'
+import Profiles from './owner/Profiles'
+import Company from './owner/Company'
 import Vehicles from './owner/Vehicles'
 import Trips from './owner/Trips'
-import Reports from './owner/Reports'
 import SettingsPage from './owner/Settings'
 
 function OwnerDashboard() {
@@ -30,25 +46,46 @@ function OwnerDashboard() {
 
   const tabs = [
     { id: 'dashboard', label: t('dashboard'), icon: Home },
-    { id: 'drivers', label: t('drivers'), icon: Users },
-    { id: 'vehicles', label: t('vehicles'), icon: Car },
-    { id: 'trips', label: t('trips'), icon: MapPin },
+    { id: 'plannings', label: t('plannings'), icon: Calendar },
     { id: 'reports', label: t('reports'), icon: BarChart3 },
-    { id: 'settings', label: t('settings'), icon: Settings },
+    { id: 'facturations', label: t('facturations'), icon: FileText },
+    { id: 'notesCredit', label: t('notesCredit'), icon: FileEdit },
+    { id: 'devis', label: t('devis'), icon: FileEdit },
+    { id: 'proforma', label: t('proforma'), icon: Grid3X3 },
+    { id: 'drivers', label: t('drivers'), icon: Users },
+    { id: 'clients', label: t('clients'), icon: User },
+    { id: 'profils', label: t('profils'), icon: UserCheck },
+    { id: 'compagnie', label: t('compagnie'), icon: Building },
   ]
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard onNavigate={setActiveTab} />
+      case 'plannings':
+        return <Plannings />
+      case 'reports':
+        return <Reports />
+      case 'facturations':
+        return <Invoicing />
+      case 'notesCredit':
+        return <CreditNotes />
+      case 'devis':
+        return <Quotes />
+      case 'proforma':
+        return <Proforma />
       case 'drivers':
         return <Drivers />
+      case 'clients':
+        return <Clients />
+      case 'profils':
+        return <Profiles />
+      case 'compagnie':
+        return <Company />
       case 'vehicles':
         return <Vehicles />
       case 'trips':
         return <Trips />
-      case 'reports':
-        return <Reports />
       case 'settings':
         return <SettingsPage />
       default:
@@ -245,17 +282,6 @@ function OwnerDashboard() {
               </button>
             )
           })}
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex flex-col items-center py-2 px-1 text-xs font-medium ${
-              activeTab === 'reports'
-                ? 'text-brand-gold'
-                : 'text-gray-400'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 mb-1" />
-            Reports
-          </button>
         </div>
       </div>
     </div>

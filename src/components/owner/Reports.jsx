@@ -1,269 +1,561 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { BarChart3, TrendingUp, Calendar, Download, Filter } from 'lucide-react'
+import { Calendar, Users, User, FileText, Download, Filter, BarChart3, TrendingUp, DollarSign, Clock } from 'lucide-react'
+import jsPDF from 'jspdf'
 
-function Reports() {
+const Reports = () => {
   const { t } = useLanguage()
-  const [reports, setReports] = useState({
-    revenue: {
-      today: 2450,
-      thisWeek: 15420,
-      thisMonth: 45250,
-      lastMonth: 38900
-    },
-    trips: {
-      completed: 148,
-      active: 8,
-      cancelled: 2
-    },
-    topDrivers: [
-      { name: 'John Driver', trips: 45, revenue: 12500 },
-      { name: 'Mike Wilson', trips: 32, revenue: 8900 },
-      { name: 'Sarah Johnson', trips: 28, revenue: 7800 }
-    ],
-    vehicleUtilization: [
-      { vehicle: 'Bus #12', utilization: 85, revenue: 15000 },
-      { vehicle: 'Limousine #5', utilization: 92, revenue: 12000 },
-      { vehicle: 'Bus #8', utilization: 78, revenue: 9500 }
-    ]
-  })
+  const [selectedPeriod, setSelectedPeriod] = useState('october-2024')
+  const [selectedDriver, setSelectedDriver] = useState('all')
+  const [selectedClient, setSelectedClient] = useState('all')
+  const [reportData, setReportData] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const [loading, setLoading] = useState(true)
+  // Mock data for dropdowns
+  const periods = [
+    { value: 'october-2024', label: 'Octobre-2024' },
+    { value: 'september-2024', label: 'Septembre-2024' },
+    { value: 'august-2024', label: 'Août-2024' },
+    { value: 'july-2024', label: 'Juillet-2024' },
+  ]
+
+  const drivers = [
+    { value: 'all', label: '--All--' },
+    { value: 'seddik', label: 'Seddik' },
+    { value: 'jean-dupont', label: 'Jean Dupont' },
+    { value: 'marie-martin', label: 'Marie Martin' },
+    { value: 'pierre-durand', label: 'Pierre Durand' },
+  ]
+
+  const clients = [
+    { value: 'all', label: '--All--' },
+    { value: 'client-a', label: 'Client A' },
+    { value: 'client-b', label: 'Client B' },
+    { value: 'client-c', label: 'Client C' },
+    { value: 'client-d', label: 'Client D' },
+  ]
+
+  // Mock report data
+  const mockReportData = [
+    {
+      id: 1,
+      date: '2024-10-15',
+      driver: 'Seddik',
+      client: 'Client A',
+      trip: 'Airport Transfer',
+      duration: '2h',
+      distance: '45 km',
+      price: 120,
+      status: 'completed'
+    },
+    {
+      id: 2,
+      date: '2024-10-14',
+      driver: 'Jean Dupont',
+      client: 'Client B',
+      trip: 'City Tour',
+      duration: '4h',
+      distance: '80 km',
+      price: 200,
+      status: 'completed'
+    },
+    {
+      id: 3,
+      date: '2024-10-13',
+      driver: 'Marie Martin',
+      client: 'Client C',
+      trip: 'Corporate Meeting',
+      duration: '1h',
+      distance: '25 km',
+      price: 80,
+      status: 'completed'
+    },
+    {
+      id: 4,
+      date: '2024-10-12',
+      driver: 'Pierre Durand',
+      client: 'Client D',
+      trip: 'VIP Event',
+      duration: '6h',
+      distance: '120 km',
+      price: 350,
+      status: 'completed'
+    },
+    {
+      id: 5,
+      date: '2024-10-11',
+      driver: 'Seddik',
+      client: 'Client A',
+      trip: 'Wedding Service',
+      duration: '8h',
+      distance: '150 km',
+      price: 500,
+      status: 'completed'
+    }
+  ]
 
   useEffect(() => {
-    // Mock data loading
-    setTimeout(() => {
-      setLoading(false)
-    }, 500)
+    setReportData(mockReportData)
   }, [])
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  const handleShowReports = () => {
+    setLoading(true)
+    // Simulate API call
+    setTimeout(() => {
+      let filtered = mockReportData
+      
+      if (selectedDriver !== 'all') {
+        filtered = filtered.filter(report => 
+          report.driver.toLowerCase().replace(' ', '-') === selectedDriver
+        )
+      }
+      
+      if (selectedClient !== 'all') {
+        filtered = filtered.filter(report => 
+          report.client.toLowerCase().replace(' ', '-') === selectedClient
+        )
+      }
+      
+      setReportData(filtered)
+      setLoading(false)
+    }, 1000)
+  }
+
+  const generatePDF = async () => {
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.width
+    const pageHeight = doc.internal.pageSize.height
+    let yPosition = 30
+
+    // Professional color scheme
+    const primaryColor = [41, 128, 185] // Blue
+    const secondaryColor = [52, 73, 94] // Dark gray
+    const accentColor = [230, 126, 34] // Orange
+
+    // Header with professional styling
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(0, 0, pageWidth, 50, 'F')
+    
+    try {
+      // Add the actual logo
+      const logoResponse = await fetch('/logo.png')
+      const logoBlob = await logoResponse.blob()
+      const logoBase64 = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result)
+        reader.readAsDataURL(logoBlob)
+      })
+      
+      // Add logo to PDF (30x30 pixels)
+      doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
+    } catch (error) {
+      console.log('Logo not found, using text fallback')
+      // Fallback to text if logo not found
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('LIMOSTAR', 20, 25)
+    }
+    
+    // Company name
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text('LIMOSTAR', 55, 22)
+    
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Just luxury cars', 55, 28)
+    
+    // Title
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    const title = `Rapport des Trajets - ${periods.find(p => p.value === selectedPeriod)?.label || 'Période'}`
+    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+    doc.text(title, 20, 70)
+    
+    yPosition = 85
+
+    // Filter information box
+    doc.setFillColor(240, 248, 255)
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(15, yPosition, pageWidth - 30, 25, 'FD')
+    
+    doc.setFontSize(10)
+    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+    doc.setFont('helvetica', 'bold')
+    doc.text('Filtres appliqués:', 20, yPosition + 8)
+    
+    doc.setFont('helvetica', 'normal')
+    let filterText = `Période: ${periods.find(p => p.value === selectedPeriod)?.label || 'Toutes'}`
+    if (selectedDriver !== 'all') {
+      filterText += ` | Chauffeur: ${drivers.find(d => d.value === selectedDriver)?.label || 'Tous'}`
+    }
+    if (selectedClient !== 'all') {
+      filterText += ` | Client: ${clients.find(c => c.value === selectedClient)?.label || 'Tous'}`
+    }
+    
+    doc.text(filterText, 20, yPosition + 16)
+    yPosition += 40
+
+    // Summary statistics
+    const totalTrips = reportData.length
+    const totalRevenue = reportData.reduce((sum, report) => sum + report.price, 0)
+    const totalDistance = reportData.reduce((sum, report) => sum + parseInt(report.distance), 0)
+    const totalDuration = reportData.reduce((sum, report) => sum + parseInt(report.duration), 0)
+
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+    doc.text('Résumé des Statistiques', 20, yPosition)
+    yPosition += 10
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Total des trajets: ${totalTrips}`, 20, yPosition)
+    doc.text(`Revenus totaux: ${totalRevenue}€`, 20, yPosition + 8)
+    doc.text(`Distance totale: ${totalDistance} km`, 20, yPosition + 16)
+    doc.text(`Durée totale: ${totalDuration}h`, 20, yPosition + 24)
+    yPosition += 40
+
+    // Report details
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Détails des Trajets', 20, yPosition)
+    yPosition += 15
+
+    reportData.forEach((report, index) => {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage()
+        yPosition = 30
+      }
+
+      // Course header
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+      doc.rect(15, yPosition, pageWidth - 30, 12, 'F')
+      
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Trajet n°${report.id} - ${report.date}`, 20, yPosition + 8)
+      yPosition += 15
+
+      // Course details
+      const details = [
+        ['Chauffeur:', report.driver],
+        ['Client:', report.client],
+        ['Trajet:', report.trip],
+        ['Durée:', report.duration],
+        ['Distance:', report.distance],
+        ['Prix:', `${report.price}€`],
+        ['Statut:', report.status]
+      ]
+
+      details.forEach(([label, value], detailIndex) => {
+        if (yPosition > pageHeight - 30) {
+          doc.addPage()
+          yPosition = 30
+        }
+
+        const isEven = detailIndex % 2 === 0
+        doc.setFillColor(isEven ? 248 : 255)
+        doc.rect(15, yPosition, pageWidth - 30, 8, 'F')
+        
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+        doc.setFont('helvetica', 'bold')
+        doc.text(label, 20, yPosition + 6)
+        
+        doc.setFont('helvetica', 'normal')
+        doc.text(value, 60, yPosition + 6)
+        yPosition += 8
+      })
+
+      yPosition += 5
+    })
+
+    // Footer
+    const footerY = pageHeight - 20
+    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+    doc.rect(0, footerY, pageWidth, 20, 'F')
+    
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
+    doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
+    
+    const currentDate = new Date().toLocaleDateString('fr-FR')
+    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
+    doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 30, footerY + 12)
+
+    // Save the PDF
+    const fileName = `rapport-trajets-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.pdf`
+    doc.save(fileName)
+  }
+
+  const getTotalRevenue = () => {
+    return reportData.reduce((sum, report) => sum + report.price, 0)
+  }
+
+  const getTotalTrips = () => {
+    return reportData.length
+  }
+
+  const getTotalDistance = () => {
+    return reportData.reduce((sum, report) => sum + parseInt(report.distance), 0)
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('reports')}</h1>
-            <p className="text-gray-600">{t('analyticsPerformanceInsights')}</p>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
+        <div className="flex items-center space-x-3">
+          <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            <span className="hidden sm:inline">{t('reports')}</span>
+            <span className="sm:hidden">Rapports</span>
+          </h1>
           </div>
-          <div className="mt-4 sm:mt-0 flex space-x-2">
-            <button 
-              onClick={() => alert('Filter functionality would open filter options')}
-              className="btn-secondary flex items-center"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {t('filter')}
-            </button>
-            <button 
-              onClick={() => alert('Exporting reports...')}
-              className="btn-primary flex items-center"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {t('export')}
-            </button>
+        <div className="text-sm text-gray-500">
+          <span className="hidden sm:inline">Home / {t('reports')}</span>
+          <span className="sm:hidden">Home / Rapports</span>
+        </div>
+      </div>
+
+      {/* Report Management Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
+        <div className="flex items-center space-x-2 mb-6">
+          <FileText className="w-5 h-5 text-blue-600" />
+          <h2 className="text-xl font-semibold text-gray-900">
+            <span className="hidden sm:inline">Gestion des Rapports</span>
+            <span className="sm:hidden">Rapports</span>
+          </h2>
+        </div>
+
+        {/* Filter Options */}
+        <div className="space-y-4">
+          {/* First Row - Period and Driver */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Période
+                </label>
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {periods.map(period => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
+            </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Chauffeurs
+                </label>
+                <select
+                  value={selectedDriver}
+                  onChange={(e) => setSelectedDriver(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {drivers.map(driver => (
+                    <option key={driver.value} value={driver.value}>
+                      {driver.label}
+                    </option>
+                  ))}
+                </select>
+            </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleShowReports}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Chargement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Filter className="w-4 h-4" />
+                      <span>Show</span>
+                    </>
+                  )}
+                </button>
+            </div>
+          </div>
+        </div>
+
+          {/* Second Row - Period and Client */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Période
+                </label>
+                <select
+                  value={selectedPeriod}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {periods.map(period => (
+                    <option key={period.value} value={period.value}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
+            </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Client
+                </label>
+                <select
+                  value={selectedClient}
+                  onChange={(e) => setSelectedClient(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {clients.map(client => (
+                    <option key={client.value} value={client.value}>
+                      {client.label}
+                    </option>
+                  ))}
+                </select>
+            </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleShowReports}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Chargement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Filter className="w-4 h-4" />
+                      <span>Show</span>
+                    </>
+                  )}
+                </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Revenue Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{t('todaysRevenue')}</p>
-              <p className="text-2xl font-bold text-gray-900">${reports.revenue.today.toLocaleString()}</p>
-            </div>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm">
-              <span className="text-green-600">+12.5%</span>
-              <span className="text-gray-600 ml-2">{t('vsYesterday')}</span>
-            </div>
+        {/* PDF Export Button */}
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={generatePDF}
+            className="flex flex-col items-center space-y-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+          >
+            <Download className="w-6 h-6" />
+            <span className="text-sm font-medium">Version PDF</span>
+          </button>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{t('thisWeek')}</p>
-              <p className="text-2xl font-bold text-gray-900">${reports.revenue.thisWeek.toLocaleString()}</p>
-            </div>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm">
-              <span className="text-green-600">+8.2%</span>
-              <span className="text-gray-600 ml-2">{t('vsLastWeek')}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{t('thisMonth')}</p>
-              <p className="text-2xl font-bold text-gray-900">${reports.revenue.thisMonth.toLocaleString()}</p>
-            </div>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm">
-              <span className="text-green-600">+16.3%</span>
-              <span className="text-gray-600 ml-2">{t('vsLastMonth')}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{t('lastMonth')}</p>
-              <p className="text-2xl font-bold text-gray-900">${reports.revenue.lastMonth.toLocaleString()}</p>
-            </div>
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Trip Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('tripStatistics')}</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">{t('completedTrips')}</span>
+      {/* Report Results */}
+      {reportData.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
+          {/* Summary Statistics */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Total Trajets</span>
               </div>
-              <span className="text-xl font-bold text-green-600">{reports.trips.completed}</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">{t('activeTrips')}</span>
-              </div>
-              <span className="text-xl font-bold text-blue-600">{reports.trips.active}</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">{t('cancelledTrips')}</span>
-              </div>
-              <span className="text-xl font-bold text-red-600">{reports.trips.cancelled}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Drivers */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('topPerformingDrivers')}</h3>
-          <div className="space-y-4">
-            {reports.topDrivers.map((driver, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">
-                      {driver.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+              <p className="text-2xl font-bold text-blue-900 mt-2">{getTotalTrips()}</p>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{driver.name}</p>
-                    <p className="text-sm text-gray-600">{driver.trips} {t('trips')}</p>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-green-900">Revenus</span>
                   </div>
+              <p className="text-2xl font-bold text-green-900 mt-2">{getTotalRevenue()}€</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">${driver.revenue.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600">{t('revenue')}</p>
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-900">Distance</span>
                 </div>
+              <p className="text-2xl font-bold text-purple-900 mt-2">{getTotalDistance()} km</p>
               </div>
-            ))}
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-5 h-5 text-orange-600" />
+                <span className="text-sm font-medium text-orange-900">Durée</span>
           </div>
+              <p className="text-2xl font-bold text-orange-900 mt-2">
+                {reportData.reduce((sum, report) => sum + parseInt(report.duration), 0)}h
+              </p>
         </div>
       </div>
 
-      {/* Vehicle Utilization */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('vehicleUtilizationRevenue')}</h3>
+          {/* Report Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('vehicle')}
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Chauffeur
+                  </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trajet
+                  </th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Durée
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('utilization')}
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Distance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('revenue')}
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Prix
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('performance')}
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Statut
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {reports.vehicleUtilization.map((vehicle, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
-                        <BarChart3 className="w-4 h-4 text-primary-600" />
-                      </div>
-                      <span className="font-medium text-gray-900">{vehicle.vehicle}</span>
-                    </div>
+                {reportData.map((report) => (
+                  <tr key={report.id} className="hover:bg-gray-50">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.date}
+                    </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.driver}
+                    </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.client}
+                    </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.trip}
+                    </td>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.duration}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-3">
-                        <div 
-                          className="bg-primary-600 h-2 rounded-full" 
-                          style={{ width: `${vehicle.utilization}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{vehicle.utilization}%</span>
-                    </div>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.distance}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">${vehicle.revenue.toLocaleString()}</span>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      {report.price}€
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      vehicle.utilization >= 90 ? 'bg-green-100 text-green-800' :
-                      vehicle.utilization >= 75 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {vehicle.utilization >= 90 ? t('excellent') :
-                       vehicle.utilization >= 75 ? t('good') : t('needsAttention')}
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        {report.status}
                     </span>
                   </td>
                 </tr>
@@ -272,6 +564,7 @@ function Reports() {
           </table>
         </div>
       </div>
+      )}
     </div>
   )
 }

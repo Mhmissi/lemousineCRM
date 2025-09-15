@@ -14,10 +14,18 @@ const translations = {
   en: {
     // Navigation
     dashboard: 'Dashboard',
+    plannings: 'Schedules',
+    reports: 'Reports',
+    facturations: 'Invoicing',
+    notesCredit: 'Credit Notes',
+    devis: 'Quotes',
+    proforma: 'Proforma',
     drivers: 'Drivers',
+    clients: 'Clients',
+    profils: 'Profiles',
+    compagnie: 'Company',
     vehicles: 'Vehicles',
     trips: 'Trips',
-    reports: 'Reports',
     settings: 'Settings',
     
     // Common
@@ -275,10 +283,18 @@ const translations = {
   fr: {
     // Navigation
     dashboard: 'Tableau de bord',
+    plannings: 'Plannings',
+    reports: 'Rapports',
+    facturations: 'Facturations',
+    notesCredit: 'Notes de Crédit',
+    devis: 'Devis',
+    proforma: 'Proforma',
     drivers: 'Chauffeurs',
+    clients: 'Clients',
+    profils: 'Profils',
+    compagnie: 'Compagnie',
     vehicles: 'Véhicules',
     trips: 'Trajets',
-    reports: 'Rapports',
     settings: 'Paramètres',
     
     // Common
@@ -536,10 +552,18 @@ const translations = {
   ar: {
     // Navigation
     dashboard: 'لوحة التحكم',
+    plannings: 'المواعيد',
+    reports: 'التقارير',
+    facturations: 'الفواتير',
+    notesCredit: 'إشعارات الائتمان',
+    devis: 'عروض الأسعار',
+    proforma: 'الفاتورة الأولية',
     drivers: 'السائقين',
+    clients: 'العملاء',
+    profils: 'الملفات الشخصية',
+    compagnie: 'الشركة',
     vehicles: 'المركبات',
     trips: 'الرحلات',
-    reports: 'التقارير',
     settings: 'الإعدادات',
     
     // Common
