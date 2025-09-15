@@ -23,6 +23,7 @@ import {
   Building
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
+import LanguageSwitcher from './LanguageSwitcher'
 import Dashboard from './owner/Dashboard'
 import Plannings from './owner/Plannings'
 import Reports from './owner/Reports'
@@ -131,6 +132,11 @@ function OwnerDashboard() {
             })}
           </nav>
 
+          {/* Language Switcher */}
+          <div className="flex-shrink-0 px-4 py-2">
+            <LanguageSwitcher />
+          </div>
+
           {/* User Info & Logout */}
           <div className="flex-shrink-0 flex border-t border-brand-gold p-4">
             <div className="flex items-center">
@@ -165,6 +171,7 @@ function OwnerDashboard() {
           </button>
           <h1 className="text-lg font-semibold text-white">Limostar</h1>
           <div className="flex items-center space-x-2">
+            <LanguageSwitcher />
             <NotificationBell />
           </div>
         </div>
@@ -218,6 +225,11 @@ function OwnerDashboard() {
                   )
                 })}
               </nav>
+            </div>
+
+            {/* Mobile Language Switcher */}
+            <div className="flex-shrink-0 px-4 py-2">
+              <LanguageSwitcher />
             </div>
 
             {/* Mobile User Info */}

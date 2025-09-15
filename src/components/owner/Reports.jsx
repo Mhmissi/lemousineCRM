@@ -170,7 +170,7 @@ const Reports = () => {
     // Title
     doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
-    const title = `Rapport des Trajets - ${periods.find(p => p.value === selectedPeriod)?.label || 'Période'}`
+    const title = `${t('reportTitle')} - ${periods.find(p => p.value === selectedPeriod)?.label || t('period')}`
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
     doc.text(title, 20, 70)
     
@@ -187,12 +187,12 @@ const Reports = () => {
     doc.text('Filtres appliqués:', 20, yPosition + 8)
     
     doc.setFont('helvetica', 'normal')
-    let filterText = `Période: ${periods.find(p => p.value === selectedPeriod)?.label || 'Toutes'}`
+    let filterText = `${t('period')}: ${periods.find(p => p.value === selectedPeriod)?.label || t('all')}`
     if (selectedDriver !== 'all') {
-      filterText += ` | Chauffeur: ${drivers.find(d => d.value === selectedDriver)?.label || 'Tous'}`
+      filterText += ` | ${t('driver')}: ${drivers.find(d => d.value === selectedDriver)?.label || t('allDrivers')}`
     }
     if (selectedClient !== 'all') {
-      filterText += ` | Client: ${clients.find(c => c.value === selectedClient)?.label || 'Tous'}`
+      filterText += ` | ${t('client')}: ${clients.find(c => c.value === selectedClient)?.label || t('allClients')}`
     }
     
     doc.text(filterText, 20, yPosition + 16)
@@ -212,10 +212,10 @@ const Reports = () => {
 
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    doc.text(`Total des trajets: ${totalTrips}`, 20, yPosition)
-    doc.text(`Revenus totaux: ${totalRevenue}€`, 20, yPosition + 8)
-    doc.text(`Distance totale: ${totalDistance} km`, 20, yPosition + 16)
-    doc.text(`Durée totale: ${totalDuration}h`, 20, yPosition + 24)
+    doc.text(`${t('totalTrips')}: ${totalTrips}`, 20, yPosition)
+    doc.text(`${t('totalRevenue')}: ${totalRevenue}€`, 20, yPosition + 8)
+    doc.text(`${t('totalDistance')}: ${totalDistance} km`, 20, yPosition + 16)
+    doc.text(`${t('totalDuration')}: ${totalDuration}h`, 20, yPosition + 24)
     yPosition += 40
 
     // Report details
@@ -242,13 +242,13 @@ const Reports = () => {
 
       // Course details
       const details = [
-        ['Chauffeur:', report.driver],
-        ['Client:', report.client],
+        [t('driver') + ':', report.driver],
+        [t('client') + ':', report.client],
         ['Trajet:', report.trip],
-        ['Durée:', report.duration],
-        ['Distance:', report.distance],
+        [t('duration') + ':', report.duration],
+        [t('distance') + ':', report.distance],
         ['Prix:', `${report.price}€`],
-        ['Statut:', report.status]
+        [t('status') + ':', report.status]
       ]
 
       details.forEach(([label, value], detailIndex) => {
@@ -285,7 +285,7 @@ const Reports = () => {
     doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
     
     const currentDate = new Date().toLocaleDateString('fr-FR')
-    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
+    doc.text(`${t('generatedOn')} ${currentDate}`, pageWidth - 50, footerY + 6)
     doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 30, footerY + 12)
 
     // Save the PDF

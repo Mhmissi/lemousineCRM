@@ -59,7 +59,7 @@ function Dashboard({ onNavigate }) {
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Tableau de bord</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('dashboardTitle')}</h1>
       </div>
 
       {/* Quick Access Buttons */}
@@ -70,7 +70,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <Calendar className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Plannings</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('plannings')}</span>
           </button>
           
           <button 
@@ -78,7 +78,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <BarChart3 className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Rapport</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('reports')}</span>
           </button>
           
           <button 
@@ -86,7 +86,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <FileText className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Facturation</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('facturations')}</span>
           </button>
           
           <button 
@@ -94,7 +94,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <CreditCard className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Notes de crédit</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('notesCredit')}</span>
           </button>
           
           <button 
@@ -102,7 +102,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <FileEdit className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Devis</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('devis')}</span>
           </button>
           
           <button 
@@ -110,7 +110,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <User className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Chauffeurs</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('drivers')}</span>
           </button>
           
           <button 
@@ -118,7 +118,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <Users className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Clients</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('clients')}</span>
           </button>
           
           <button 
@@ -126,7 +126,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <UserCheck className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Profils</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('profils')}</span>
           </button>
           
           <button 
@@ -134,7 +134,7 @@ function Dashboard({ onNavigate }) {
             className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
           >
             <Building className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Compagnie</span>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('compagnie')}</span>
           </button>
         </div>
       </div>
@@ -144,7 +144,7 @@ function Dashboard({ onNavigate }) {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              Statistiques des Courses (Total d'Aujourd'hui {stats.totalTripsToday})
+              {t('tripStatistics')} ({t('totalToday')} {stats.totalTripsToday})
             </h2>
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-5 h-5" />
@@ -183,7 +183,7 @@ function Dashboard({ onNavigate }) {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-gray-900 text-center">
-                Course(s) à faire aujourd'hui
+                {t('tripsToDoToday')}
               </h3>
             </div>
 
@@ -218,7 +218,7 @@ function Dashboard({ onNavigate }) {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-gray-900 text-center">
-                Course(s) faite(s)
+                {t('tripsCompleted')}
               </h3>
             </div>
           </div>
@@ -230,7 +230,7 @@ function Dashboard({ onNavigate }) {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              Course(s) d'aujourd'hui (Total: {stats.totalTripsToday})
+              {t('todaysTrips')} ({t('total')}: {stats.totalTripsToday})
             </h2>
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-5 h-5" />
@@ -241,20 +241,20 @@ function Dashboard({ onNavigate }) {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chauffeur</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Départ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passager(s)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paiement</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('time')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('driver')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('departure')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('destination')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('passengers')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('client')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('payment')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {todayTrips.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
-                      Aucune course prévue pour aujourd'hui
+                      {t('noTripsToday')}
                     </td>
                   </tr>
                 ) : (
@@ -280,7 +280,7 @@ function Dashboard({ onNavigate }) {
       <div className="mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Chiffre d'affaire</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('revenueChart')}</h2>
             <div className="flex items-center space-x-2">
               <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <RefreshCw className="w-5 h-5" />
@@ -302,7 +302,7 @@ function Dashboard({ onNavigate }) {
               <p className="text-gray-500 mb-2">Graphique des revenus</p>
               <div className="text-xs text-gray-400">
                 <p>Courses *100 (Barres bleues)</p>
-                <p>Chiffre d'affaire *1000 € (Barres violettes)</p>
+                <p>{t('revenueAmount')} *1000 € (Barres violettes)</p>
                 <p>Factures impayées (Barres vertes)</p>
                 <p>Prix moyen d'une course * 10 (Ligne orange)</p>
               </div>

@@ -65,11 +65,11 @@ function Plannings() {
   const cars = ['Van', 'Limousine', 'Bus', 'Sedan', 'SUV']
   const paymentMethods = ['Invoice', 'Cash', 'Credit Card']
 
-  // French day names
-  const dayNames = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
+  // Day names
+  const dayNames = [t('monday').substring(0,2), t('tuesday').substring(0,2), t('wednesday').substring(0,2), t('thursday').substring(0,2), t('friday').substring(0,2), t('saturday').substring(0,2), t('sunday').substring(0,2)]
   const monthNames = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    t('january'), t('february'), t('march'), t('april'), t('may'), t('june'),
+    t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
   ]
 
   // Mock schedules data
@@ -257,13 +257,13 @@ function Plannings() {
       newErrors.departureAddress = 'Adresse de départ requise'
     }
     if (!formData.destination.trim()) {
-      newErrors.destination = 'Destination requise'
+      newErrors.destination = t('destinationRequired')
     }
     if (!formData.price.trim()) {
       newErrors.price = 'Prix requis'
     }
     if (formData.passengers < 1) {
-      newErrors.passengers = 'Nombre de passagers invalide'
+      newErrors.passengers = t('passengersRequired')
     }
     
     setErrors(newErrors)
@@ -456,7 +456,7 @@ function Plannings() {
           ['Pick up Location:', schedule.location],
           ['Pax:', schedule.passengers.toString()],
           ['Paxname:', schedule.passengerNames || ''],
-          ['Destination:', schedule.destination || 'N/A'],
+          [t('destination') + ':', schedule.destination || 'N/A'],
           ['Type of vehicles:', schedule.car],
           ['Client:', schedule.client],
           ['Payment:', schedule.paymentMethod || 'Invoice'],
@@ -536,7 +536,7 @@ function Plannings() {
         {/* Week Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
           <h3 className="text-lg font-semibold text-white">
-            Semaine du {weekDays[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au {weekDays[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {t('weekOf')} {weekDays[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au {weekDays[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </h3>
         </div>
         
@@ -723,7 +723,7 @@ function Plannings() {
               <Calendar className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Plannings</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('planningsTitle')}</h1>
               <p className="text-sm lg:text-base text-gray-600">Gestion des plannings</p>
             </div>
           </div>
@@ -732,11 +732,11 @@ function Plannings() {
             <div className="flex space-x-2">
               <button className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
                 <Search className="w-4 h-4" />
-                <span className="hidden sm:inline">Rechercher</span>
+                <span className="hidden sm:inline">{t('search')}</span>
               </button>
               <button className="flex items-center justify-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
                 <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">Filtrer</span>
+                <span className="hidden sm:inline">{t('filter')}</span>
               </button>
             </div>
             <button 
@@ -744,8 +744,8 @@ function Plannings() {
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
             >
               <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
-              <span className="hidden sm:inline">Ajouter un planning</span>
-              <span className="sm:hidden">Ajouter</span>
+              <span className="hidden sm:inline">{t('addPlanning')}</span>
+              <span className="sm:hidden">{t('add')}</span>
             </button>
           </div>
         </div>
@@ -754,7 +754,7 @@ function Plannings() {
         <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
           <span>Home</span>
           <span>/</span>
-          <span className="text-gray-900 font-medium">Plannings</span>
+          <span className="text-gray-900 font-medium">{t('planningsTitle')}</span>
         </nav>
       </div>
 
@@ -788,7 +788,7 @@ function Plannings() {
               onClick={goToToday}
               className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-sm"
             >
-              Aujourd'hui
+              {t('today')}
             </button>
           </div>
           
@@ -801,7 +801,7 @@ function Plannings() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Mois
+              {t('month')}
             </button>
             <button 
               onClick={() => setViewMode('week')}
@@ -811,7 +811,7 @@ function Plannings() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Semaine
+              {t('week')}
             </button>
             <button 
               onClick={() => setViewMode('day')}
@@ -821,7 +821,7 @@ function Plannings() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Jour
+              {t('day')}
             </button>
           </div>
         </div>
@@ -968,8 +968,8 @@ function Plannings() {
                 </button>
                 <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
                   <Mail className="w-4 h-4" />
-                  <span className="hidden sm:inline">Envoyer par mail</span>
-                  <span className="sm:hidden">Mail</span>
+                  <span className="hidden sm:inline">{t('mail')}</span>
+                  <span className="sm:hidden">{t('mail')}</span>
                 </button>
               </div>
             </div>
@@ -986,7 +986,7 @@ function Plannings() {
               </div>
               
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Chauffeur:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('driver')}:</label>
                 <select
                   value={filterDriver}
                   onChange={(e) => setFilterDriver(e.target.value)}
@@ -1000,7 +1000,7 @@ function Plannings() {
               </div>
               
               <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm">
-                Rechercher
+                {t('search')}
               </button>
             </div>
           </div>
@@ -1036,7 +1036,7 @@ function Plannings() {
                     <Search className="w-4 h-4 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Rechercher ici..."
+                      placeholder={t('search') + '...'}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
@@ -1065,14 +1065,14 @@ function Plannings() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N°</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Chauffeur</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Départ</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Destination</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Passager(s)</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Client</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Paiement</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('time')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">{t('driver')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('departure')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">{t('destination')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">{t('passengers')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">{t('client')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">{t('payment')}</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
