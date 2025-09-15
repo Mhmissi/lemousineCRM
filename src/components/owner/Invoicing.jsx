@@ -547,13 +547,13 @@ const Invoicing = () => {
         <div className="flex items-center space-x-3">
           <FileText className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">Facturation</span>
-            <span className="sm:hidden">Factures</span>
+            <span className="hidden sm:inline">{t('invoicingTitle')}</span>
+            <span className="sm:hidden">{t('invoicingTitle')}</span>
           </h1>
         </div>
         <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / Facturation</span>
-          <span className="sm:hidden">Home / Factures</span>
+          <span className="hidden sm:inline">Home / {t('invoicingTitle')}</span>
+          <span className="sm:hidden">Home / {t('invoicingTitle')}</span>
         </div>
       </div>
 
@@ -562,8 +562,8 @@ const Invoicing = () => {
         <div className="flex items-center space-x-2 mb-6">
           <Receipt className="w-5 h-5 text-blue-600" />
           <h2 className="text-xl font-semibold text-gray-900">
-            <span className="hidden sm:inline">Gestion des Factures</span>
-            <span className="sm:hidden">Factures</span>
+            <span className="hidden sm:inline">{t('invoicingTitle')}</span>
+            <span className="sm:hidden">{t('invoicingTitle')}</span>
           </h2>
         </div>
 
@@ -572,7 +572,7 @@ const Invoicing = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrer
+                {t('filter')}
               </label>
               <select
                 value={filterStatus}

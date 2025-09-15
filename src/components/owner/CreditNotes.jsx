@@ -473,13 +473,13 @@ const CreditNotes = () => {
         <div className="flex items-center space-x-3">
           <FileEdit className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">Note de Crédit</span>
-            <span className="sm:hidden">Crédit</span>
+            <span className="hidden sm:inline">{t('creditNotesTitle')}</span>
+            <span className="sm:hidden">{t('creditNotesTitle')}</span>
           </h1>
         </div>
         <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / Note de crédit</span>
-          <span className="sm:hidden">Home / Crédit</span>
+          <span className="hidden sm:inline">Home / {t('creditNotesTitle')}</span>
+          <span className="sm:hidden">Home / {t('creditNotesTitle')}</span>
         </div>
       </div>
 
@@ -490,7 +490,7 @@ const CreditNotes = () => {
           className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          <span>Créer une note de crédit</span>
+          <span>{t('addCreditNote')}</span>
         </button>
       </div>
 
