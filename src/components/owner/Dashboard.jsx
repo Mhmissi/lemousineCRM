@@ -67,77 +67,85 @@ function Dashboard({ onNavigate }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9 gap-4">
           <button 
             onClick={() => onNavigate && onNavigate('plannings')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <Calendar className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <Calendar className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('plannings')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('reports')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <BarChart3 className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <BarChart3 className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('reports')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('facturations')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <FileText className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <FileText className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('facturations')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('notesCredit')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <CreditCard className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <CreditCard className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('notesCredit')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('devis')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <FileEdit className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <FileEdit className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('devis')}</span>
           </button>
           
           <button 
-            onClick={() => onNavigate && onNavigate('drivers')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            onClick={() => onNavigate && onNavigate('proforma')}
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <User className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <Grid3X3 className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('proforma')}</span>
+          </button>
+          
+          <button 
+            onClick={() => onNavigate && onNavigate('drivers')}
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
+          >
+            <User className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('drivers')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('clients')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <Users className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <Users className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('clients')}</span>
           </button>
           
           <button 
             onClick={() => onNavigate && onNavigate('profils')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
           >
-            <UserCheck className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            <UserCheck className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('profils')}</span>
           </button>
           
-          <button 
+            <button 
             onClick={() => onNavigate && onNavigate('compagnie')}
-            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 group"
-          >
-            <Building className="w-8 h-8 text-blue-600 group-hover:text-blue-700 mb-2" />
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
+            >
+            <Building className="w-8 h-8 mb-2" style={{ color: '#DAA520' }} />
             <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{t('compagnie')}</span>
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* Trip Statistics Section */}
       <div className="mb-8">
@@ -149,8 +157,8 @@ function Dashboard({ onNavigate }) {
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-5 h-5" />
             </button>
-          </div>
-          
+      </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Pending Trips */}
             <div className="flex flex-col items-center">
@@ -179,13 +187,13 @@ function Dashboard({ onNavigate }) {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">0.00</div>
                     <div className="text-sm text-gray-500">(0) %</div>
-                  </div>
-                </div>
+            </div>
+          </div>
               </div>
               <h3 className="text-lg font-medium text-gray-900 text-center">
                 {t('tripsToDoToday')}
               </h3>
-            </div>
+        </div>
 
             {/* Completed Trips */}
             <div className="flex flex-col items-center">
@@ -214,16 +222,16 @@ function Dashboard({ onNavigate }) {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">0.00</div>
                     <div className="text-sm text-gray-500">(0) %</div>
-                  </div>
-                </div>
-              </div>
+            </div>
+          </div>
+        </div>
               <h3 className="text-lg font-medium text-gray-900 text-center">
                 {t('tripsCompleted')}
               </h3>
             </div>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Today's Trips Section */}
       <div className="mb-8">
@@ -235,7 +243,7 @@ function Dashboard({ onNavigate }) {
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-5 h-5" />
             </button>
-          </div>
+            </div>
           
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -287,9 +295,9 @@ function Dashboard({ onNavigate }) {
               </button>
               <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <Maximize2 className="w-5 h-5" />
-              </button>
-            </div>
+            </button>
           </div>
+                  </div>
           
           <div className="mb-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Tableau des combinaisons</h3>
@@ -298,22 +306,22 @@ function Dashboard({ onNavigate }) {
             <div className="bg-gray-50 rounded-lg p-8 text-center">
               <div className="flex items-center justify-center mb-4">
                 <BarChart3 className="w-12 h-12 text-gray-400" />
-              </div>
+                  </div>
               <p className="text-gray-500 mb-2">Graphique des revenus</p>
               <div className="text-xs text-gray-400">
                 <p>Courses *100 (Barres bleues)</p>
                 <p>{t('revenueAmount')} *1000 € (Barres violettes)</p>
                 <p>Factures impayées (Barres vertes)</p>
                 <p>Prix moyen d'une course * 10 (Ligne orange)</p>
-              </div>
+                </div>
               <div className="mt-4 text-xs text-gray-400">
                 <p>Mois: Mai, Juin, Juillet, Août, Septembre</p>
-              </div>
-            </div>
+                </div>
           </div>
-          
+        </div>
+
           <div className="text-right text-xs text-gray-400">
-            Highcharts.com
+            CRM powered by Rankiwisy
           </div>
         </div>
       </div>

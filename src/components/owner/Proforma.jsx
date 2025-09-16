@@ -391,7 +391,7 @@ const Proforma = () => {
     let yPosition = 30
 
     // Professional color scheme
-    const primaryColor = [41, 128, 185] // Blue
+    const primaryColor = [218, 165, 32] // Goldenrod
     const secondaryColor = [52, 73, 94] // Dark gray
     const accentColor = [230, 126, 34] // Orange
 
@@ -584,25 +584,25 @@ const Proforma = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <Grid3X3 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <Grid3X3 className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">Proforma</span>
-            <span className="sm:hidden">Proforma</span>
+            <span className="hidden sm:inline">{t('proformaTitle')}</span>
+            <span className="sm:hidden">{t('proformaTitle')}</span>
           </h1>
         </div>
         <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / Proforma</span>
-          <span className="sm:hidden">Home / Proforma</span>
+          <span className="hidden sm:inline">Home / {t('proformaTitle')}</span>
+          <span className="sm:hidden">Home / {t('proformaTitle')}</span>
         </div>
       </div>
 
       {/* Proforma Management Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
         <div className="flex items-center space-x-2 mb-6">
-          <Grid3X3 className="w-5 h-5 text-blue-600" />
+          <Grid3X3 className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
-            <span className="hidden sm:inline">Gestion des Proforma</span>
-            <span className="sm:hidden">Proforma</span>
+            <span className="hidden sm:inline">{t('proformaTitle')}</span>
+            <span className="sm:hidden">{t('proformaTitle')}</span>
           </h2>
         </div>
 
@@ -611,12 +611,12 @@ const Proforma = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrer
+                {t('filter')}
               </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {filterOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -627,12 +627,12 @@ const Proforma = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Grouper les Proforma par client
+                {t('groupByClient')}
               </label>
               <select
                 value={groupByClient}
                 onChange={(e) => setGroupByClient(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {clientOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -648,10 +648,11 @@ const Proforma = () => {
         <div className="flex justify-end">
           <button
             onClick={handleCreateProforma}
-            className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="flex items-center space-x-2 px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{ backgroundColor: '#DAA520' }}
           >
             <Plus className="w-4 h-4" />
-            <span>Créer proforma</span>
+            <span>{t('createProforma')}</span>
           </button>
         </div>
       </div>
@@ -662,28 +663,28 @@ const Proforma = () => {
         <div className="bg-gray-100 px-4 lg:px-6 py-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              <span className="hidden sm:inline">Table des proformas</span>
-              <span className="sm:hidden">Proformas</span>
+              <span className="hidden sm:inline">{t('proformaTable')}</span>
+              <span className="sm:hidden">{t('proformaTitle')}</span>
             </h2>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Recherche:</label>
+                <label className="text-sm font-medium text-gray-700">{t('search')}:</label>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher..."
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                  placeholder={t('search') + '...'}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                 />
               </div>
               
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Affichage enregistrement(s):</label>
+                <label className="text-sm font-medium text-gray-700">{t('display')} {t('records')}:</label>
                 <select
                   value={displayCount}
                   onChange={(e) => setDisplayCount(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {displayOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -695,13 +696,13 @@ const Proforma = () => {
               
               <div className="flex items-center space-x-2">
                 {/* Filter icons */}
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <Filter className="w-4 h-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <Filter className="w-4 h-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <Filter className="w-4 h-4" />
                 </button>
                 
@@ -711,7 +712,7 @@ const Proforma = () => {
                   className="flex items-center space-x-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
+                  <span className="hidden sm:inline">{t('print')}</span>
                 </button>
               </div>
             </div>
@@ -724,37 +725,37 @@ const Proforma = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  N°
+                  {t('number')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                  {t('date')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Échéance
+                  {t('dueDate')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
+                  {t('client')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Paiement
+                  {t('payment')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remarque
+                  {t('remark')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total HTVA
+                  {t('totalExclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  TVA
+                  {t('vat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total TVAC
+                  {t('totalInclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acompte
+                  {t('deposit')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -806,7 +807,7 @@ const Proforma = () => {
                       </button>
                       <button
                         onClick={() => handleSendProforma(proforma.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                       >
                         <Mail className="w-4 h-4" />
                       </button>
@@ -852,7 +853,7 @@ const Proforma = () => {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <Grid3X3 className="w-6 h-6 text-blue-600" />
+                <Grid3X3 className="w-6 h-6" style={{ color: '#DAA520' }} />
                 <h2 className="text-2xl font-bold text-gray-900">Nouveau proforma</h2>
               </div>
               <div className="text-sm text-gray-500">
@@ -875,7 +876,7 @@ const Proforma = () => {
                     <select
                       value={formData.clientType}
                       onChange={(e) => handleInputChange('clientType', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       {existingClients.map(client => (
                         <option key={client.value} value={client.value}>
@@ -894,7 +895,7 @@ const Proforma = () => {
                       value={formData.clientName}
                       onChange={(e) => handleInputChange('clientName', e.target.value)}
                       placeholder="Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -912,7 +913,7 @@ const Proforma = () => {
                       value={formData.clientAddress}
                       onChange={(e) => handleInputChange('clientAddress', e.target.value)}
                       placeholder="Adresse de Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientAddress ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -930,7 +931,7 @@ const Proforma = () => {
                       value={formData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
                       placeholder="Code Postal:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.postalCode ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -948,7 +949,7 @@ const Proforma = () => {
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="Ville:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.city ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -966,7 +967,7 @@ const Proforma = () => {
                       value={formData.clientVAT}
                       onChange={(e) => handleInputChange('clientVAT', e.target.value)}
                       placeholder="TVA Client"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -974,7 +975,8 @@ const Proforma = () => {
                   <div className="flex space-x-4 pt-4">
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      style={{ backgroundColor: '#DAA520' }}
                     >
                       Enregistrer
                     </button>
@@ -1002,7 +1004,7 @@ const Proforma = () => {
                     <select
                       value={formData.company}
                       onChange={(e) => handleInputChange('company', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.company ? 'border-red-500' : 'border-gray-300'
                       }`}
                     >
@@ -1025,7 +1027,7 @@ const Proforma = () => {
                       type="date"
                       value={formData.date}
                       onChange={(e) => handleInputChange('date', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -1036,7 +1038,7 @@ const Proforma = () => {
                     <select
                       value={formData.paymentMethod}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       {paymentMethods.map(method => (
                         <option key={method.value} value={method.value}>
@@ -1054,7 +1056,7 @@ const Proforma = () => {
                       type="date"
                       value={formData.dueDate}
                       onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.dueDate ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -1072,7 +1074,7 @@ const Proforma = () => {
                       step="0.01"
                       value={formData.deposit}
                       onChange={(e) => handleInputChange('deposit', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -1084,7 +1086,7 @@ const Proforma = () => {
                       value={formData.remark}
                       onChange={(e) => handleInputChange('remark', e.target.value)}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent resize-vertical"
                     />
                   </div>
                 </div>
@@ -1120,7 +1122,7 @@ const Proforma = () => {
                             onChange={(e) => handleDesignationChange(index, 'description', e.target.value)}
                             placeholder={`Désignation ${index + 1}:`}
                             rows={2}
-                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical ${
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent resize-vertical ${
                               errors[`designation_${index}_description`] ? 'border-red-500' : 'border-gray-300'
                             }`}
                           />
@@ -1136,7 +1138,7 @@ const Proforma = () => {
                           <select
                             value={designation.vatRate}
                             onChange={(e) => handleDesignationChange(index, 'vatRate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                           >
                             {vatRates.map(rate => (
                               <option key={rate.value} value={rate.value}>
@@ -1155,7 +1157,7 @@ const Proforma = () => {
                             step="0.01"
                             value={designation.price}
                             onChange={(e) => handleDesignationChange(index, 'price', parseFloat(e.target.value) || 0)}
-                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                               errors[`designation_${index}_price`] ? 'border-red-500' : 'border-gray-300'
                             }`}
                           />

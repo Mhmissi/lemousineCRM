@@ -369,7 +369,7 @@ const Invoicing = () => {
     let yPosition = 30
 
     // Professional color scheme
-    const primaryColor = [41, 128, 185] // Blue
+    const primaryColor = [218, 165, 32] // Goldenrod
     const secondaryColor = [52, 73, 94] // Dark gray
     const accentColor = [230, 126, 34] // Orange
 
@@ -545,7 +545,7 @@ const Invoicing = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <FileText className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <FileText className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
             <span className="hidden sm:inline">{t('invoicingTitle')}</span>
             <span className="sm:hidden">{t('invoicingTitle')}</span>
@@ -560,7 +560,7 @@ const Invoicing = () => {
       {/* Invoice Management Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
         <div className="flex items-center space-x-2 mb-6">
-          <Receipt className="w-5 h-5 text-blue-600" />
+          <Receipt className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
             <span className="hidden sm:inline">{t('invoicingTitle')}</span>
             <span className="sm:hidden">{t('invoicingTitle')}</span>
@@ -577,7 +577,7 @@ const Invoicing = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {filterOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -588,12 +588,12 @@ const Invoicing = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Grouper les factures par client
+                {t('groupByClient')}
               </label>
               <select
                 value={groupByClient}
                 onChange={(e) => setGroupByClient(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {clientOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -610,17 +610,18 @@ const Invoicing = () => {
           <button
             onClick={handleShowMonth}
             disabled={loading}
-            className="flex items-center justify-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-2 px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#DAA520' }}
           >
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Chargement...</span>
+                <span>{t('loading')}</span>
               </>
             ) : (
               <>
                 <Calendar className="w-4 h-4" />
-                <span>Afficher le mois</span>
+                <span>{t('showMonth')}</span>
               </>
             )}
           </button>
@@ -629,7 +630,7 @@ const Invoicing = () => {
             className="flex items-center justify-center space-x-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Créer une facture</span>
+            <span>{t('createInvoice')}</span>
           </button>
         </div>
       </div>
@@ -638,30 +639,30 @@ const Invoicing = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-blue-600" />
+            <FileText className="w-5 h-5" style={{ color: '#DAA520' }} />
             <h2 className="text-xl font-semibold text-gray-900">
-              <span className="hidden sm:inline">Table des factures</span>
-              <span className="sm:hidden">Factures</span>
+              <span className="hidden sm:inline">{t('invoiceTable')}</span>
+              <span className="sm:hidden">{t('invoicingTitle')}</span>
             </h2>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Recherche:</label>
+              <label className="text-sm font-medium text-gray-700">{t('search')}:</label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher..."
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t('search') + '...'}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Affichage</label>
+              <label className="text-sm font-medium text-gray-700">{t('display')}</label>
               <select
                 value={displayCount}
                 onChange={(e) => setDisplayCount(Number(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {displayOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -669,7 +670,7 @@ const Invoicing = () => {
                   </option>
                 ))}
               </select>
-              <span className="text-sm text-gray-700">enregistrements</span>
+              <span className="text-sm text-gray-700">{t('records')}</span>
             </div>
           </div>
         </div>
@@ -680,37 +681,37 @@ const Invoicing = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  N°
+                  {t('number')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                  {t('date')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Échéance
+                  {t('dueDate')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
+                  {t('client')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Paiement
+                  {t('payment')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remarque
+                  {t('remark')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total HTVA
+                  {t('totalExclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  TVA
+                  {t('vat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total TVAC
+                  {t('totalInclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acompte
+                  {t('deposit')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -762,7 +763,7 @@ const Invoicing = () => {
                       </button>
                       <button
                         onClick={() => handleViewInvoice(invoice.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -808,12 +809,12 @@ const Invoicing = () => {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <FileText className="w-6 h-6 text-blue-600" />
+                <FileText className="w-6 h-6" style={{ color: '#DAA520' }} />
                 <h2 className="text-2xl font-bold text-gray-900">Nouvelle Facture</h2>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -835,7 +836,7 @@ const Invoicing = () => {
                     <select
                       value={formData.clientType}
                       onChange={(e) => handleInputChange('clientType', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       <option value="existing">--Nouveau Client--</option>
                       {existingClients.map(client => (
@@ -855,7 +856,7 @@ const Invoicing = () => {
                       value={formData.clientName}
                       onChange={(e) => handleInputChange('clientName', e.target.value)}
                       placeholder="Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -873,7 +874,7 @@ const Invoicing = () => {
                       value={formData.clientAddress}
                       onChange={(e) => handleInputChange('clientAddress', e.target.value)}
                       placeholder="Adresse de Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientAddress ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -891,7 +892,7 @@ const Invoicing = () => {
                       value={formData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
                       placeholder="Code Postal:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.postalCode ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -909,7 +910,7 @@ const Invoicing = () => {
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="Ville:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.city ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -927,7 +928,7 @@ const Invoicing = () => {
                       value={formData.clientVAT}
                       onChange={(e) => handleInputChange('clientVAT', e.target.value)}
                       placeholder="TVA Client"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -944,7 +945,7 @@ const Invoicing = () => {
                       type="date"
                       value={formData.date}
                       onChange={(e) => handleInputChange('date', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -955,7 +956,7 @@ const Invoicing = () => {
                     <select
                       value={formData.paymentMethod}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       <option value="">--Payment--</option>
                       {paymentMethods.map(method => (
@@ -974,7 +975,7 @@ const Invoicing = () => {
                       type="date"
                       value={formData.dueDate}
                       onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.dueDate ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -992,7 +993,7 @@ const Invoicing = () => {
                       step="0.01"
                       value={formData.deposit}
                       onChange={(e) => handleInputChange('deposit', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -1004,7 +1005,7 @@ const Invoicing = () => {
                       value={formData.remark}
                       onChange={(e) => handleInputChange('remark', e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -1015,7 +1016,7 @@ const Invoicing = () => {
                     <select
                       value={formData.vatType}
                       onChange={(e) => handleInputChange('vatType', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       <option value="htva">HTVA</option>
                       <option value="tvac">TVAC</option>
@@ -1054,7 +1055,7 @@ const Invoicing = () => {
                             onChange={(e) => handleDesignationChange(index, 'description', e.target.value)}
                             placeholder={`Désignation ${index + 1}:`}
                             rows={2}
-                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                               errors[`designation_${index}_description`] ? 'border-red-500' : 'border-gray-300'
                             }`}
                           />
@@ -1070,7 +1071,7 @@ const Invoicing = () => {
                           <select
                             value={designation.vatRate}
                             onChange={(e) => handleDesignationChange(index, 'vatRate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                           >
                             <option value="">--TVA--</option>
                             {vatRates.map(rate => (
@@ -1090,7 +1091,7 @@ const Invoicing = () => {
                             step="0.01"
                             value={designation.price}
                             onChange={(e) => handleDesignationChange(index, 'price', parseFloat(e.target.value) || 0)}
-                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                               errors[`designation_${index}_price`] ? 'border-red-500' : 'border-gray-300'
                             }`}
                           />
@@ -1127,7 +1128,8 @@ const Invoicing = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
                   Enregistrer
                 </button>

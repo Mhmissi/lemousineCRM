@@ -393,10 +393,10 @@ const Company = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <Building className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <Building className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Compagnie</h1>
         </div>
-        <div className="text-sm text-blue-600">
+        <div className="text-sm" style={{ color: '#DAA520' }}>
           <span className="hidden sm:inline">Home / Compagnie</span>
           <span className="sm:hidden">Home / Compagnie</span>
         </div>
@@ -424,7 +424,7 @@ const Company = () => {
                       value={searchTerm}
                       onChange={handleSearch}
                       placeholder="Rechercher ici..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                     />
                   </div>
                 </div>
@@ -435,7 +435,7 @@ const Company = () => {
                   <select
                     value={displayCount}
                     onChange={handleDisplayCountChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -586,7 +586,7 @@ const Company = () => {
                       onClick={() => handlePageChange(pageNum)}
                       className={`px-3 py-1 text-sm border rounded ${
                         currentPage === pageNum
-                          ? 'bg-blue-600 text-white border-blue-600'
+                          ? 'bg-[#DAA520] text-white border-[#DAA520]'
                           : 'border-gray-300 hover:bg-gray-100'
                       }`}
                     >
@@ -637,7 +637,7 @@ const Company = () => {
                       value={brandSearchTerm}
                       onChange={handleBrandSearch}
                       placeholder="Rechercher ici..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                     />
                   </div>
                 </div>
@@ -648,7 +648,7 @@ const Company = () => {
                   <select
                     value={brandDisplayCount}
                     onChange={handleBrandDisplayCountChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -716,7 +716,7 @@ const Company = () => {
                             b.id === brand.id ? { ...b, status: newStatus } : b
                           ))
                         }}
-                        className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                       >
                         <option value="Activée">Activée</option>
                         <option value="Désactivée">Désactivée</option>
@@ -787,7 +787,7 @@ const Company = () => {
                       onClick={() => handleBrandPageChange(pageNum)}
                       className={`px-3 py-1 text-sm border rounded ${
                         brandCurrentPage === pageNum
-                          ? 'bg-blue-600 text-white border-blue-600'
+                          ? 'bg-[#DAA520] text-white border-[#DAA520]'
                           : 'border-gray-300 hover:bg-gray-100'
                       }`}
                     >
@@ -818,7 +818,7 @@ const Company = () => {
 
       {/* Footer */}
       <div className="mt-8 text-center text-sm text-gray-500">
-        Powered by CAPTIV SOLUTIONS
+        Powered by Rankwisy
       </div>
     </div>
   )

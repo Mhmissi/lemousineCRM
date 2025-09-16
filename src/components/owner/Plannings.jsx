@@ -224,7 +224,7 @@ function Plannings() {
   const getScheduleColor = (color) => {
     switch (color) {
       case 'blue':
-        return 'bg-blue-500'
+        return 'bg-[#DAA520]'
       case 'green':
         return 'bg-green-500'
       case 'purple':
@@ -352,7 +352,7 @@ function Plannings() {
     let yPosition = 30
 
     // Professional color scheme
-    const primaryColor = [41, 128, 185] // Blue
+    const primaryColor = [218, 165, 32] // Goldenrod
     const secondaryColor = [52, 73, 94] // Dark gray
     const accentColor = [230, 126, 34] // Orange
 
@@ -534,7 +534,7 @@ function Plannings() {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Week Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #DAA520, #B8860B)' }}>
           <h3 className="text-lg font-semibold text-white">
             {t('weekOf')} {weekDays[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au {weekDays[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </h3>
@@ -559,13 +559,16 @@ function Plannings() {
             return (
               <div
                 key={index}
-                className={`min-h-32 border-r border-b border-gray-100 p-3 cursor-pointer transition-all duration-200 hover:bg-blue-50 ${
-                  isCurrentDay ? 'bg-blue-50 border-blue-200' : ''
-                } ${isSelectedDay ? 'bg-blue-100 border-blue-300' : ''}`}
+                className={`min-h-32 border-r border-b border-gray-100 p-3 cursor-pointer transition-all duration-200 ${
+                  isCurrentDay ? 'border-[#DAA520]' : ''
+                } ${isSelectedDay ? 'border-[#DAA520]' : ''}`}
+                style={{
+                  backgroundColor: isCurrentDay ? '#FFF8DC' : isSelectedDay ? '#F5DEB3' : 'transparent'
+                }}
                 onClick={() => handleDayClick(day)}
               >
                 <div className={`text-sm font-medium mb-2 ${
-                  isCurrentDay ? 'text-blue-600' : 'text-gray-900'
+                  isCurrentDay ? 'text-[#DAA520]' : 'text-gray-900'
                 }`}>
                   {day.getDate()}
                 </div>
@@ -597,7 +600,7 @@ function Plannings() {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Day Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #DAA520, #B8860B)' }}>
           <h3 className="text-lg font-semibold text-white">
             {selectedDate.toLocaleDateString('fr-FR', { 
               weekday: 'long', 
@@ -648,7 +651,7 @@ function Plannings() {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Month Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="px-6 py-4" style={{ background: 'linear-gradient(to right, #DAA520, #B8860B)' }}>
           <h3 className="text-lg font-semibold text-white">
             {monthNames[displayDate.getMonth()]} {displayDate.getFullYear()}
           </h3>
@@ -677,13 +680,16 @@ function Plannings() {
             return (
               <div
                 key={index}
-                className={`h-20 sm:h-24 border-r border-b border-gray-100 p-1 sm:p-2 cursor-pointer transition-all duration-200 hover:bg-blue-50 ${
-                  isCurrentDay ? 'bg-blue-50 border-blue-200' : ''
-                } ${isSelectedDay ? 'bg-blue-100 border-blue-300' : ''}`}
+                className={`h-20 sm:h-24 border-r border-b border-gray-100 p-1 sm:p-2 cursor-pointer transition-all duration-200 ${
+                  isCurrentDay ? 'border-[#DAA520]' : ''
+                } ${isSelectedDay ? 'border-[#DAA520]' : ''}`}
+                style={{
+                  backgroundColor: isCurrentDay ? '#FFF8DC' : isSelectedDay ? '#F5DEB3' : 'transparent'
+                }}
                 onClick={() => handleDayClick(day)}
               >
                 <div className={`text-sm font-medium mb-1 ${
-                  isCurrentDay ? 'text-blue-600' : 'text-gray-900'
+                  isCurrentDay ? 'text-[#DAA520]' : 'text-gray-900'
                 }`}>
                   {day.getDate()}
                 </div>
@@ -719,8 +725,8 @@ function Plannings() {
       <div className="mb-6 lg:mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <Calendar className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
             </div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('planningsTitle')}</h1>
@@ -741,7 +747,8 @@ function Plannings() {
             </div>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
+              className="flex items-center justify-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
+              style={{ backgroundColor: '#DAA520' }}
             >
               <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
               <span className="hidden sm:inline">{t('addPlanning')}</span>
@@ -797,7 +804,7 @@ function Plannings() {
               onClick={() => setViewMode('month')}
               className={`px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 viewMode === 'month' 
-                  ? 'text-blue-600 bg-blue-50' 
+                  ? 'text-[#DAA520] bg-[#FFF8DC]' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -807,7 +814,7 @@ function Plannings() {
               onClick={() => setViewMode('week')}
               className={`px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 viewMode === 'week' 
-                  ? 'text-blue-600 bg-blue-50' 
+                  ? 'text-[#DAA520] bg-[#FFF8DC]' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -817,7 +824,7 @@ function Plannings() {
               onClick={() => setViewMode('day')}
               className={`px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 viewMode === 'day' 
-                  ? 'text-blue-600 bg-blue-50' 
+                  ? 'text-[#DAA520] bg-[#FFF8DC]' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -925,8 +932,8 @@ function Plannings() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <List className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+                <List className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
               </div>
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Planning</h1>
@@ -981,7 +988,7 @@ function Plannings() {
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
                 />
               </div>
               
@@ -990,7 +997,7 @@ function Plannings() {
                 <select
                   value={filterDriver}
                   onChange={(e) => setFilterDriver(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
                 >
                   <option value="all">--Toute la liste--</option>
                   {drivers.map(driver => (
@@ -999,7 +1006,7 @@ function Plannings() {
                 </select>
               </div>
               
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm">
+              <button className="px-4 py-2 text-white rounded-lg font-medium transition-colors text-sm" style={{ backgroundColor: '#DAA520' }}>
                 {t('search')}
               </button>
             </div>
@@ -1009,7 +1016,8 @@ function Plannings() {
           <div className="flex justify-end">
             <button 
               onClick={() => setShowAddModal(true)}
-              className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
+              className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
+              style={{ backgroundColor: '#DAA520' }}
             >
               <Plus className="w-5 h-5" />
               <span>Ajouter une course</span>
@@ -1039,7 +1047,7 @@ function Plannings() {
                       placeholder={t('search') + '...'}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
                     />
                   </div>
                   <div className="flex items-center space-x-2">
@@ -1047,7 +1055,7 @@ function Plannings() {
                     <select
                       value={itemsPerPage}
                       onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -1113,7 +1121,7 @@ function Plannings() {
                           <button className="text-green-600 hover:text-green-900 p-1">
                             <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                           </button>
-                          <button className="text-blue-600 hover:text-blue-900 p-1">
+                          <button className="p-1" style={{ color: '#DAA520' }}>
                             <Check className="w-3 h-3 lg:w-4 lg:h-4" />
                           </button>
                           <button className="text-red-600 hover:text-red-900 p-1">
@@ -1203,7 +1211,7 @@ function Plannings() {
                   <select
                     value={formData.company}
                     onChange={(e) => handleInputChange('company', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                   >
                     {companies.map(company => (
                       <option key={company} value={company}>{company}</option>
@@ -1222,7 +1230,7 @@ function Plannings() {
                       type="date"
                       value={formData.date}
                       onChange={(e) => handleInputChange('date', e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
                     />
                     <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
@@ -1234,7 +1242,7 @@ function Plannings() {
                       type="time"
                       value={formData.time}
                       onChange={(e) => handleInputChange('time', e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
                     />
                     <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
@@ -1249,7 +1257,7 @@ function Plannings() {
                   placeholder="Enter a location"
                   value={formData.departureAddress}
                   onChange={(e) => handleInputChange('departureAddress', e.target.value)}
-                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
                     errors.departureAddress ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -1265,7 +1273,7 @@ function Plannings() {
                   placeholder="Enter a location"
                   value={formData.destination}
                   onChange={(e) => handleInputChange('destination', e.target.value)}
-                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
                     errors.destination ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -1282,7 +1290,7 @@ function Plannings() {
                     <select
                       value={formData.client}
                       onChange={(e) => handleInputChange('client', e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                     >
                       {clients.map(client => (
                         <option key={client} value={client}>{client}</option>
@@ -1297,7 +1305,7 @@ function Plannings() {
                     <select
                       value={formData.driver}
                       onChange={(e) => handleInputChange('driver', e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                     >
                       {drivers.map(driver => (
                         <option key={driver} value={driver}>{driver}</option>
@@ -1312,7 +1320,7 @@ function Plannings() {
                     <select
                       value={formData.car}
                       onChange={(e) => handleInputChange('car', e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                     >
                       {cars.map(car => (
                         <option key={car} value={car}>{car}</option>
@@ -1332,7 +1340,7 @@ function Plannings() {
                     min="1"
                     value={formData.passengers}
                     onChange={(e) => handleInputChange('passengers', parseInt(e.target.value) || 1)}
-                    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
                       errors.passengers ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -1366,7 +1374,7 @@ function Plannings() {
                   value={formData.passengerNames}
                   onChange={(e) => handleInputChange('passengerNames', e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] resize-none"
                 />
               </div>
 
@@ -1380,7 +1388,7 @@ function Plannings() {
                       placeholder="Prix"
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
-                      className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
                         errors.price ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -1392,7 +1400,8 @@ function Plannings() {
                         type="checkbox"
                         checked={formData.vatIncluded}
                         onChange={(e) => handleInputChange('vatIncluded', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 border-gray-300 rounded focus:ring-[#DAA520]"
+                        style={{ color: '#DAA520' }}
                       />
                       <span className="text-sm text-gray-700">TVA compris</span>
                     </label>
@@ -1410,7 +1419,7 @@ function Plannings() {
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                   >
                     {paymentMethods.map(method => (
                       <option key={method} value={method}>{method}</option>
@@ -1428,7 +1437,7 @@ function Plannings() {
                   value={formData.comments}
                   onChange={(e) => handleInputChange('comments', e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] resize-none"
                 />
               </div>
 
@@ -1443,7 +1452,8 @@ function Plannings() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
                   Enregistrer
                 </button>

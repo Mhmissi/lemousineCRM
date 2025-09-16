@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { User, Search, Plus, Edit, Trash2, Grid3X3, Printer, Lock } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const Profiles = () => {
+  const { t } = useLanguage()
   const [profiles, setProfiles] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [displayCount, setDisplayCount] = useState(10)
@@ -198,12 +200,12 @@ const Profiles = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <User className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Profils</h1>
+          <User className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('profilesTitle')}</h1>
         </div>
-        <div className="text-sm text-blue-600">
-          <span className="hidden sm:inline">Home / Profils</span>
-          <span className="sm:hidden">Home / Profils</span>
+        <div className="text-sm" style={{ color: '#DAA520' }}>
+          <span className="hidden sm:inline">Home / {t('profilesTitle')}</span>
+          <span className="sm:hidden">Home / {t('profilesTitle')}</span>
         </div>
       </div>
 
@@ -211,10 +213,11 @@ const Profiles = () => {
       <div className="mb-6">
         <button
           onClick={handleAddProfile}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          style={{ backgroundColor: '#DAA520' }}
         >
           <Lock className="w-5 h-5" />
-          <span>Ajouter un profil</span>
+          <span>{t('addProfile')}</span>
         </button>
       </div>
 
@@ -225,32 +228,32 @@ const Profiles = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-2">
               <Grid3X3 className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Table Profils</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('profilesTable')}</h2>
             </div>
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
               {/* Search */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Recherche:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('search')}:</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={handleSearch}
-                    placeholder="Rechercher ici..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                    placeholder={t('search') + '...'}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                   />
                 </div>
               </div>
 
               {/* Display Count */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Affichage/Page:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')}/Page:</label>
                 <select
                   value={displayCount}
                   onChange={handleDisplayCountChange}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -275,7 +278,7 @@ const Profiles = () => {
                   className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
                 >
                   <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
+                  <span className="hidden sm:inline">{t('print')}</span>
                 </button>
               </div>
             </div>
@@ -287,13 +290,13 @@ const Profiles = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classe</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Creation</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modifier ce compte</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supprimer ce compte</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('name')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('username')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('password')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('class')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('creationDate')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('modifyAccount')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('deleteAccount')}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -321,7 +324,7 @@ const Profiles = () => {
                       onClick={() => handleModifyProfile(profile)}
                       className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                      Modifier
+{t('modify')}
                     </button>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -330,7 +333,7 @@ const Profiles = () => {
                         onClick={() => handleDeleteProfile(profile.id)}
                         className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                       >
-                        Supprimer
+{t('delete')}
                       </button>
                     ) : (
                       <span className="text-gray-400 text-sm">-</span>
@@ -346,7 +349,7 @@ const Profiles = () => {
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-700">
-              Affichage {startIndex + 1} à {Math.min(endIndex, filteredProfiles.length)} de {filteredProfiles.length} enregistrement(s)
+              {t('display')} {startIndex + 1} à {Math.min(endIndex, filteredProfiles.length)} de {filteredProfiles.length} {t('records')}
             </div>
             
             {/* Pagination */}
@@ -356,14 +359,14 @@ const Profiles = () => {
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Première
+{t('first')}
               </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Précédente
+{t('previous')}
               </button>
               
               {/* Page Numbers */}
@@ -385,7 +388,7 @@ const Profiles = () => {
                     onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 text-sm border rounded ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#DAA520] text-white border-[#DAA520]'
                         : 'border-gray-300 hover:bg-gray-100'
                     }`}
                   >
@@ -399,14 +402,14 @@ const Profiles = () => {
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Suivante
+{t('next')}
               </button>
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Dernière
+{t('last')}
               </button>
             </div>
           </div>
@@ -419,12 +422,12 @@ const Profiles = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <Lock className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Ajouter un profil</h2>
+                <Lock className="w-6 h-6" style={{ color: '#DAA520' }} />
+                <h2 className="text-2xl font-bold text-gray-900">{t('addProfile')}</h2>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -436,16 +439,16 @@ const Profiles = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom *
+{t('name')} *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom du profil"
+                    placeholder={t('profileName')}
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -454,16 +457,16 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom d'utilisateur *
+{t('username')} *
                   </label>
                   <input
                     type="text"
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.username ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom d'utilisateur"
+                    placeholder={t('username')}
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-600">{errors.username}</p>
@@ -472,16 +475,16 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mot de passe *
+{t('password')} *
                   </label>
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Mot de passe"
+                    placeholder={t('password')}
                   />
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -490,12 +493,12 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Classe
+{t('class')}
                   </label>
                   <select
                     value={formData.classe}
                     onChange={(e) => handleInputChange('classe', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -517,13 +520,14 @@ const Profiles = () => {
                   onClick={handleCloseModal}
                   className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  Annuler
+{t('cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:ring-offset-2"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
-                  Ajouter
+{t('add')}
                 </button>
               </div>
             </form>
@@ -538,11 +542,11 @@ const Profiles = () => {
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Edit className="w-6 h-6 text-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Modifier le profil</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('modifyProfile')}</h2>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -554,16 +558,16 @@ const Profiles = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom *
+{t('name')} *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom du profil"
+                    placeholder={t('profileName')}
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -572,16 +576,16 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom d'utilisateur *
+{t('username')} *
                   </label>
                   <input
                     type="text"
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.username ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom d'utilisateur"
+                    placeholder={t('username')}
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-600">{errors.username}</p>
@@ -590,16 +594,16 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mot de passe *
+{t('password')} *
                   </label>
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Mot de passe"
+                    placeholder={t('password')}
                   />
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -608,12 +612,12 @@ const Profiles = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Classe
+{t('class')}
                   </label>
                   <select
                     value={formData.classe}
                     onChange={(e) => handleInputChange('classe', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -635,13 +639,13 @@ const Profiles = () => {
                   onClick={handleCloseModal}
                   className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  Annuler
+{t('cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
-                  Modifier
+{t('modify')}
                 </button>
               </div>
             </form>

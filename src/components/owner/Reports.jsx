@@ -128,7 +128,7 @@ const Reports = () => {
     let yPosition = 30
 
     // Professional color scheme
-    const primaryColor = [41, 128, 185] // Blue
+    const primaryColor = [218, 165, 32] // Goldenrod
     const secondaryColor = [52, 73, 94] // Dark gray
     const accentColor = [230, 126, 34] // Orange
 
@@ -310,25 +310,25 @@ const Reports = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">{t('reports')}</span>
-            <span className="sm:hidden">Rapports</span>
+            <span className="hidden sm:inline">{t('reportsTitle')}</span>
+            <span className="sm:hidden">{t('reportsTitle')}</span>
           </h1>
           </div>
         <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / {t('reports')}</span>
-          <span className="sm:hidden">Home / Rapports</span>
+          <span className="hidden sm:inline">Home / {t('reportsTitle')}</span>
+          <span className="sm:hidden">Home / {t('reportsTitle')}</span>
         </div>
       </div>
 
       {/* Report Management Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
         <div className="flex items-center space-x-2 mb-6">
-          <FileText className="w-5 h-5 text-blue-600" />
+          <FileText className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
-            <span className="hidden sm:inline">Gestion des Rapports</span>
-            <span className="sm:hidden">Rapports</span>
+            <span className="hidden sm:inline">{t('reportsTitle')}</span>
+            <span className="sm:hidden">{t('reportsTitle')}</span>
           </h2>
         </div>
 
@@ -339,12 +339,12 @@ const Reports = () => {
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Période
+                  {t('period')}
                 </label>
                 <select
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {periods.map(period => (
                     <option key={period.value} value={period.value}>
@@ -355,12 +355,12 @@ const Reports = () => {
             </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chauffeurs
+                  {t('driver')}
                 </label>
                 <select
                   value={selectedDriver}
                   onChange={(e) => setSelectedDriver(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {drivers.map(driver => (
                     <option key={driver.value} value={driver.value}>
@@ -373,17 +373,18 @@ const Reports = () => {
                 <button
                   onClick={handleShowReports}
                   disabled={loading}
-                  className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
                   {loading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Chargement...</span>
+                      <span>{t('loading')}</span>
                     </>
                   ) : (
                     <>
                       <Filter className="w-4 h-4" />
-                      <span>Show</span>
+                      <span>{t('show')}</span>
                     </>
                   )}
                 </button>
@@ -396,12 +397,12 @@ const Reports = () => {
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Période
+                  {t('period')}
                 </label>
                 <select
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {periods.map(period => (
                     <option key={period.value} value={period.value}>
@@ -412,12 +413,12 @@ const Reports = () => {
             </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Client
+                  {t('client')}
                 </label>
                 <select
                   value={selectedClient}
                   onChange={(e) => setSelectedClient(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {clients.map(client => (
                     <option key={client.value} value={client.value}>
@@ -430,17 +431,18 @@ const Reports = () => {
                 <button
                   onClick={handleShowReports}
                   disabled={loading}
-                  className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
                   {loading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Chargement...</span>
+                      <span>{t('loading')}</span>
                     </>
                   ) : (
                     <>
                       <Filter className="w-4 h-4" />
-                      <span>Show</span>
+                      <span>{t('show')}</span>
                     </>
                   )}
                 </button>
@@ -456,7 +458,7 @@ const Reports = () => {
             className="flex flex-col items-center space-y-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
           >
             <Download className="w-6 h-6" />
-            <span className="text-sm font-medium">Version PDF</span>
+            <span className="text-sm font-medium">{t('export')}</span>
           </button>
           </div>
         </div>
@@ -466,31 +468,31 @@ const Reports = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
           {/* Summary Statistics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="p-4 rounded-lg border" style={{ backgroundColor: '#FFF8DC', borderColor: '#DAA520' }}>
               <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Total Trajets</span>
+                <BarChart3 className="w-5 h-5" style={{ color: '#DAA520' }} />
+                <span className="text-sm font-medium" style={{ color: '#DAA520' }}>{t('totalTrips')}</span>
               </div>
-              <p className="text-2xl font-bold text-blue-900 mt-2">{getTotalTrips()}</p>
+              <p className="text-2xl font-bold mt-2" style={{ color: '#DAA520' }}>{getTotalTrips()}</p>
                   </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Revenus</span>
+                <span className="text-sm font-medium text-green-900">{t('totalRevenue')}</span>
                   </div>
               <p className="text-2xl font-bold text-green-900 mt-2">{getTotalRevenue()}€</p>
                 </div>
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Distance</span>
+                <span className="text-sm font-medium text-purple-900">{t('totalDistance')}</span>
                 </div>
               <p className="text-2xl font-bold text-purple-900 mt-2">{getTotalDistance()} km</p>
               </div>
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-orange-600" />
-                <span className="text-sm font-medium text-orange-900">Durée</span>
+                <span className="text-sm font-medium text-orange-900">{t('totalDuration')}</span>
           </div>
               <p className="text-2xl font-bold text-orange-900 mt-2">
                 {reportData.reduce((sum, report) => sum + parseInt(report.duration), 0)}h
@@ -504,28 +506,28 @@ const Reports = () => {
             <thead className="bg-gray-50">
               <tr>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
+                    {t('date')}
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Chauffeur
+                    {t('driver')}
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Client
+                    {t('client')}
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trajet
+                    {t('trip')}
                   </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durée
+                    {t('duration')}
                 </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Distance
+                    {t('distance')}
                 </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Prix
+                    {t('price')}
                 </th>
                   <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
+                    {t('status')}
                 </th>
               </tr>
             </thead>

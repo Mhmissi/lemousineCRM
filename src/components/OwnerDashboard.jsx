@@ -137,6 +137,13 @@ function OwnerDashboard() {
             <LanguageSwitcher />
           </div>
 
+          {/* Branding */}
+          <div className="flex-shrink-0 px-4 py-2">
+            <div className="text-xs text-gray-400 text-center">
+              CRM powered by Rankiwisy
+            </div>
+          </div>
+
           {/* User Info & Logout */}
           <div className="flex-shrink-0 flex border-t border-brand-gold p-4">
             <div className="flex items-center">
@@ -294,6 +301,9 @@ function OwnerDashboard() {
               </button>
             )
           })}
+        </div>
+        <div className="text-center text-xs text-gray-500 mt-1">
+          CRM powered by Rankiwisy
         </div>
       </div>
     </div>

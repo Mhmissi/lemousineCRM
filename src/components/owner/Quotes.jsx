@@ -311,7 +311,7 @@ const Quotes = () => {
     let yPosition = 30
 
     // Professional color scheme
-    const primaryColor = [41, 128, 185] // Blue
+    const primaryColor = [218, 165, 32] // Goldenrod
     const secondaryColor = [52, 73, 94] // Dark gray
     const accentColor = [230, 126, 34] // Orange
 
@@ -497,25 +497,25 @@ const Quotes = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <FileEdit className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+          <FileEdit className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">Devis</span>
-            <span className="sm:hidden">Devis</span>
+            <span className="hidden sm:inline">{t('quotesTitle')}</span>
+            <span className="sm:hidden">{t('quotesTitle')}</span>
           </h1>
         </div>
         <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / Devis</span>
-          <span className="sm:hidden">Home / Devis</span>
+          <span className="hidden sm:inline">Home / {t('quotesTitle')}</span>
+          <span className="sm:hidden">Home / {t('quotesTitle')}</span>
         </div>
       </div>
 
       {/* Quotes Management Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
         <div className="flex items-center space-x-2 mb-6">
-          <Receipt className="w-5 h-5 text-blue-600" />
+          <Receipt className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
-            <span className="hidden sm:inline">Gestion des Devis</span>
-            <span className="sm:hidden">Devis</span>
+            <span className="hidden sm:inline">{t('quotesTitle')}</span>
+            <span className="sm:hidden">{t('quotesTitle')}</span>
           </h2>
         </div>
 
@@ -524,13 +524,13 @@ const Quotes = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrer
+                {t('filter')}
               </label>
               <div className="flex space-x-2">
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {filterOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -543,8 +543,8 @@ const Quotes = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Rechercher..."
-                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('search') + '...'}
+                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   />
                   <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 </div>
@@ -552,12 +552,12 @@ const Quotes = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Grouper les devis par client
+                {t('groupByClient')}
               </label>
               <select
                 value={groupByClient}
                 onChange={(e) => setGroupByClient(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               >
                 {clientOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -573,10 +573,11 @@ const Quotes = () => {
         <div className="flex justify-end">
           <button
             onClick={handleCreateQuote}
-            className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="flex items-center space-x-2 px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{ backgroundColor: '#DAA520' }}
           >
             <Plus className="w-4 h-4" />
-            <span>Créer un devis</span>
+            <span>{t('createQuote')}</span>
           </button>
         </div>
       </div>
@@ -587,17 +588,17 @@ const Quotes = () => {
         <div className="bg-gray-100 px-4 lg:px-6 py-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              <span className="hidden sm:inline">Table des Devis</span>
-              <span className="sm:hidden">Devis</span>
+              <span className="hidden sm:inline">{t('quotesTable')}</span>
+              <span className="sm:hidden">{t('quotesTitle')}</span>
             </h2>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Affichage enregistrement(s):</label>
+                <label className="text-sm font-medium text-gray-700">{t('display')} {t('records')}:</label>
                 <select
                   value={displayCount}
                   onChange={(e) => setDisplayCount(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {displayOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -609,22 +610,22 @@ const Quotes = () => {
               
               <div className="flex items-center space-x-2">
                 {/* Pagination buttons */}
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                   </svg>
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                   </svg>
@@ -636,7 +637,7 @@ const Quotes = () => {
                   className="flex items-center space-x-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
+                  <span className="hidden sm:inline">{t('print')}</span>
                 </button>
               </div>
             </div>
@@ -649,37 +650,37 @@ const Quotes = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  N°
+                  {t('number')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                  {t('date')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Échéance
+                  {t('dueDate')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
+                  {t('client')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Paiement
+                  {t('payment')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remarque
+                  {t('remark')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total HTVA
+                  {t('totalExclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  TVA
+                  {t('vat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total TVAC
+                  {t('totalInclVat')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acompte
+                  {t('deposit')}
                 </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -737,7 +738,8 @@ const Quotes = () => {
                       </button>
                       <button
                         onClick={() => handleCopyQuote(quote.id)}
-                        className="p-1 text-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="p-1 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
+                        style={{ color: '#DAA520' }}
                       >
                         <Copy className="w-4 h-4" />
                       </button>
@@ -769,7 +771,7 @@ const Quotes = () => {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <FileEdit className="w-6 h-6 text-blue-600" />
+                <FileEdit className="w-6 h-6" style={{ color: '#DAA520' }} />
                 <h2 className="text-2xl font-bold text-gray-900">Nouveau devis</h2>
               </div>
               <div className="text-sm text-gray-500">
@@ -792,7 +794,7 @@ const Quotes = () => {
                     <select
                       value={formData.clientType}
                       onChange={(e) => handleInputChange('clientType', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       {existingClients.map(client => (
                         <option key={client.value} value={client.value}>
@@ -811,7 +813,7 @@ const Quotes = () => {
                       value={formData.clientName}
                       onChange={(e) => handleInputChange('clientName', e.target.value)}
                       placeholder="Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -829,7 +831,7 @@ const Quotes = () => {
                       value={formData.clientAddress}
                       onChange={(e) => handleInputChange('clientAddress', e.target.value)}
                       placeholder="Adresse de Client:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.clientAddress ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -847,7 +849,7 @@ const Quotes = () => {
                       value={formData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
                       placeholder="Code Postal:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.postalCode ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -865,7 +867,7 @@ const Quotes = () => {
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="Ville:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.city ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -883,7 +885,7 @@ const Quotes = () => {
                       value={formData.clientVAT}
                       onChange={(e) => handleInputChange('clientVAT', e.target.value)}
                       placeholder="TVA Client"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -891,7 +893,8 @@ const Quotes = () => {
                   <div className="flex space-x-4 pt-4">
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      style={{ backgroundColor: '#DAA520' }}
                     >
                       Enregistrer
                     </button>
@@ -920,7 +923,7 @@ const Quotes = () => {
                       <select
                         value={formData.company}
                         onChange={(e) => handleInputChange('company', e.target.value)}
-                        className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                           errors.company ? 'border-red-500' : 'border-gray-300'
                         }`}
                       >
@@ -952,7 +955,7 @@ const Quotes = () => {
                       type="date"
                       value={formData.date}
                       onChange={(e) => handleInputChange('date', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -963,7 +966,7 @@ const Quotes = () => {
                     <select
                       value={formData.paymentMethod}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     >
                       {paymentMethods.map(method => (
                         <option key={method.value} value={method.value}>
@@ -981,7 +984,7 @@ const Quotes = () => {
                       type="date"
                       value={formData.dueDate}
                       onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.dueDate ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -1000,7 +1003,7 @@ const Quotes = () => {
                       value={formData.deposit}
                       onChange={(e) => handleInputChange('deposit', parseFloat(e.target.value) || 0)}
                       placeholder="Accompte"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
@@ -1012,7 +1015,7 @@ const Quotes = () => {
                       value={formData.remark}
                       onChange={(e) => handleInputChange('remark', e.target.value)}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent resize-vertical"
                     />
                   </div>
                 </div>

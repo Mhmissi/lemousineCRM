@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { UserCheck, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const Clients = () => {
+  const { t } = useLanguage()
   const [clients, setClients] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [displayCount, setDisplayCount] = useState(100)
@@ -213,12 +215,12 @@ const Clients = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <UserCheck className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Clients</h1>
+          <UserCheck className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('clientsTitle')}</h1>
         </div>
-        <div className="text-sm text-blue-600">
-          <span className="hidden sm:inline">Home / Clients</span>
-          <span className="sm:hidden">Home / Clients</span>
+        <div className="text-sm" style={{ color: '#DAA520' }}>
+          <span className="hidden sm:inline">Home / {t('clientsTitle')}</span>
+          <span className="sm:hidden">Home / {t('clientsTitle')}</span>
         </div>
       </div>
 
@@ -226,10 +228,11 @@ const Clients = () => {
       <div className="mb-6">
         <button
           onClick={handleAddClient}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          style={{ backgroundColor: '#DAA520' }}
         >
           <Plus className="w-5 h-5" />
-          <span>Ajouter un Client</span>
+          <span>{t('addClient')}</span>
         </button>
       </div>
 
@@ -240,32 +243,32 @@ const Clients = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-2">
               <Grid3X3 className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Table Client</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('clientsTable')}</h2>
             </div>
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
               {/* Search */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Recherche:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('search')}:</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={handleSearch}
-                    placeholder="Rechercher ici..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                    placeholder={t('search') + '...'}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                   />
                 </div>
               </div>
 
               {/* Display Count */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Affichage enregistrement(s):</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')} {t('records')}:</label>
                 <select
                   value={displayCount}
                   onChange={handleDisplayCountChange}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -290,7 +293,7 @@ const Clients = () => {
                   className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
                 >
                   <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
+                  <span className="hidden sm:inline">{t('print')}</span>
                 </button>
               </div>
             </div>
@@ -302,17 +305,17 @@ const Clients = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N°</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adresse</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CP</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ville</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pays</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tél</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fax</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('number')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('company')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('address')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('postalCode')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('city')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('country')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('phone')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('fax')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('email')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('status')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -354,10 +357,10 @@ const Clients = () => {
                           c.id === client.id ? { ...c, status: newStatus } : c
                         ))
                       }}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                     >
-                      <option value="Activé">Activé</option>
-                      <option value="Désactivé">Désactivé</option>
+                      <option value="Activé">{t('active')}</option>
+                      <option value="Désactivé">{t('inactive')}</option>
                     </select>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -366,7 +369,7 @@ const Clients = () => {
                         onClick={() => handleModifyClient(client)}
                         className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                       >
-                        Modifier
+{t('modify')}
                       </button>
                       <button
                         onClick={() => handleDeleteClient(client.id)}
@@ -386,7 +389,7 @@ const Clients = () => {
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-700">
-              Affichage {startIndex + 1} à {Math.min(endIndex, filteredClients.length)} de {filteredClients.length} enregistrement(s)
+              {t('display')} {startIndex + 1} à {Math.min(endIndex, filteredClients.length)} de {filteredClients.length} {t('records')}
             </div>
             
             {/* Pagination */}
@@ -396,14 +399,14 @@ const Clients = () => {
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Première
+{t('first')}
               </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Précédente
+{t('previous')}
               </button>
               
               {/* Page Numbers */}
@@ -425,7 +428,7 @@ const Clients = () => {
                     onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 text-sm border rounded ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#DAA520] text-white border-[#DAA520]'
                         : 'border-gray-300 hover:bg-gray-100'
                     }`}
                   >
@@ -439,14 +442,14 @@ const Clients = () => {
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Suivante
+{t('next')}
               </button>
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Dernière
+{t('last')}
               </button>
             </div>
           </div>
@@ -459,12 +462,12 @@ const Clients = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <UserCheck className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Ajouter un client</h2>
+                <UserCheck className="w-6 h-6" style={{ color: '#DAA520' }} />
+                <h2 className="text-2xl font-bold text-gray-900">{t('addClient')}</h2>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -476,16 +479,16 @@ const Clients = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Société *
+{t('company')} *
                   </label>
                   <input
                     type="text"
                     value={formData.company}
                     onChange={(e) => handleInputChange('company', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.company ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom de la société"
+                    placeholder={t('companyName')}
                   />
                   {errors.company && (
                     <p className="mt-1 text-sm text-red-600">{errors.company}</p>
@@ -494,91 +497,91 @@ const Clients = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse
+{t('address')}
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Adresse complète"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('fullAddress')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code postal
+{t('postalCode')}
                   </label>
                   <input
                     type="text"
                     value={formData.postalCode}
                     onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Code postal"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('postalCode')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ville
+{t('city')}
                   </label>
                   <input
                     type="text"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ville"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('city')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pays
+{t('country')}
                   </label>
                   <input
                     type="text"
                     value={formData.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Pays"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('country')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone
+{t('phone')}
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     placeholder="+32 123 456 789"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fax
+{t('fax')}
                   </label>
                   <input
                     type="tel"
                     value={formData.fax}
                     onChange={(e) => handleInputChange('fax', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     placeholder="+32 123 456 790"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+{t('email')}
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="email@example.com"
@@ -590,15 +593,15 @@ const Clients = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Statut
+{t('status')}
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
-                    <option value="Activé">Activé</option>
-                    <option value="Désactivé">Désactivé</option>
+                    <option value="Activé">{t('active')}</option>
+                    <option value="Désactivé">{t('inactive')}</option>
                   </select>
                 </div>
               </div>
@@ -609,13 +612,14 @@ const Clients = () => {
                   onClick={handleCloseModal}
                   className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  Annuler
+{t('cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:ring-offset-2"
+                  style={{ backgroundColor: '#DAA520' }}
                 >
-                  Ajouter
+{t('add')}
                 </button>
               </div>
             </form>
@@ -630,11 +634,11 @@ const Clients = () => {
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Edit className="w-6 h-6 text-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Modifier le client</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('modifyClient')}</h2>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -646,16 +650,16 @@ const Clients = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Société *
+{t('company')} *
                   </label>
                   <input
                     type="text"
                     value={formData.company}
                     onChange={(e) => handleInputChange('company', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.company ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Nom de la société"
+                    placeholder={t('companyName')}
                   />
                   {errors.company && (
                     <p className="mt-1 text-sm text-red-600">{errors.company}</p>
@@ -664,91 +668,91 @@ const Clients = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse
+{t('address')}
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Adresse complète"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('fullAddress')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code postal
+{t('postalCode')}
                   </label>
                   <input
                     type="text"
                     value={formData.postalCode}
                     onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Code postal"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('postalCode')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ville
+{t('city')}
                   </label>
                   <input
                     type="text"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ville"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('city')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pays
+{t('country')}
                   </label>
                   <input
                     type="text"
                     value={formData.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Pays"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                    placeholder={t('country')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone
+{t('phone')}
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     placeholder="+32 123 456 789"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fax
+{t('fax')}
                   </label>
                   <input
                     type="tel"
                     value={formData.fax}
                     onChange={(e) => handleInputChange('fax', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     placeholder="+32 123 456 790"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+{t('email')}
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="email@example.com"
@@ -760,15 +764,15 @@ const Clients = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Statut
+{t('status')}
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   >
-                    <option value="Activé">Activé</option>
-                    <option value="Désactivé">Désactivé</option>
+                    <option value="Activé">{t('active')}</option>
+                    <option value="Désactivé">{t('inactive')}</option>
                   </select>
                 </div>
               </div>
@@ -779,13 +783,13 @@ const Clients = () => {
                   onClick={handleCloseModal}
                   className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  Annuler
+{t('cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
-                  Modifier
+{t('modify')}
                 </button>
               </div>
             </form>

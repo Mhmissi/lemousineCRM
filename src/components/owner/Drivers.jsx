@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { User, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const Drivers = () => {
+  const { t } = useLanguage()
   const [drivers, setDrivers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [displayCount, setDisplayCount] = useState(10)
@@ -237,12 +239,12 @@ const Drivers = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div className="flex items-center space-x-3">
-          <User className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Chauffeurs</h1>
+          <User className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('driversTitle')}</h1>
           </div>
-        <div className="text-sm text-blue-600">
-          <span className="hidden sm:inline">Home / Chauffeurs</span>
-          <span className="sm:hidden">Home / Chauffeurs</span>
+        <div className="text-sm" style={{ color: '#DAA520' }}>
+          <span className="hidden sm:inline">Home / {t('driversTitle')}</span>
+          <span className="sm:hidden">Home / {t('driversTitle')}</span>
         </div>
       </div>
 
@@ -250,10 +252,11 @@ const Drivers = () => {
       <div className="mb-6">
         <button
           onClick={handleAddDriver}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          style={{ backgroundColor: '#DAA520' }}
         >
           <Plus className="w-5 h-5" />
-          <span>Ajouter un chauffeur</span>
+          <span>{t('addDriver')}</span>
         </button>
             </div>
 
@@ -264,32 +267,32 @@ const Drivers = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-2">
               <Grid3X3 className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Table Chauffeurs</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('driversTable')}</h2>
             </div>
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
               {/* Search */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Recherche:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('search')}:</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={handleSearch}
-                    placeholder="Rechercher ici..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                    placeholder={t('search') + '...'}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                   />
           </div>
         </div>
 
               {/* Display Count */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Affichage/Page:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')}/Page:</label>
                 <select
                   value={displayCount}
                   onChange={handleDisplayCountChange}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -317,7 +320,7 @@ const Drivers = () => {
                   className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
                 >
                   <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
+                  <span className="hidden sm:inline">{t('print')}</span>
                 </button>
             </div>
           </div>
@@ -329,11 +332,11 @@ const Drivers = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numero</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mail</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activé</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('number')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('driver')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('email')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('active')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -357,7 +360,7 @@ const Drivers = () => {
                           d.id === driver.id ? { ...d, active: newActive } : d
                         ))
                       }}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                     >
                       <option value="Oui">Oui</option>
                       <option value="Non">Non</option>
@@ -369,7 +372,7 @@ const Drivers = () => {
                         onClick={() => handleModifyDriver(driver)}
                         className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                       >
-                        Modifier
+{t('modify')}
                       </button>
                       <button
                         onClick={() => handleDeleteDriver(driver.id)}
@@ -389,7 +392,7 @@ const Drivers = () => {
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-700">
-              Affichage {startIndex + 1} à {Math.min(endIndex, filteredDrivers.length)} de {filteredDrivers.length} enregistrement(s)
+              {t('display')} {startIndex + 1} à {Math.min(endIndex, filteredDrivers.length)} de {filteredDrivers.length} {t('records')}
             </div>
             
             {/* Pagination */}
@@ -399,14 +402,14 @@ const Drivers = () => {
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Première
+{t('first')}
               </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Précédente
+{t('previous')}
               </button>
               
               {/* Page Numbers */}
@@ -428,7 +431,7 @@ const Drivers = () => {
                     onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 text-sm border rounded ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#DAA520] text-white border-[#DAA520]'
                         : 'border-gray-300 hover:bg-gray-100'
                     }`}
                   >
@@ -442,14 +445,14 @@ const Drivers = () => {
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Suivante
+{t('next')}
               </button>
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Dernière
+{t('last')}
               </button>
             </div>
           </div>
@@ -463,31 +466,31 @@ const Drivers = () => {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <User className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Chauffeurs</h2>
+                <User className="w-6 h-6" style={{ color: '#DAA520' }} />
+                <h2 className="text-2xl font-bold text-gray-900">{t('driversTitle')}</h2>
               </div>
-              <div className="text-sm text-blue-600">
-                Home / Chauffeurs / Ajouter Chauffeurs
+              <div className="text-sm" style={{ color: '#DAA520' }}>
+                Home / {t('driversTitle')} / {t('addDriver')}
               </div>
             </div>
 
             {/* Modal Content */}
             <div className="p-6">
               <div className="bg-gray-100 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Add Chauffeur</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('addDriver')}</h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Nom */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom
+{t('name')}
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Nom:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      placeholder={t('name') + ':'}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.name ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -499,14 +502,14 @@ const Drivers = () => {
                   {/* Mail */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mail
+{t('email')}
                     </label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="Mail:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      placeholder={t('email') + ':'}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.email ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -518,33 +521,33 @@ const Drivers = () => {
                   {/* Téléphone */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Téléphone
+{t('phone')}
                     </label>
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="Téléphone:"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={t('phone') + ':'}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
                   {/* Driver Status */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Driver status
+{t('driverStatus')}
                     </label>
                     <div className="relative">
                       <select
                         value={formData.status}
                         onChange={(e) => handleInputChange('status', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none ${
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent appearance-none ${
                           errors.status ? 'border-red-500' : 'border-gray-300'
                         }`}
                       >
-                        <option value="Driver status">Driver status</option>
-                        <option value="Activé">Activé</option>
-                        <option value="Désactivé">Désactivé</option>
+                        <option value="Driver status">{t('driverStatus')}</option>
+                        <option value="Activé">{t('active')}</option>
+                        <option value="Désactivé">{t('inactive')}</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -564,13 +567,14 @@ const Drivers = () => {
                       onClick={handleCloseModal}
                       className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
-                      Annuler
+{t('cancel')}
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:ring-offset-2"
+                      style={{ backgroundColor: '#DAA520' }}
                     >
-                      Ajouter
+{t('add')}
                     </button>
                   </div>
                 </form>
@@ -588,30 +592,30 @@ const Drivers = () => {
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Edit className="w-6 h-6 text-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Chauffeurs</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('driversTitle')}</h2>
               </div>
-              <div className="text-sm text-blue-600">
-                Home / Chauffeurs / Modifier Chauffeur
+              <div className="text-sm" style={{ color: '#DAA520' }}>
+                Home / {t('driversTitle')} / {t('modifyDriver')}
               </div>
             </div>
 
             {/* Modal Content */}
             <div className="p-6">
               <div className="bg-gray-100 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Modifier Chauffeur</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('modifyDriver')}</h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Nom */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom
+{t('name')}
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Nom:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      placeholder={t('name') + ':'}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.name ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -623,14 +627,14 @@ const Drivers = () => {
                   {/* Mail */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mail
+{t('email')}
                     </label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="Mail:"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      placeholder={t('email') + ':'}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
                         errors.email ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -642,33 +646,33 @@ const Drivers = () => {
                   {/* Téléphone */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Téléphone
+{t('phone')}
                     </label>
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="Téléphone:"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={t('phone') + ':'}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
 
                   {/* Driver Status */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Driver status
+{t('driverStatus')}
                     </label>
                     <div className="relative">
                       <select
                         value={formData.status}
                         onChange={(e) => handleInputChange('status', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none ${
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent appearance-none ${
                           errors.status ? 'border-red-500' : 'border-gray-300'
                         }`}
                       >
-                        <option value="Driver status">Driver status</option>
-                        <option value="Activé">Activé</option>
-                        <option value="Désactivé">Désactivé</option>
+                        <option value="Driver status">{t('driverStatus')}</option>
+                        <option value="Activé">{t('active')}</option>
+                        <option value="Désactivé">{t('inactive')}</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -688,13 +692,13 @@ const Drivers = () => {
                       onClick={handleCloseModal}
                       className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
-                      Annuler
+{t('cancel')}
                     </button>
                     <button
                       type="submit"
                       className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                      Modifier
+{t('modify')}
                     </button>
                   </div>
                 </form>
