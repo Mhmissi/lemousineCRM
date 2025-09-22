@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { Car, Plus, MapPin, Users, Fuel, Settings, CheckCircle, XCircle } from 'lucide-react'
+import { firestoreService } from '../../services/firestoreService'
 
 function Vehicles() {
   const { t } = useLanguage()
@@ -8,50 +9,21 @@ function Vehicles() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - in real app, this would fetch from API
-    const mockVehicles = [
-      {
-        id: 1,
-        name: 'Bus #12',
-        type: 'Luxury Bus',
-        capacity: 25,
-        status: 'active',
-        currentLocation: 'Downtown',
-        fuelLevel: 85,
-        mileage: 125000,
-        lastService: '2024-01-10',
-        nextService: '2024-02-10'
-      },
-      {
-        id: 2,
-        name: 'Limousine #5',
-        type: 'Stretch Limo',
-        capacity: 8,
-        status: 'active',
-        currentLocation: 'Airport',
-        fuelLevel: 92,
-        mileage: 89000,
-        lastService: '2024-01-05',
-        nextService: '2024-02-05'
-      },
-      {
-        id: 3,
-        name: 'Bus #8',
-        type: 'Standard Bus',
-        capacity: 20,
-        status: 'maintenance',
-        currentLocation: 'Service Center',
-        fuelLevel: 45,
-        mileage: 180000,
-        lastService: '2024-01-15',
-        nextService: '2024-01-25'
+    const loadVehicles = async () => {
+      try {
+        setLoading(true)
+        const vehiclesData = await firestoreService.getVehicles()
+        setVehicles(vehiclesData)
+      } catch (error) {
+        console.error('Error loading vehicles:', error)
+        // Fallback to empty array if Firestore fails
+        setVehicles([])
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setVehicles(mockVehicles)
-      setLoading(false)
-    }, 500)
+    loadVehicles()
   }, [])
 
   const getStatusColor = (status) => {
@@ -105,28 +77,45 @@ function Vehicles() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('vehicles')}</h1>
-            <p className="text-gray-600">{t('manageVehicleFleet')}</p>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            <button 
-              onClick={() => alert('Add Vehicle functionality would open a vehicle registration form')}
-              className="btn-primary flex items-center"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              {t('addVehicle')}
-            </button>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <Car className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('vehicles')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">{t('manageVehicleFleet')}</p>
+            </div>
           </div>
         </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('vehicles')}</span>
+        </nav>
+      </div>
+
+      {/* Add Vehicle Button */}
+      <div className="mb-8">
+        <button 
+          onClick={() => alert('Add Vehicle functionality would open a vehicle registration form')}
+          className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
+          style={{ backgroundColor: '#DAA520' }}
+        >
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+          <span className="hidden sm:inline">{t('addVehicle')}</span>
+          <span className="sm:hidden">Ajouter</span>
+        </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="card">
           <div className="flex items-center">
             <div className="p-2 bg-primary-100 rounded-lg">
@@ -180,10 +169,12 @@ function Vehicles() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Vehicles Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {vehicles.map((vehicle) => (
           <div key={vehicle.id} className="card">
             {/* Vehicle Header */}
@@ -272,6 +263,7 @@ function Vehicles() {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   )

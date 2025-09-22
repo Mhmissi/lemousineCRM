@@ -34,6 +34,14 @@ export default defineConfig({
       }
     })
   ],
+  define: {
+    global: 'globalThis',
+  },
+  build: {
+    rollupOptions: {
+      external: ['../internals/define-globalThis-property', '../internals/globalThis-this']
+    }
+  },
   server: {
     port: 3000,
     open: true

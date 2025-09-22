@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Building, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { Building, Search, Plus, Edit, Trash2, Grid3X3, Printer, X } from 'lucide-react'
+import { firestoreService } from '../../services/firestoreService'
 
 const Company = () => {
+  const { t } = useLanguage()
   const [companies, setCompanies] = useState([])
   const [brands, setBrands] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -17,115 +20,6 @@ const Company = () => {
   const [selectedCompany, setSelectedCompany] = useState(null)
   const [selectedBrand, setSelectedBrand] = useState(null)
 
-  // Mock company data based on the image
-  const mockCompanies = [
-    {
-      id: 1,
-      logo: 'LIMOSTAR',
-      name: 'LIMOSTAR',
-      address: '65, Avenue Louise',
-      postalCode: '1050',
-      city: 'Brussels',
-      country: 'Belgium',
-      tel: '+3225120101',
-      fax: '',
-      mobile: '',
-      email: 'info@limostar.be',
-      website: 'www.limostar.be'
-    },
-    {
-      id: 2,
-      logo: 'Location Bus',
-      name: 'Location Bus',
-      address: 'Av Herrmann Debroux 54',
-      postalCode: '1160',
-      city: 'Brussels',
-      country: 'BE',
-      tel: '+3223420734',
-      fax: '',
-      mobile: '',
-      email: 'info@location-bus.be',
-      website: 'www.@location-bus.be'
-    },
-    {
-      id: 3,
-      logo: 'Rent a Bus',
-      name: 'RENT A BUS',
-      address: 'Avenue Louise 65,',
-      postalCode: '1050',
-      city: 'Bruxelles',
-      country: 'BE',
-      tel: '+32 2 512 01 01',
-      fax: '',
-      mobile: '',
-      email: 'info@rentabus.be',
-      website: 'www.rentabus.be'
-    },
-    {
-      id: 4,
-      logo: 'Autocar.Brussels',
-      name: 'AUTOCAR BRUSSELS',
-      address: 'Rue des Colonies 11',
-      postalCode: '1000',
-      city: 'Brussels',
-      country: 'BE',
-      tel: '+32 2 342 08 76',
-      fax: '',
-      mobile: '',
-      email: 'info@autocar.brussels',
-      website: 'www.autocar.brussels'
-    },
-    {
-      id: 5,
-      logo: 'Location Autocar',
-      name: 'Location Autocar',
-      address: 'Bd Industriel 9,',
-      postalCode: '1070',
-      city: 'Bruxelles',
-      country: 'BE',
-      tel: '+32 2 580 03 25',
-      fax: '',
-      mobile: '',
-      email: 'info@locationautocar.be',
-      website: 'www.locationautocar.be'
-    },
-    {
-      id: 6,
-      logo: 'AUTOCAR BRUXELLES',
-      name: 'AUTOCAR BRUXELLES',
-      address: 'Rue du Poinçon, 43',
-      postalCode: '1000',
-      city: 'Bruxelles',
-      country: 'Belgique',
-      tel: '+3224460187',
-      fax: '',
-      mobile: '',
-      email: 'info@autocar-bruxelles.be',
-      website: 'www.autocar-bruxelels.be'
-    }
-  ]
-
-  // Mock brand data based on the image
-  const mockBrands = [
-    {
-      id: 1,
-      logo: 'Autocar.Brussels',
-      name: 'AUTOCAR BRUSSELS',
-      status: 'Activée'
-    },
-    {
-      id: 2,
-      logo: 'BelFood Trading',
-      name: 'BelFood Trading',
-      status: 'Désactivée'
-    },
-    {
-      id: 3,
-      logo: 'Location Autocar',
-      name: 'LOCATION AUTOCAR',
-      status: 'Activée'
-    }
-  ]
 
   const [formData, setFormData] = useState({
     logo: '',
@@ -150,8 +44,22 @@ const Company = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setCompanies(mockCompanies)
-    setBrands(mockBrands)
+    const loadData = async () => {
+      try {
+        const [companiesData, brandsData] = await Promise.all([
+          firestoreService.getCompanies(),
+          firestoreService.getBrands()
+        ])
+        setCompanies(companiesData)
+        setBrands(brandsData)
+      } catch (error) {
+        console.error('Error loading company data:', error)
+        setCompanies([])
+        setBrands([])
+      }
+    }
+
+    loadData()
   }, [])
 
   // Filter companies based on search term
@@ -294,66 +202,102 @@ const Company = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) return
 
-    if (showAddModal) {
-      const newCompany = {
-        id: Math.max(...companies.map(c => c.id)) + 1,
-        ...formData
+    try {
+      if (showAddModal) {
+        const newCompany = {
+          ...formData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        const docRef = await firestoreService.addCompany(newCompany)
+        const addedCompany = { id: docRef.id, ...newCompany }
+        
+        setCompanies(prev => [addedCompany, ...prev])
+      } else if (showModifyModal) {
+        const updatedCompany = {
+          ...selectedCompany,
+          ...formData,
+          updatedAt: new Date()
+        }
+        
+        await firestoreService.updateCompany(selectedCompany.id, updatedCompany)
+        
+        setCompanies(prev => prev.map(company => 
+          company.id === selectedCompany.id ? updatedCompany : company
+        ))
       }
-      setCompanies(prev => [newCompany, ...prev])
-    } else if (showModifyModal) {
-      setCompanies(prev => prev.map(company => 
-        company.id === selectedCompany.id ? { ...company, ...formData } : company
-      ))
-    }
 
-    setFormData({
-      logo: '',
-      name: '',
-      address: '',
-      postalCode: '',
-      city: '',
-      country: '',
-      tel: '',
-      fax: '',
-      mobile: '',
-      email: '',
-      website: ''
-    })
-    setErrors({})
-    setShowAddModal(false)
-    setShowModifyModal(false)
-    setSelectedCompany(null)
+      setFormData({
+        logo: '',
+        name: '',
+        address: '',
+        postalCode: '',
+        city: '',
+        country: '',
+        tel: '',
+        fax: '',
+        mobile: '',
+        email: '',
+        website: ''
+      })
+      setErrors({})
+      setShowAddModal(false)
+      setShowModifyModal(false)
+      setSelectedCompany(null)
+    } catch (error) {
+      console.error('Error saving company:', error)
+      alert('Failed to save company. Please try again.')
+    }
   }
 
-  const handleBrandSubmit = (e) => {
+  const handleBrandSubmit = async (e) => {
     e.preventDefault()
     if (!validateBrandForm()) return
 
-    if (showBrandAddModal) {
-      const newBrand = {
-        id: Math.max(...brands.map(b => b.id)) + 1,
-        ...brandFormData
+    try {
+      if (showBrandAddModal) {
+        const newBrand = {
+          ...brandFormData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        const docRef = await firestoreService.addBrand(newBrand)
+        const addedBrand = { id: docRef.id, ...newBrand }
+        
+        setBrands(prev => [addedBrand, ...prev])
+      } else if (showBrandModifyModal) {
+        const updatedBrand = {
+          ...selectedBrand,
+          ...brandFormData,
+          updatedAt: new Date()
+        }
+        
+        await firestoreService.updateBrand(selectedBrand.id, updatedBrand)
+        
+        setBrands(prev => prev.map(brand => 
+          brand.id === selectedBrand.id ? updatedBrand : brand
+        ))
       }
-      setBrands(prev => [newBrand, ...prev])
-    } else if (showBrandModifyModal) {
-      setBrands(prev => prev.map(brand => 
-        brand.id === selectedBrand.id ? { ...brand, ...brandFormData } : brand
-      ))
-    }
 
-    setBrandFormData({
-      logo: '',
-      name: '',
-      status: 'Activée'
-    })
-    setErrors({})
-    setShowBrandAddModal(false)
-    setShowBrandModifyModal(false)
-    setSelectedBrand(null)
+      setBrandFormData({
+        logo: '',
+        name: '',
+        status: 'Activée'
+      })
+      setErrors({})
+      setShowBrandAddModal(false)
+      setShowBrandModifyModal(false)
+      setSelectedBrand(null)
+    } catch (error) {
+      console.error('Error saving brand:', error)
+      alert('Failed to save brand. Please try again.')
+    }
   }
 
   const handleCloseModal = () => {
@@ -391,85 +335,75 @@ const Company = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <Building className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Compagnie</h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <Building className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('compagnie')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des compagnies</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm" style={{ color: '#DAA520' }}>
-          <span className="hidden sm:inline">Home / Compagnie</span>
-          <span className="sm:hidden">Home / Compagnie</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('compagnie')}</span>
+        </nav>
       </div>
 
       {/* Companies Table */}
       <div className="mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Table Header */}
-          <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-              <div className="flex items-center space-x-2">
-                <Grid3X3 className="w-5 h-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Compagnie</h2>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+              <h3 className="text-lg font-semibold text-gray-900">Compagnie</h3>
+              <div className="flex items-center space-x-2 lg:space-x-3">
+                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Print</span>
+                  <span className="sm:hidden">Print</span>
+                </button>
+                <button 
+                  onClick={handleAddCompany}
+                  className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span className="hidden sm:inline">Ajouter</span>
+                  <span className="sm:hidden">+</span>
+                </button>
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
-                {/* Search */}
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Recherche:</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={handleSearch}
-                      placeholder="Rechercher ici..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
-                    />
-                  </div>
-                </div>
-
-                {/* Display Count */}
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Affichage/Page:</label>
-                  <select
-                    value={displayCount}
-                    onChange={handleDisplayCountChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handlePrint}
-                    className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span className="hidden sm:inline">Print</span>
-                  </button>
-                  <button
-                    onClick={handleAddCompany}
-                    className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center space-x-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">+</span>
-                  </button>
-                </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('search') + '...'}
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-700 whitespace-nowrap">Affichage/Page:</label>
+                <select
+                  value={displayCount}
+                  onChange={handleDisplayCountChange}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
             </div>
           </div>
@@ -479,63 +413,61 @@ const Company = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logo</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom company</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adresse</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code postal</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ville</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pays</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tel</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fax</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site web</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logo</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom company</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Adresse</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Code postal</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Ville</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Pays</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Tel</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Email</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentCompanies.map((company) => (
                   <tr key={company.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                       {company.logo}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {company.name}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-500">
-                      {company.address}
+                    <td className="px-3 lg:px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">
+                      <div className="max-w-xs truncate" title={company.address}>
+                        {company.address}
+                      </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                       {company.postalCode}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                       {company.city}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                       {company.country}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                       {company.tel}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {company.fax}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {company.mobile}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                       {company.email}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {company.website}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleModifyCompany(company)}
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                      >
-                        Modifier
-                      </button>
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
+                        <button 
+                          onClick={() => handleModifyCompany(company)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                        >
+                          <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCompany(company.id)}
+                          className="text-red-600 hover:text-red-900 p-1"
+                        >
+                          <Trash2 className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -543,71 +475,47 @@ const Company = () => {
             </table>
           </div>
 
-          {/* Table Footer */}
-          <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-              <div className="text-sm text-gray-700">
+          {/* Pagination */}
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                 Affichage {startIndex + 1} à {Math.min(endIndex, filteredCompanies.length)} de {filteredCompanies.length} enregistrement(s)
               </div>
-              
-              {/* Pagination */}
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                 <button
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Première
+                  <span className="hidden sm:inline">Première</span>
+                  <span className="sm:hidden">«</span>
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Précédente
+                  <span className="hidden sm:inline">Précédente</span>
+                  <span className="sm:hidden">‹</span>
                 </button>
-                
-                {/* Page Numbers */}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum
-                  if (totalPages <= 5) {
-                    pageNum = i + 1
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i
-                  } else {
-                    pageNum = currentPage - 2 + i
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-1 text-sm border rounded ${
-                        currentPage === pageNum
-                          ? 'bg-[#DAA520] text-white border-[#DAA520]'
-                          : 'border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-                
+                <span className="px-2 py-2 text-xs sm:text-sm text-gray-700 bg-gray-100 rounded">
+                  {currentPage}
+                </span>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Suivante
+                  <span className="hidden sm:inline">Suivante</span>
+                  <span className="sm:hidden">›</span>
                 </button>
                 <button
                   onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Dernière
+                  <span className="hidden sm:inline">Dernière</span>
+                  <span className="sm:hidden">»</span>
                 </button>
               </div>
             </div>
@@ -619,70 +527,50 @@ const Company = () => {
       <div className="mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Table Header */}
-          <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-              <div className="flex items-center space-x-2">
-                <Grid3X3 className="w-5 h-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Tableaux des marques</h2>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+              <h3 className="text-lg font-semibold text-gray-900">Tableaux des marques</h3>
+              <div className="flex items-center space-x-2 lg:space-x-3">
+                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Print</span>
+                  <span className="sm:hidden">Print</span>
+                </button>
+                <button 
+                  onClick={handleAddBrand}
+                  className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span className="hidden sm:inline">Ajouter</span>
+                  <span className="sm:hidden">+</span>
+                </button>
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
-                {/* Search */}
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Recherche:</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      value={brandSearchTerm}
-                      onChange={handleBrandSearch}
-                      placeholder="Rechercher ici..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
-                    />
-                  </div>
-                </div>
-
-                {/* Display Count */}
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Affichage/Page:</label>
-                  <select
-                    value={brandDisplayCount}
-                    onChange={handleBrandDisplayCountChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <Grid3X3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handlePrint}
-                    className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span className="hidden sm:inline">Print</span>
-                  </button>
-                  <button
-                    onClick={handleAddBrand}
-                    className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center space-x-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">+</span>
-                  </button>
-                </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('search') + '...'}
+                  value={brandSearchTerm}
+                  onChange={handleBrandSearch}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-700 whitespace-nowrap">Affichage/Page:</label>
+                <select
+                  value={brandDisplayCount}
+                  onChange={handleBrandDisplayCountChange}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
             </div>
           </div>
@@ -692,22 +580,22 @@ const Company = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logo</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom (FR)</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logo</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom (FR)</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentBrands.map((brand) => (
                   <tr key={brand.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                       {brand.logo}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {brand.name}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
                       <select
                         value={brand.status}
                         onChange={(e) => {
@@ -718,23 +606,23 @@ const Company = () => {
                         }}
                         className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                       >
-                        <option value="Activée">Activée</option>
+                        <option value="Activée">{t('enabled')}</option>
                         <option value="Désactivée">Désactivée</option>
                       </select>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
+                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
+                        <button 
                           onClick={() => handleModifyBrand(brand)}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          className="text-green-600 hover:text-green-900 p-1"
                         >
-                          Modifier
+                          <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                         </button>
-                        <button
+                        <button 
                           onClick={() => handleDeleteBrand(brand.id)}
-                          className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                          className="text-red-600 hover:text-red-900 p-1"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3 lg:w-4 lg:h-4" />
                         </button>
                       </div>
                     </td>
@@ -744,71 +632,47 @@ const Company = () => {
             </table>
           </div>
 
-          {/* Table Footer */}
-          <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-              <div className="text-sm text-gray-700">
+          {/* Pagination */}
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                 Affichage {brandStartIndex + 1} à {Math.min(brandEndIndex, filteredBrands.length)} de {filteredBrands.length} enregistrement(s)
               </div>
-              
-              {/* Pagination */}
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                 <button
                   onClick={() => handleBrandPageChange(1)}
                   disabled={brandCurrentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Première
+                  <span className="hidden sm:inline">Première</span>
+                  <span className="sm:hidden">«</span>
                 </button>
                 <button
                   onClick={() => handleBrandPageChange(brandCurrentPage - 1)}
                   disabled={brandCurrentPage === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Précédente
+                  <span className="hidden sm:inline">Précédente</span>
+                  <span className="sm:hidden">‹</span>
                 </button>
-                
-                {/* Page Numbers */}
-                {Array.from({ length: Math.min(5, brandTotalPages) }, (_, i) => {
-                  let pageNum
-                  if (brandTotalPages <= 5) {
-                    pageNum = i + 1
-                  } else if (brandCurrentPage <= 3) {
-                    pageNum = i + 1
-                  } else if (brandCurrentPage >= brandTotalPages - 2) {
-                    pageNum = brandTotalPages - 4 + i
-                  } else {
-                    pageNum = brandCurrentPage - 2 + i
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handleBrandPageChange(pageNum)}
-                      className={`px-3 py-1 text-sm border rounded ${
-                        brandCurrentPage === pageNum
-                          ? 'bg-[#DAA520] text-white border-[#DAA520]'
-                          : 'border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-                
+                <span className="px-2 py-2 text-xs sm:text-sm text-gray-700 bg-gray-100 rounded">
+                  {brandCurrentPage}
+                </span>
                 <button
                   onClick={() => handleBrandPageChange(brandCurrentPage + 1)}
                   disabled={brandCurrentPage === brandTotalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Suivante
+                  <span className="hidden sm:inline">Suivante</span>
+                  <span className="sm:hidden">›</span>
                 </button>
                 <button
                   onClick={() => handleBrandPageChange(brandTotalPages)}
                   disabled={brandCurrentPage === brandTotalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Dernière
+                  <span className="hidden sm:inline">Dernière</span>
+                  <span className="sm:hidden">»</span>
                 </button>
               </div>
             </div>
@@ -816,10 +680,436 @@ const Company = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-500">
-        Powered by Rankwisy
-      </div>
+      {/* Add Company Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Building className="w-5 h-5 text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900">Nouvelle compagnie</h3>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Company Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la compagnie *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
+                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                />
+              </div>
+
+              {/* Postal Code and City */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Code postal</label>
+                  <input
+                    type="text"
+                    value={formData.postalCode}
+                    onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+              </div>
+
+              {/* Country */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pays</label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => handleInputChange('country', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                />
+              </div>
+
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                  <input
+                    type="text"
+                    value={formData.tel}
+                    onChange={(e) => handleInputChange('tel', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Site web</label>
+                <input
+                  type="text"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modify Company Modal */}
+      {showModifyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Building className="w-5 h-5 text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900">Modifier la compagnie</h3>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Company Logo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Logo de la compagnie</label>
+                <input
+                  type="text"
+                  value={formData.logo}
+                  onChange={(e) => handleInputChange('logo', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  placeholder="Entrez le logo de la compagnie"
+                />
+              </div>
+
+              {/* Company Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la compagnie *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  placeholder="Entrez le nom de la compagnie"
+                  required
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  placeholder="Entrez l'adresse"
+                />
+              </div>
+
+              {/* Postal Code and City */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Code postal</label>
+                  <input
+                    type="text"
+                    value={formData.postalCode}
+                    onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+              </div>
+
+              {/* Country */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pays</label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => handleInputChange('country', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                />
+              </div>
+
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                  <input
+                    type="text"
+                    value={formData.tel}
+                    onChange={(e) => handleInputChange('tel', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  />
+                </div>
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Site web</label>
+                <input
+                  type="text"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Brand Modal */}
+      {showBrandAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Building className="w-5 h-5 text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900">Nouvelle marque</h3>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleBrandSubmit} className="p-6 space-y-6">
+              {/* Brand Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la marque *</label>
+                <input
+                  type="text"
+                  value={brandFormData.name}
+                  onChange={(e) => handleBrandInputChange('name', e.target.value)}
+                  className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
+                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select
+                  value={brandFormData.status}
+                  onChange={(e) => handleBrandInputChange('status', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                >
+                  <option value="Activée">{t('enabled')}</option>
+                  <option value="Désactivée">Désactivée</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modify Brand Modal */}
+      {showBrandModifyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Building className="w-5 h-5 text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900">Modifier la marque</h3>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleBrandSubmit} className="p-6 space-y-6">
+              {/* Brand Logo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Logo de la marque</label>
+                <input
+                  type="text"
+                  value={brandFormData.logo}
+                  onChange={(e) => setBrandFormData(prev => ({ ...prev, logo: e.target.value }))}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  placeholder="Entrez le logo de la marque"
+                />
+              </div>
+
+              {/* Brand Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la marque *</label>
+                <input
+                  type="text"
+                  value={brandFormData.name}
+                  onChange={(e) => setBrandFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                  placeholder="Entrez le nom de la marque"
+                  required
+                />
+              </div>
+
+              {/* Brand Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Statut de la marque</label>
+                <select
+                  value={brandFormData.status}
+                  onChange={(e) => setBrandFormData(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520]"
+                >
+                  <option value="Activée">Activée</option>
+                  <option value="Désactivée">Désactivée</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

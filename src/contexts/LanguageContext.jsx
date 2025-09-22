@@ -64,7 +64,6 @@ const translations = {
     refresh: 'Refresh',
     maximize: 'Maximize',
     chartCombinations: 'Chart Combinations',
-    trips: 'Trips',
     revenueAmount: 'Revenue',
     unpaidInvoices: 'Unpaid Invoices',
     averageTripPrice: 'Average Trip Price',
@@ -98,6 +97,18 @@ const translations = {
     selectVehicle: 'Select a vehicle',
     mail: 'Mail',
     weekOf: 'Week of',
+    
+    // Form placeholders
+    enterFullName: 'Enter your full name',
+    enterEmail: 'Enter your email',
+    enterCurrentPassword: 'Enter current password',
+    enterNewPassword: 'Enter new password',
+    confirmNewPassword: 'Confirm new password',
+    enterLocation: 'Enter a location',
+    price: 'Price',
+    yes: 'Yes',
+    no: 'No',
+    enabled: 'Enabled',
     
     // Reports
     reportsTitle: 'Reports',
@@ -136,7 +147,6 @@ const translations = {
     vatType: 'VAT Type',
     designations: 'Designations',
     description: 'Description',
-    price: 'Price',
     trip: 'Trip',
     vat: 'VAT',
     totalExclVat: 'Total Excl. VAT',
@@ -256,9 +266,7 @@ const translations = {
     companyTitle: 'Company',
     companiesTitle: 'Companies',
     brandsTitle: 'Brands',
-    addCompany: 'Add Company',
     modifyCompany: 'Modify Company',
-    companyName: 'Company Name',
     website: 'Website',
     mobile: 'Mobile',
     companyCreatedSuccessfully: 'Company created successfully!',
@@ -286,12 +294,9 @@ const translations = {
     
     // Login
     emailAddress: 'Email Address',
-    password: 'Password',
-    enterEmail: 'Enter your email',
     enterPassword: 'Enter your password',
     signIn: 'Sign In',
     demoCredentials: 'Demo Credentials',
-    driver: 'Driver',
     owner: 'Owner',
     professionalLimousineService: 'Professional limousine service management',
     
@@ -331,26 +336,7 @@ const translations = {
     startTime: 'Start Time',
     endTime: 'End Time',
     numberOfPassengers: 'Number of Passengers',
-    clientName: 'Client Name',
     additionalNotes: 'Additional Notes',
-    selectDriver: 'Select a driver',
-    selectVehicle: 'Select a vehicle',
-    createTrip: 'Create Trip',
-    driverRequired: 'Driver is required',
-    vehicleRequired: 'Vehicle is required',
-    pickupRequired: 'Pickup location is required',
-    destinationRequired: 'Destination is required',
-    dateRequired: 'Date is required',
-    startTimeRequired: 'Start time is required',
-    endTimeRequired: 'End time is required',
-    passengersRequired: 'Number of passengers is required',
-    clientRequired: 'Client name is required',
-    revenueRequired: 'Revenue is required',
-    tripCreatedSuccessfully: 'Trip created successfully!',
-    failedToCreateTrip: 'Failed to create trip. Please try again.',
-    creatingTrip: 'Creating Trip...',
-    endTimeAfterStart: 'End time must be after start time',
-    cannotExceedCapacity: 'Cannot exceed vehicle capacity',
     addVehicle: 'Add Vehicle',
     manageVehicleFleet: 'Manage your vehicle fleet',
     active: 'Active',
@@ -375,7 +361,6 @@ const translations = {
     activeStatus: 'active',
     assignedStatus: 'assigned',
     manageDriverTeam: 'Manage your driver team',
-    addDriver: 'Add Driver',
     totalDrivers: 'Total Drivers',
     offline: 'Offline',
     contact: 'Contact',
@@ -386,7 +371,6 @@ const translations = {
     offlineStatus: 'offline',
     totalVehicles: 'Total Vehicles',
     totalCapacity: 'Total Capacity',
-    passengers: 'passengers',
     fuel: 'Fuel',
     mi: 'mi',
     viewDetails: 'View Details',
@@ -399,7 +383,6 @@ const translations = {
     route: 'Route',
     dateTime: 'Date & Time',
     trackTrip: 'Track Trip',
-    noTripsFound: 'No trips found',
     tryAdjustingSearch: 'Try adjusting your search or filter criteria.',
     analyticsPerformanceInsights: 'Analytics and performance insights',
     export: 'Export',
@@ -409,7 +392,6 @@ const translations = {
     vsYesterday: 'vs yesterday',
     vsLastWeek: 'vs last week',
     vsLastMonth: 'vs last month',
-    tripStatistics: 'Trip Statistics',
     completedTrips: 'Completed Trips',
     activeTrips: 'Active Trips',
     cancelledTrips: 'Cancelled Trips',
@@ -426,7 +408,6 @@ const translations = {
     yesterday: 'Yesterday',
     week: 'Week',
     month: 'Month',
-    noTripsToday: 'No trips scheduled for today',
     upcomingTrips: 'Upcoming Trips',
     tripDetails: 'Trip Details',
     startLocation: 'Start Location',
@@ -571,7 +552,6 @@ const translations = {
     refresh: 'Actualiser',
     maximize: 'Agrandir',
     chartCombinations: 'Tableau des combinaisons',
-    trips: 'Courses',
     revenueAmount: 'Chiffre d\'affaire',
     unpaidInvoices: 'Factures impayées',
     averageTripPrice: 'Prix moyen d\'une course',
@@ -585,18 +565,6 @@ const translations = {
     previous: 'Précédent',
     next: 'Suivant',
     noTripsFound: 'Aucun trajet trouvé',
-    createTrip: 'Créer un trajet',
-    tripCreatedSuccessfully: 'Cours créé avec succès !',
-    failedToCreateTrip: 'Échec de la création du cours. Veuillez réessayer.',
-    creatingTrip: 'Cours en cours de création...',
-    driverRequired: 'Le chauffeur est requis',
-    vehicleRequired: 'Le véhicule est requis',
-    pickupRequired: 'Le lieu de prise en charge est requis',
-    destinationRequired: 'La destination est requise',
-    dateRequired: 'La date est requise',
-    startTimeRequired: 'L\'heure de début est requise',
-    endTimeRequired: 'L\'heure de fin est requise',
-    passengersRequired: 'Le nombre de passagers est requis',
     clientRequired: 'Le nom du client est requis',
     revenueRequired: 'Les revenus sont requis',
     endTimeAfterStart: 'L\'heure de fin doit être après l\'heure de début',
@@ -605,6 +573,18 @@ const translations = {
     selectVehicle: 'Sélectionner un véhicule',
     mail: 'Mail',
     weekOf: 'Semaine du',
+    
+    // Form placeholders
+    enterFullName: 'Entrez votre nom complet',
+    enterEmail: 'Entrez votre email',
+    enterCurrentPassword: 'Entrez le mot de passe actuel',
+    enterNewPassword: 'Entrez le nouveau mot de passe',
+    confirmNewPassword: 'Confirmez le nouveau mot de passe',
+    enterLocation: 'Entrez un lieu',
+    price: 'Prix',
+    yes: 'Oui',
+    no: 'Non',
+    enabled: 'Activé',
     
     // Reports
     reportsTitle: 'Rapports',
@@ -643,7 +623,6 @@ const translations = {
     vatType: 'Type de TVA',
     designations: 'Désignations',
     description: 'Description',
-    price: 'Prix',
     trip: 'Trajet',
     vat: 'TVA',
     totalExclVat: 'Total HTVA',
@@ -763,9 +742,7 @@ const translations = {
     companyTitle: 'Compagnie',
     companiesTitle: 'Compagnies',
     brandsTitle: 'Marques',
-    addCompany: 'Ajouter une compagnie',
     modifyCompany: 'Modifier la compagnie',
-    companyName: 'Nom de la compagnie',
     website: 'Site web',
     mobile: 'Mobile',
     companyCreatedSuccessfully: 'Compagnie créée avec succès !',
@@ -793,12 +770,9 @@ const translations = {
     
     // Login
     emailAddress: 'Adresse e-mail',
-    password: 'Mot de passe',
-    enterEmail: 'Entrez votre e-mail',
     enterPassword: 'Entrez votre mot de passe',
     signIn: 'Se connecter',
     demoCredentials: 'Identifiants de démonstration',
-    driver: 'Chauffeur',
     owner: 'Propriétaire',
     professionalLimousineService: 'Gestion professionnelle de service de limousine',
     
@@ -838,10 +812,7 @@ const translations = {
     startTime: 'Heure de début',
     endTime: 'Heure de fin',
     numberOfPassengers: 'Nombre de passagers',
-    clientName: 'Nom du client',
     additionalNotes: 'Notes supplémentaires',
-    selectDriver: 'Sélectionner un chauffeur',
-    selectVehicle: 'Sélectionner un véhicule',
     createTrip: 'Créer le trajet',
     driverRequired: 'Le chauffeur est requis',
     vehicleRequired: 'Le véhicule est requis',
@@ -851,13 +822,6 @@ const translations = {
     startTimeRequired: 'L\'heure de début est requise',
     endTimeRequired: 'L\'heure de fin est requise',
     passengersRequired: 'Le nombre de passagers est requis',
-    clientRequired: 'Le nom du client est requis',
-    revenueRequired: 'Les revenus sont requis',
-    tripCreatedSuccessfully: 'Trajet créé avec succès !',
-    failedToCreateTrip: 'Échec de la création du trajet. Veuillez réessayer.',
-    creatingTrip: 'Création du trajet...',
-    endTimeAfterStart: 'L\'heure de fin doit être après l\'heure de début',
-    cannotExceedCapacity: 'Ne peut pas dépasser la capacité du véhicule',
     addVehicle: 'Ajouter un véhicule',
     manageVehicleFleet: 'Gérez votre flotte de véhicules',
     active: 'Actif',
@@ -882,7 +846,6 @@ const translations = {
     activeStatus: 'actif',
     assignedStatus: 'assigné',
     manageDriverTeam: 'Gérez votre équipe de chauffeurs',
-    addDriver: 'Ajouter un chauffeur',
     totalDrivers: 'Total des chauffeurs',
     offline: 'Hors ligne',
     contact: 'Contact',
@@ -893,7 +856,6 @@ const translations = {
     offlineStatus: 'hors ligne',
     totalVehicles: 'Total des véhicules',
     totalCapacity: 'Capacité totale',
-    passengers: 'passagers',
     fuel: 'Carburant',
     mi: 'km',
     viewDetails: 'Voir les détails',
@@ -906,7 +868,6 @@ const translations = {
     route: 'Itinéraire',
     dateTime: 'Date et heure',
     trackTrip: 'Suivre le trajet',
-    noTripsFound: 'Aucun trajet trouvé',
     tryAdjustingSearch: 'Essayez d\'ajuster vos critères de recherche ou de filtrage.',
     analyticsPerformanceInsights: 'Analyses et aperçus de performance',
     export: 'Exporter',
@@ -916,7 +877,6 @@ const translations = {
     vsYesterday: 'vs hier',
     vsLastWeek: 'vs la semaine dernière',
     vsLastMonth: 'vs le mois dernier',
-    tripStatistics: 'Statistiques des trajets',
     completedTrips: 'Trajets terminés',
     activeTrips: 'Trajets actifs',
     cancelledTrips: 'Trajets annulés',
@@ -1235,15 +1195,16 @@ export const LanguageProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load language from localStorage or default to 'en'
-    const savedLanguage = localStorage.getItem('limostar-language') || 'en'
-    setLanguage(savedLanguage)
+    // Load language from Firebase user preferences or default to 'en'
+    // For now, default to 'en' - in a full implementation, you'd store this in Firestore
+    setLanguage('en')
     setIsLoading(false)
   }, [])
 
   const changeLanguage = (newLanguage) => {
     setLanguage(newLanguage)
-    localStorage.setItem('limostar-language', newLanguage)
+    // In a full implementation, you'd save this to Firestore user preferences
+    // await firestoreService.updateUser(userId, { language: newLanguage })
   }
 
   const t = (key) => {

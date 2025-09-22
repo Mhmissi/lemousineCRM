@@ -1,0 +1,5 @@
+[33m1e71e82[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Complete translation and goldenrod color updates for Drivers, Profiles, and Clients pages
+[33m5bd9f00[m Fix duplicate translation keys and begin systematic translation updates for Invoicing and CreditNotes components
+[33m4826963[m[33m ([m[1;31morigin/main[m[33m)[m Implement comprehensive translation system: Add language switcher component and update Dashboard, Plannings, and Reports components with full English/French translations
+[33me342f1d[m Modernize dashboard with enhanced UI: quick access buttons, circular progress charts, modern table design, and responsive layout
+[33m44312ae[m Add comprehensive CRM management pages: Drivers, Clients, Profiles, and Company with full CRUD functionality

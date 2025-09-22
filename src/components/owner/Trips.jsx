@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { MapPin, Plus, Clock, Car, Users, Filter, Search } from 'lucide-react'
 import AddTripForm from './AddTripForm'
+import { firestoreService } from '../../services/firestoreService'
 
 function Trips() {
   const { t } = useLanguage()
@@ -12,66 +13,22 @@ function Trips() {
   const [showAddForm, setShowAddForm] = useState(false)
 
   useEffect(() => {
-    // Mock data - in real app, this would fetch from API
-    const mockTrips = [
-      {
-        id: 1,
-        driver: 'John Driver',
-        vehicle: 'Bus #12',
-        pickup: 'City A',
-        destination: 'City B',
-        date: '2024-01-15',
-        time: '10:00 - 13:00',
-        status: 'completed',
-        passengers: 25,
-        revenue: 1250,
-        client: 'Corporate Group'
-      },
-      {
-        id: 2,
-        driver: 'Mike Wilson',
-        vehicle: 'Limousine #5',
-        pickup: 'Airport Terminal 1',
-        destination: 'Downtown Hotel',
-        date: '2024-01-15',
-        time: '14:00 - 16:00',
-        status: 'active',
-        passengers: 4,
-        revenue: 450,
-        client: 'VIP Client'
-      },
-      {
-        id: 3,
-        driver: 'Sarah Johnson',
-        vehicle: 'Bus #8',
-        pickup: 'Central Station',
-        destination: 'Resort Hotel',
-        date: '2024-01-15',
-        time: '18:00 - 20:00',
-        status: 'assigned',
-        passengers: 20,
-        revenue: 800,
-        client: 'Tour Group'
-      },
-      {
-        id: 4,
-        driver: 'John Driver',
-        vehicle: 'Bus #12',
-        pickup: 'Hotel District',
-        destination: 'Convention Center',
-        date: '2024-01-16',
-        time: '09:00 - 11:00',
-        status: 'assigned',
-        passengers: 30,
-        revenue: 1500,
-        client: 'Business Conference'
+    // Load trips from Firestore
+    const loadTrips = async () => {
+      try {
+        setLoading(true)
+        const tripsData = await firestoreService.getTrips()
+        setTrips(tripsData)
+      } catch (error) {
+        console.error('Error loading trips:', error)
+        // Fallback to empty array if Firestore fails
+        setTrips([])
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setTrips(mockTrips)
-      setLoading(false)
-    }, 500)
+    loadTrips()
   }, [])
 
   const getStatusColor = (status) => {
@@ -87,8 +44,24 @@ function Trips() {
     }
   }
 
-  const handleTripAdded = (newTrip) => {
-    setTrips(prevTrips => [newTrip, ...prevTrips])
+  const handleTripAdded = async (newTrip) => {
+    try {
+      // Add trip to Firestore
+      const tripData = {
+        ...newTrip,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      
+      const docRef = await firestoreService.addTrip(tripData)
+      const addedTrip = { id: docRef.id, ...tripData }
+      
+      // Update local state
+      setTrips(prevTrips => [addedTrip, ...prevTrips])
+    } catch (error) {
+      console.error('Error adding trip:', error)
+      alert('Failed to add trip. Please try again.')
+    }
   }
 
   const filteredTrips = trips.filter(trip => {
@@ -121,7 +94,7 @@ function Trips() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">

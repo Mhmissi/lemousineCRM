@@ -287,18 +287,92 @@ const Quotes = () => {
   }
 
   const handleAddCompany = () => {
-    console.log('Add company functionality')
-    // Implement add company functionality
+    const newCompany = prompt('Enter company name:')
+    if (newCompany && newCompany.trim()) {
+      // Add the new company to the client options
+      const newClientOption = {
+        value: newCompany.toLowerCase().replace(/\s+/g, '-'),
+        label: newCompany.trim()
+      }
+      
+      // Update the client options (in a real app, this would be saved to backend)
+      console.log('New company added:', newCompany)
+      
+      // Show success message
+      alert(`Company "${newCompany}" added successfully!`)
+    }
   }
 
   const handleModifyQuote = (quoteId) => {
-    console.log('Modify quote:', quoteId)
-    // Implement modify functionality
+    const quote = quotes.find(q => q.id === quoteId)
+    if (!quote) return
+    
+    // Set form data with existing quote data
+    setFormData({
+      clientType: 'existing',
+      clientName: quote.client,
+      clientAddress: quote.address || '',
+      postalCode: quote.postalCode || '',
+      city: quote.city || '',
+      clientVAT: quote.vat || '',
+      company: quote.company || '',
+      date: quote.date,
+      paymentMethod: quote.paymentMethod || 'virement',
+      dueDate: quote.dueDate || '',
+      deposit: quote.deposit || 0,
+      remark: quote.remark || ''
+    })
+    
+    // Open the create modal for editing
+    setShowCreateModal(true)
   }
 
   const handleViewQuote = (quoteId) => {
-    console.log('View quote:', quoteId)
-    // Implement view functionality
+    const quote = quotes.find(q => q.id === quoteId)
+    if (!quote) return
+    
+    // Create a new window/tab to display the quote
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Quote ${quote.number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .quote-info { margin-bottom: 20px; }
+            .quote-details { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+            .footer { margin-top: 30px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Quote ${quote.number}</h1>
+            <p>Date: ${quote.date}</p>
+          </div>
+          <div class="quote-info">
+            <h3>Client Information</h3>
+            <p><strong>Client:</strong> ${quote.client}</p>
+            <p><strong>Address:</strong> ${quote.address || 'N/A'}</p>
+            <p><strong>City:</strong> ${quote.city || 'N/A'}</p>
+            <p><strong>VAT:</strong> ${quote.vat || 'N/A'}</p>
+          </div>
+          <div class="quote-details">
+            <h3>Quote Details</h3>
+            <p><strong>Company:</strong> ${quote.company || 'N/A'}</p>
+            <p><strong>Payment Method:</strong> ${quote.paymentMethod || 'N/A'}</p>
+            <p><strong>Due Date:</strong> ${quote.dueDate || 'N/A'}</p>
+            <p><strong>Deposit:</strong> €${quote.deposit || 0}</p>
+            <p><strong>Status:</strong> ${quote.status}</p>
+            <p><strong>Remark:</strong> ${quote.remark || 'N/A'}</p>
+          </div>
+          <div class="footer">
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </body>
+      </html>
+    `)
+    newWindow.document.close()
   }
 
   const handleGeneratePDF = async (quoteId) => {
@@ -444,8 +518,23 @@ const Quotes = () => {
   }
 
   const handleCopyQuote = (quoteId) => {
-    console.log('Copy quote:', quoteId)
-    // Implement copy functionality
+    const quote = quotes.find(q => q.id === quoteId)
+    if (!quote) return
+    
+    // Create a new quote with copied data
+    const newQuote = {
+      ...quote,
+      id: Date.now(), // Generate new ID
+      number: `COPY-${quote.number}`, // Add COPY prefix
+      date: new Date().toISOString().split('T')[0], // Set to current date
+      status: 'not-validated' // Reset status
+    }
+    
+    // Add the new quote to the list
+    setQuotes(prev => [newQuote, ...prev])
+    
+    // Show success message
+    alert('Quote copied successfully!')
   }
 
   const handlePrint = () => {
@@ -495,22 +584,30 @@ const Quotes = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <FileEdit className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">{t('quotesTitle')}</span>
-            <span className="sm:hidden">{t('quotesTitle')}</span>
-          </h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <FileEdit className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('quotesTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des devis</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / {t('quotesTitle')}</span>
-          <span className="sm:hidden">Home / {t('quotesTitle')}</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('quotesTitle')}</span>
+        </nav>
       </div>
 
       {/* Quotes Management Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center space-x-2 mb-6">
           <Receipt className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
@@ -569,36 +666,67 @@ const Quotes = () => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleCreateQuote}
-            className="flex items-center space-x-2 px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{ backgroundColor: '#DAA520' }}
-          >
-            <Plus className="w-4 h-4" />
-            <span>{t('createQuote')}</span>
-          </button>
+          {/* Action Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleCreateQuote}
+              className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200"
+              style={{ backgroundColor: '#DAA520' }}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('createQuote')}</span>
+              <span className="sm:hidden">Créer</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Quotes Table Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Table Header */}
-        <div className="bg-gray-100 px-4 lg:px-6 py-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              <span className="hidden sm:inline">{t('quotesTable')}</span>
-              <span className="sm:hidden">{t('quotesTitle')}</span>
-            </h2>
-            
-            <div className="flex items-center space-x-4">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Table Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">{t('display')} {t('records')}:</label>
+                <Receipt className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-900">{t('quotesTable')}</h2>
+              </div>
+              
+              <button
+                onClick={handlePrint}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('print')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search and Display Controls */}
+          <div className="p-6 bg-gray-50 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+            
+              {/* Search */}
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={t('search') + '...'}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
+                  />
+                </div>
+              </div>
+
+              {/* Display Count */}
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')}:</label>
                 <select
                   value={displayCount}
                   onChange={(e) => setDisplayCount(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   {displayOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -607,158 +735,129 @@ const Quotes = () => {
                   ))}
                 </select>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                {/* Pagination buttons */}
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
-                </button>
-                
-                {/* Print button */}
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center space-x-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('print')}</span>
-                </button>
-              </div>
             </div>
           </div>
-        </div>
 
-        {/* Quotes Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('number')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('date')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('dueDate')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('client')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('payment')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('remark')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('totalExclVat')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('vat')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('totalInclVat')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('deposit')}
-                </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('actions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {getFilteredQuotes().map((quote) => (
-                <tr key={quote.id} className="hover:bg-gray-50">
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {quote.number}
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.date}
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.dueDate}
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
-                    <div className="max-w-xs truncate" title={quote.client}>
-                      {quote.client}
-                    </div>
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.payment}
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
-                    <div className="max-w-md truncate" title={quote.remark}>
-                      {quote.remark}
-                    </div>
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.totalExclVAT.toFixed(2)}€
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.vat.toFixed(2)}€
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {quote.totalInclVAT.toFixed(2)}€
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {quote.deposit.toFixed(2)}€
-                  </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleModifyQuote(quote.id)}
-                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => handleGeneratePDF(quote.id)}
-                        className="p-1 text-red-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        <FileDown className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleCopyQuote(quote.id)}
-                        className="p-1 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
-                        style={{ color: '#DAA520' }}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+          {/* Quotes Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('number')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                    {t('date')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    {t('dueDate')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('client')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                    {t('payment')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
+                    {t('remark')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    {t('totalExclVat')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                    {t('vat')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('totalInclVat')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                    {t('deposit')}
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('actions')}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {getFilteredQuotes().map((quote) => (
+                  <tr key={quote.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {quote.number}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
+                      {quote.date}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                      {quote.dueDate}
+                    </td>
+                    <td className="px-3 py-4 text-sm text-gray-900">
+                      <div className="max-w-xs truncate" title={quote.client}>
+                        {quote.client}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {quote.payment}
+                    </td>
+                    <td className="px-3 py-4 text-sm text-gray-900 hidden xl:table-cell">
+                      <div className="max-w-md truncate" title={quote.remark}>
+                        {quote.remark}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                      {quote.totalExclVAT.toFixed(2)}€
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {quote.vat.toFixed(2)}€
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {quote.totalInclVAT.toFixed(2)}€
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {quote.deposit.toFixed(2)}€
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
+                        <button
+                          onClick={() => handleModifyQuote(quote.id)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                        >
+                          <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleGeneratePDF(quote.id)}
+                          className="text-red-600 hover:text-red-900 p-1"
+                        >
+                          <FileDown className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleViewQuote(quote.id)}
+                          className="text-blue-600 hover:text-blue-900 p-1"
+                        >
+                          <Eye className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleCopyQuote(quote.id)}
+                          className="text-yellow-600 hover:text-yellow-900 p-1"
+                        >
+                          <Copy className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Summary */}
-        <div className="px-4 lg:px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-gray-600">
-            <div>
-              Affichage de {getFilteredQuotes().length} devis sur {quotes.length} total
-            </div>
-            <div className="mt-2 sm:mt-0">
-              Total des devis: {getFilteredQuotes().reduce((sum, q) => sum + q.totalInclVAT, 0).toFixed(2)}€
+          {/* Summary */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-gray-600">
+              <div>
+                Affichage de {getFilteredQuotes().length} devis sur {quotes.length} total
+              </div>
+              <div className="mt-2 sm:mt-0">
+                Total des devis: {getFilteredQuotes().reduce((sum, q) => sum + q.totalInclVAT, 0).toFixed(2)}€
+              </div>
             </div>
           </div>
         </div>
@@ -1024,6 +1123,7 @@ const Quotes = () => {
           </div>
         </div>
       )}
+      
     </div>
   )
 }

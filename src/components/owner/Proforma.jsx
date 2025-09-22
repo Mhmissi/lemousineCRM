@@ -372,13 +372,114 @@ const Proforma = () => {
   }
 
   const handleModifyProforma = (proformaId) => {
-    console.log('Modify proforma:', proformaId)
-    // Implement modify functionality
+    const proforma = proformas.find(p => p.id === proformaId)
+    if (!proforma) return
+    
+    // Set form data with existing proforma data
+    setFormData({
+      clientType: 'existing',
+      clientName: proforma.client,
+      clientAddress: proforma.address || '',
+      postalCode: proforma.postalCode || '',
+      city: proforma.city || '',
+      clientVAT: proforma.vat || '',
+      company: proforma.company || '',
+      date: proforma.date,
+      paymentMethod: proforma.paymentMethod || 'virement',
+      dueDate: proforma.dueDate || '',
+      deposit: proforma.deposit || 0,
+      remark: proforma.remark || '',
+      designations: proforma.designations || [
+        {
+          id: 1,
+          description: '',
+          vatRate: '21',
+          price: 0
+        }
+      ]
+    })
+    
+    // Open the create modal for editing
+    setShowCreateModal(true)
   }
 
   const handleViewProforma = (proformaId) => {
-    console.log('View proforma:', proformaId)
-    // Implement view functionality
+    const proforma = proformas.find(p => p.id === proformaId)
+    if (!proforma) return
+    
+    // Create a new window/tab to display the proforma
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Proforma ${proforma.number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .proforma-info { margin-bottom: 20px; }
+            .proforma-details { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+            .designations { margin-bottom: 20px; }
+            .designations table { width: 100%; border-collapse: collapse; }
+            .designations th, .designations td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            .designations th { background-color: #f5f5f5; }
+            .totals { margin-top: 20px; }
+            .footer { margin-top: 30px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Proforma ${proforma.number}</h1>
+            <p>Date: ${proforma.date}</p>
+          </div>
+          <div class="proforma-info">
+            <h3>Client Information</h3>
+            <p><strong>Client:</strong> ${proforma.client}</p>
+            <p><strong>Address:</strong> ${proforma.address || 'N/A'}</p>
+            <p><strong>City:</strong> ${proforma.city || 'N/A'}</p>
+            <p><strong>VAT:</strong> ${proforma.vat || 'N/A'}</p>
+          </div>
+          <div class="proforma-details">
+            <h3>Proforma Details</h3>
+            <p><strong>Company:</strong> ${proforma.company || 'N/A'}</p>
+            <p><strong>Payment Method:</strong> ${proforma.paymentMethod || 'N/A'}</p>
+            <p><strong>Due Date:</strong> ${proforma.dueDate || 'N/A'}</p>
+            <p><strong>Deposit:</strong> €${proforma.deposit || 0}</p>
+            <p><strong>Status:</strong> ${proforma.status}</p>
+            <p><strong>Remark:</strong> ${proforma.remark || 'N/A'}</p>
+          </div>
+          <div class="designations">
+            <h3>Designations</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>VAT Rate</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${proforma.designations ? proforma.designations.map(designation => `
+                  <tr>
+                    <td>${designation.description || 'N/A'}</td>
+                    <td>${designation.vatRate || 'N/A'}%</td>
+                    <td>€${designation.price || 0}</td>
+                  </tr>
+                `).join('') : '<tr><td colspan="3">No designations</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          <div class="totals">
+            <h3>Totals</h3>
+            <p><strong>Total Excl. VAT:</strong> €${proforma.totalExclVat || 0}</p>
+            <p><strong>Total Incl. VAT:</strong> €${proforma.totalInclVat || 0}</p>
+          </div>
+          <div class="footer">
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </body>
+      </html>
+    `)
+    newWindow.document.close()
   }
 
   const handleGeneratePDF = async (proformaId) => {

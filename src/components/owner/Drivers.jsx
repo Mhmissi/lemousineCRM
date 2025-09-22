@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { User, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { firestoreService } from '../../services/firestoreService'
 
 const Drivers = () => {
   const { t } = useLanguage()
@@ -13,70 +14,6 @@ const Drivers = () => {
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Mock driver data based on the image
-    const mockDrivers = [
-    { id: 1, numero: 1, name: 'ABDEL BMW 7', email: '', active: true },
-    { id: 2, numero: 10, name: 'BESIM', email: '', active: true },
-    { id: 3, numero: 11, name: 'Bils', email: '', active: true },
-    { id: 4, numero: 12, name: 'BLS TANGER', email: '', active: true },
-    { id: 5, numero: 13, name: 'Breugelmans', email: '', active: true },
-    { id: 6, numero: 14, name: 'CHAUFFEUR CAB BRUSSELS SPRL', email: '', active: true },
-    { id: 7, numero: 15, name: 'EMBACH E+VAN', email: '', active: true },
-    { id: 8, numero: 16, name: 'FOUAD VIANO V6', email: '', active: true },
-    { id: 9, numero: 17, name: 'Fred S', email: '', active: true },
-    { id: 10, numero: 18, name: 'Garchi SCRL', email: '', active: true },
-    { id: 11, numero: 19, name: 'Hassan Limousine', email: 'hassan@limousine.com', active: true },
-    { id: 12, numero: 20, name: 'Ibrahim Transport', email: 'ibrahim@transport.com', active: true },
-    { id: 13, numero: 21, name: 'Jean-Pierre', email: 'jeanpierre@luxury.com', active: true },
-    { id: 14, numero: 22, name: 'Karim VIP', email: 'karim@vip.com', active: true },
-    { id: 15, numero: 23, name: 'Luxury Driver', email: 'luxury@driver.com', active: true },
-    { id: 16, numero: 24, name: 'Mohamed Elite', email: 'mohamed@elite.com', active: true },
-    { id: 17, numero: 25, name: 'Nabil Premium', email: 'nabil@premium.com', active: true },
-    { id: 18, numero: 26, name: 'Omar Classic', email: 'omar@classic.com', active: true },
-    { id: 19, numero: 27, name: 'Pierre Executive', email: 'pierre@executive.com', active: true },
-    { id: 20, numero: 28, name: 'Quality Transport', email: 'quality@transport.com', active: true },
-    { id: 21, numero: 29, name: 'Rachid VIP', email: 'rachid@vip.com', active: true },
-    { id: 22, numero: 30, name: 'Samir Luxury', email: 'samir@luxury.com', active: true },
-    { id: 23, numero: 31, name: 'Tariq Premium', email: 'tariq@premium.com', active: true },
-    { id: 24, numero: 32, name: 'Umar Executive', email: 'umar@executive.com', active: true },
-    { id: 25, numero: 33, name: 'Vincent Classic', email: 'vincent@classic.com', active: true },
-    { id: 26, numero: 34, name: 'Walid VIP', email: 'walid@vip.com', active: true },
-    { id: 27, numero: 35, name: 'Xavier Luxury', email: 'xavier@luxury.com', active: true },
-    { id: 28, numero: 36, name: 'Youssef Premium', email: 'youssef@premium.com', active: true },
-    { id: 29, numero: 37, name: 'Zakaria Executive', email: 'zakaria@executive.com', active: true },
-    { id: 30, numero: 38, name: 'Ahmed Classic', email: 'ahmed@classic.com', active: true },
-    { id: 31, numero: 39, name: 'Brahim VIP', email: 'brahim@vip.com', active: true },
-    { id: 32, numero: 40, name: 'Chakib Luxury', email: 'chakib@luxury.com', active: true },
-    { id: 33, numero: 41, name: 'Driss Premium', email: 'driss@premium.com', active: true },
-    { id: 34, numero: 42, name: 'El Hassan Executive', email: 'elhassan@executive.com', active: true },
-    { id: 35, numero: 43, name: 'Fouad Classic', email: 'fouad@classic.com', active: true },
-    { id: 36, numero: 44, name: 'Ghali VIP', email: 'ghali@vip.com', active: true },
-    { id: 37, numero: 45, name: 'Hicham Luxury', email: 'hicham@luxury.com', active: true },
-    { id: 38, numero: 46, name: 'Ilyas Premium', email: 'ilyas@premium.com', active: true },
-    { id: 39, numero: 47, name: 'Jamal Executive', email: 'jamal@executive.com', active: true },
-    { id: 40, numero: 48, name: 'Khalid Classic', email: 'khalid@classic.com', active: true },
-    { id: 41, numero: 49, name: 'Larbi VIP', email: 'larbi@vip.com', active: true },
-    { id: 42, numero: 50, name: 'Mansour Luxury', email: 'mansour@luxury.com', active: true },
-    { id: 43, numero: 51, name: 'Noureddine Premium', email: 'noureddine@premium.com', active: true },
-    { id: 44, numero: 52, name: 'Othman Executive', email: 'othman@executive.com', active: true },
-    { id: 45, numero: 53, name: 'Pascal Classic', email: 'pascal@classic.com', active: true },
-    { id: 46, numero: 54, name: 'Qassim VIP', email: 'qassim@vip.com', active: true },
-    { id: 47, numero: 55, name: 'Rachid Luxury', email: 'rachid@luxury.com', active: true },
-    { id: 48, numero: 56, name: 'Said Premium', email: 'said@premium.com', active: true },
-    { id: 49, numero: 57, name: 'Tahar Executive', email: 'tahar@executive.com', active: true },
-    { id: 50, numero: 58, name: 'Umar Classic', email: 'umar@classic.com', active: true },
-    { id: 51, numero: 59, name: 'Vladimir VIP', email: 'vladimir@vip.com', active: true },
-    { id: 52, numero: 60, name: 'Wassim Luxury', email: 'wassim@luxury.com', active: true },
-    { id: 53, numero: 61, name: 'Yacine Premium', email: 'yacine@premium.com', active: true },
-    { id: 54, numero: 62, name: 'Zakaria Executive', email: 'zakaria@executive.com', active: true },
-    { id: 55, numero: 63, name: 'Abdel Classic', email: 'abdel@classic.com', active: true },
-    { id: 56, numero: 64, name: 'Brahim VIP', email: 'brahim@vip.com', active: true },
-    { id: 57, numero: 65, name: 'Chakib Luxury', email: 'chakib@luxury.com', active: true },
-    { id: 58, numero: 66, name: 'Driss Premium', email: 'driss@premium.com', active: true },
-    { id: 59, numero: 67, name: 'El Hassan Executive', email: 'elhassan@executive.com', active: true },
-    { id: 60, numero: 68, name: 'Fouad Classic', email: 'fouad@classic.com', active: true },
-    { id: 61, numero: 69, name: 'Ghali VIP', email: 'ghali@vip.com', active: true }
-  ]
 
   const [formData, setFormData] = useState({
     name: '',
@@ -88,7 +25,21 @@ const Drivers = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-      setDrivers(mockDrivers)
+    const loadDrivers = async () => {
+      try {
+        setLoading(true)
+        const driversData = await firestoreService.getDrivers()
+        setDrivers(driversData)
+      } catch (error) {
+        console.error('Error loading drivers:', error)
+        // Fallback to empty array if Firestore fails
+        setDrivers([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadDrivers()
   }, [])
 
   // Filter drivers based on search term
@@ -171,50 +122,66 @@ const Drivers = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    if (showAddModal) {
-      // Add new driver
-      const newDriver = {
-        id: Math.max(...drivers.map(d => d.id)) + 1,
-        numero: Math.max(...drivers.map(d => d.numero)) + 1,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        active: formData.status === 'Activé'
-      }
-      setDrivers(prev => [newDriver, ...prev])
-    } else if (showModifyModal) {
-      // Modify existing driver
-      setDrivers(prev => prev.map(driver => 
-        driver.id === selectedDriver.id 
-          ? { 
-              ...driver, 
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
-              active: formData.status === 'Activé'
-            }
-          : driver
-      ))
-    }
+    try {
+      setLoading(true)
 
-    // Reset form and close modal
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      status: 'Driver status'
-    })
-    setErrors({})
-    setShowAddModal(false)
-    setShowModifyModal(false)
-    setSelectedDriver(null)
+      if (showAddModal) {
+        // Add new driver to Firestore
+        const newDriver = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          active: formData.status === 'Activé',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        const docRef = await firestoreService.addDriver(newDriver)
+        const addedDriver = { id: docRef.id, ...newDriver }
+        
+        setDrivers(prev => [addedDriver, ...prev])
+      } else if (showModifyModal) {
+        // Update existing driver in Firestore
+        const updatedDriver = {
+          ...selectedDriver,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          active: formData.status === 'Activé',
+          updatedAt: new Date()
+        }
+        
+        await firestoreService.updateDriver(selectedDriver.id, updatedDriver)
+        
+        setDrivers(prev => prev.map(driver => 
+          driver.id === selectedDriver.id ? updatedDriver : driver
+        ))
+      }
+
+      // Reset form and close modal
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        status: 'Driver status'
+      })
+      setErrors({})
+      setShowAddModal(false)
+      setShowModifyModal(false)
+      setSelectedDriver(null)
+    } catch (error) {
+      console.error('Error saving driver:', error)
+      alert('Failed to save driver. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseModal = () => {
@@ -237,31 +204,43 @@ const Drivers = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <User className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('driversTitle')}</h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <User className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('driversTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des chauffeurs</p>
+            </div>
           </div>
-        <div className="text-sm" style={{ color: '#DAA520' }}>
-          <span className="hidden sm:inline">Home / {t('driversTitle')}</span>
-          <span className="sm:hidden">Home / {t('driversTitle')}</span>
         </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('driversTitle')}</span>
+        </nav>
       </div>
 
       {/* Add Driver Button */}
-      <div className="mb-6">
+      <div className="mb-8">
         <button
           onClick={handleAddDriver}
-          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
           style={{ backgroundColor: '#DAA520' }}
         >
-          <Plus className="w-5 h-5" />
-          <span>{t('addDriver')}</span>
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+          <span className="hidden sm:inline">{t('addDriver')}</span>
+          <span className="sm:hidden">Ajouter</span>
         </button>
-            </div>
+      </div>
 
       {/* Drivers Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Table Header */}
         <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
@@ -362,8 +341,8 @@ const Drivers = () => {
                       }}
                       className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
                     >
-                      <option value="Oui">Oui</option>
-                      <option value="Non">Non</option>
+                      <option value="Oui">{t('yes')}</option>
+                      <option value="Non">{t('no')}</option>
                     </select>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -456,6 +435,7 @@ const Drivers = () => {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -704,8 +684,8 @@ const Drivers = () => {
                 </form>
               </div>
         </div>
-      </div>
         </div>
+      </div>
       )}
     </div>
   )

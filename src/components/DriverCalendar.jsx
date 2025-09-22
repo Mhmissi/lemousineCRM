@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
 import { Calendar, Clock, MapPin, Users, Phone, Navigation, CheckCircle, Play, X, RotateCcw, Plus } from 'lucide-react'
+import { firestoreService } from '../services/firestoreService'
 
 function DriverCalendar() {
   const { t } = useLanguage()
@@ -11,74 +12,41 @@ function DriverCalendar() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - in real app, this would fetch from API
-    const mockTrips = [
-      {
-        id: 1,
-        date: '2024-01-15',
-        time: '09:00',
-        endTime: '11:00',
-        pickup: 'Downtown Hotel',
-        destination: 'Airport Terminal 1',
-        client: 'John Smith',
-        clientPhone: '+1 (555) 123-4567',
-        passengers: 4,
-        status: 'assigned',
-        vehicle: 'Limousine #5',
-        specialInstructions: 'VIP client - provide water bottles',
-        estimatedDuration: '2 hours'
-      },
-      {
-        id: 2,
-        date: '2024-01-15',
-        time: '14:00',
-        endTime: '16:30',
-        pickup: 'Business District',
-        destination: 'Convention Center',
-        client: 'Corporate Group',
-        clientPhone: '+1 (555) 234-5678',
-        passengers: 8,
-        status: 'assigned',
-        vehicle: 'Bus #12',
-        specialInstructions: 'Multiple stops - check itinerary',
-        estimatedDuration: '2.5 hours'
-      },
-      {
-        id: 3,
-        date: '2024-01-16',
-        time: '10:00',
-        endTime: '12:00',
-        pickup: 'Residential Area',
-        destination: 'Shopping Mall',
-        client: 'Family Group',
-        clientPhone: '+1 (555) 345-6789',
-        passengers: 6,
-        status: 'assigned',
-        vehicle: 'Limousine #5',
-        specialInstructions: 'Child seats required',
-        estimatedDuration: '2 hours'
-      },
-      {
-        id: 4,
-        date: '2024-01-17',
-        time: '08:00',
-        endTime: '10:00',
-        pickup: 'Airport Terminal 2',
-        destination: 'Downtown Hotel',
-        client: 'Business Traveler',
-        clientPhone: '+1 (555) 456-7890',
-        passengers: 2,
-        status: 'assigned',
-        vehicle: 'Limousine #5',
-        specialInstructions: 'Early morning pickup - be punctual',
-        estimatedDuration: '2 hours'
+    const loadTrips = async () => {
+      try {
+        setLoading(true)
+        const tripsData = await firestoreService.getTrips()
+        
+        // Transform trips data to match the calendar format
+        const formattedTrips = tripsData.map(trip => {
+          const [startTime, endTime] = trip.time.split(' - ')
+          return {
+            id: trip.id,
+            date: trip.date,
+            time: startTime || '09:00',
+            endTime: endTime || '11:00',
+            pickup: trip.pickup,
+            destination: trip.destination,
+            client: trip.client,
+            clientPhone: '+32 2 123 4567', // Default phone, you can add this to trips later
+            passengers: trip.passengers,
+            status: trip.status,
+            vehicle: trip.vehicleName,
+            specialInstructions: trip.notes || '',
+            estimatedDuration: '2 hours' // Default duration
+          }
+        })
+        
+        setTrips(formattedTrips)
+      } catch (error) {
+        console.error('Error loading trips:', error)
+        setTrips([])
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setTrips(mockTrips)
-      setLoading(false)
-    }, 500)
+    loadTrips()
   }, [])
 
   const getDaysInWeek = (date) => {

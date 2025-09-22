@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { auth } from '../config/firebase'
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 
 const AuthContext = createContext()
 
@@ -15,33 +17,58 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem('lemousine_user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-    setLoading(false)
+    // Listen for Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Map Firebase user to our app user format
+        const appUser = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          role: firebaseUser.email.includes('driver') ? 'driver' : 'owner'
+        }
+        setUser(appUser)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
   }, [])
 
   const login = async (email, password) => {
-    // Mock authentication - in real app, this would call an API
-    const mockUsers = {
-      'driver@lemousine.com': { id: 1, name: 'John Driver', email: 'driver@lemousine.com', role: 'driver' },
-      'owner@lemousine.com': { id: 2, name: 'Jane Owner', email: 'owner@lemousine.com', role: 'owner' }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const firebaseUser = userCredential.user
+      
+      const appUser = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        role: firebaseUser.email.includes('driver') ? 'driver' : 'owner'
+      }
+      
+      return { success: true, user: appUser }
+    } catch (error) {
+      console.error('Login error:', error)
+      
+      // If user doesn't exist, provide helpful error message
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        return { success: false, error: 'Invalid email or password. Please create an account first in Firebase Console.' }
+      }
+      
+      return { success: false, error: error.message }
     }
-
-    const user = mockUsers[email]
-    if (user && password === 'password') {
-      setUser(user)
-      localStorage.setItem('lemousine_user', JSON.stringify(user))
-      return { success: true }
-    }
-    return { success: false, error: 'Invalid credentials' }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('lemousine_user')
+  const logout = async () => {
+    try {
+      await signOut(auth)
+      setUser(null)
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   const value = {

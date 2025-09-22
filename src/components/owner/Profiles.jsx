@@ -198,43 +198,66 @@ const Profiles = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <User className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('profilesTitle')}</h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <User className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('profilesTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des profils utilisateur</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm" style={{ color: '#DAA520' }}>
-          <span className="hidden sm:inline">Home / {t('profilesTitle')}</span>
-          <span className="sm:hidden">Home / {t('profilesTitle')}</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('profilesTitle')}</span>
+        </nav>
       </div>
 
       {/* Add Profile Button */}
-      <div className="mb-6">
+      <div className="mb-8">
         <button
           onClick={handleAddProfile}
-          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200"
           style={{ backgroundColor: '#DAA520' }}
         >
           <Lock className="w-5 h-5" />
-          <span>{t('addProfile')}</span>
+          <span className="hidden sm:inline">{t('addProfile')}</span>
+          <span className="sm:hidden">Ajouter</span>
         </button>
       </div>
 
       {/* Profiles Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Table Header */}
-        <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-            <div className="flex items-center space-x-2">
-              <Grid3X3 className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">{t('profilesTable')}</h2>
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Table Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+              <div className="flex items-center space-x-2">
+                <Grid3X3 className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-900">{t('profilesTable')}</h2>
+              </div>
+              
+              <button
+                onClick={handlePrint}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('print')}</span>
+              </button>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
+          </div>
+
+          {/* Search and Display Controls */}
+          <div className="p-6 bg-gray-50 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
               {/* Search */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('search')}:</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -242,18 +265,18 @@ const Profiles = () => {
                     value={searchTerm}
                     onChange={handleSearch}
                     placeholder={t('search') + '...'}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
                   />
                 </div>
               </div>
 
               {/* Display Count */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')}/Page:</label>
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('display')}:</label>
                 <select
                   value={displayCount}
                   onChange={handleDisplayCountChange}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -261,156 +284,137 @@ const Profiles = () => {
                   <option value={100}>100</option>
                 </select>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center space-x-2">
-                <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button className="p-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="px-3 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center space-x-1"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('print')}</span>
-                </button>
-              </div>
             </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('name')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('username')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('password')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('class')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('creationDate')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('modifyAccount')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('deleteAccount')}</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentProfiles.map((profile) => (
-                <tr key={profile.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {profile.name}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {profile.username}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                    {profile.password}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getClasseColor(profile.classe)}`}>
-                      {profile.classe}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {profile.dateCreation}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleModifyProfile(profile)}
-                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-{t('modify')}
-                    </button>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    {profile.classe !== 'admin' ? (
-                      <button
-                        onClick={() => handleDeleteProfile(profile.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      >
-{t('delete')}
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm">-</span>
-                    )}
-                  </td>
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('name')}</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">{t('username')}</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">{t('password')}</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('class')}</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">{t('creationDate')}</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {currentProfiles.map((profile) => (
+                  <tr key={profile.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {profile.name}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
+                      {profile.username}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 font-mono hidden md:table-cell">
+                      {profile.password}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getClasseColor(profile.classe)}`}>
+                        {profile.classe}
+                      </span>
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                      {profile.dateCreation}
+                    </td>
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
+                        <button
+                          onClick={() => handleModifyProfile(profile)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                        >
+                          <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
+                        </button>
+                        {profile.classe !== 'admin' && (
+                          <button
+                            onClick={() => handleDeleteProfile(profile.id)}
+                            className="text-red-600 hover:text-red-900 p-1"
+                          >
+                            <Trash2 className="w-3 h-3 lg:w-4 lg:h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Table Footer */}
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-            <div className="text-sm text-gray-700">
-              {t('display')} {startIndex + 1} à {Math.min(endIndex, filteredProfiles.length)} de {filteredProfiles.length} {t('records')}
-            </div>
-            
-            {/* Pagination */}
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-{t('first')}
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-{t('previous')}
-              </button>
+          {/* Table Footer */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+              <div className="text-sm text-gray-700">
+                {t('display')} {startIndex + 1} à {Math.min(endIndex, filteredProfiles.length)} de {filteredProfiles.length} {t('records')}
+              </div>
               
-              {/* Page Numbers */}
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = currentPage - 2 + i
-                }
+              {/* Pagination */}
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:inline">{t('first')}</span>
+                  <span className="sm:hidden">««</span>
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:inline">{t('previous')}</span>
+                  <span className="sm:hidden">‹</span>
+                </button>
                 
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-1 text-sm border rounded ${
-                      currentPage === pageNum
-                        ? 'bg-[#DAA520] text-white border-[#DAA520]'
-                        : 'border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              })}
-              
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-{t('next')}
-              </button>
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-{t('last')}
-              </button>
+                {/* Page Numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-1 text-sm border rounded ${
+                        currentPage === pageNum
+                          ? 'bg-[#DAA520] text-white border-[#DAA520]'
+                          : 'border-gray-300 hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:inline">{t('next')}</span>
+                  <span className="sm:hidden">›</span>
+                </button>
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:inline">{t('last')}</span>
+                  <span className="sm:hidden">»»</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -419,7 +423,7 @@ const Profiles = () => {
       {/* Add Profile Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Lock className="w-6 h-6" style={{ color: '#DAA520' }} />
@@ -538,7 +542,7 @@ const Profiles = () => {
       {/* Modify Profile Modal */}
       {showModifyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Edit className="w-6 h-6 text-green-600" />

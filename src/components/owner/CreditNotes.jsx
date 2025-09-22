@@ -311,13 +311,114 @@ const CreditNotes = () => {
   }
 
   const handleModifyCreditNote = (creditNoteId) => {
-    console.log('Modify credit note:', creditNoteId)
-    // Implement modify functionality
+    const creditNote = creditNotes.find(cn => cn.id === creditNoteId)
+    if (!creditNote) return
+    
+    // Set form data with existing credit note data
+    setFormData({
+      clientType: 'existing',
+      clientName: creditNote.client,
+      clientAddress: creditNote.address || '',
+      postalCode: creditNote.postalCode || '',
+      city: creditNote.city || '',
+      clientVAT: creditNote.vat || '',
+      company: creditNote.company || '',
+      date: creditNote.date,
+      paymentMethod: creditNote.paymentMethod || 'virement',
+      dueDate: creditNote.dueDate || '',
+      deposit: creditNote.deposit || 0,
+      remark: creditNote.remark || '',
+      designations: creditNote.designations || [
+        {
+          id: 1,
+          description: '',
+          vatRate: '21',
+          price: 0
+        }
+      ]
+    })
+    
+    // Open the create modal for editing
+    setShowCreateModal(true)
   }
 
   const handleViewCreditNote = (creditNoteId) => {
-    console.log('View credit note:', creditNoteId)
-    // Implement view functionality
+    const creditNote = creditNotes.find(cn => cn.id === creditNoteId)
+    if (!creditNote) return
+    
+    // Create a new window/tab to display the credit note
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Credit Note ${creditNote.number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .creditnote-info { margin-bottom: 20px; }
+            .creditnote-details { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+            .designations { margin-bottom: 20px; }
+            .designations table { width: 100%; border-collapse: collapse; }
+            .designations th, .designations td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            .designations th { background-color: #f5f5f5; }
+            .totals { margin-top: 20px; }
+            .footer { margin-top: 30px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Credit Note ${creditNote.number}</h1>
+            <p>Date: ${creditNote.date}</p>
+          </div>
+          <div class="creditnote-info">
+            <h3>Client Information</h3>
+            <p><strong>Client:</strong> ${creditNote.client}</p>
+            <p><strong>Address:</strong> ${creditNote.address || 'N/A'}</p>
+            <p><strong>City:</strong> ${creditNote.city || 'N/A'}</p>
+            <p><strong>VAT:</strong> ${creditNote.vat || 'N/A'}</p>
+          </div>
+          <div class="creditnote-details">
+            <h3>Credit Note Details</h3>
+            <p><strong>Company:</strong> ${creditNote.company || 'N/A'}</p>
+            <p><strong>Payment Method:</strong> ${creditNote.paymentMethod || 'N/A'}</p>
+            <p><strong>Due Date:</strong> ${creditNote.dueDate || 'N/A'}</p>
+            <p><strong>Deposit:</strong> €${creditNote.deposit || 0}</p>
+            <p><strong>Status:</strong> ${creditNote.status}</p>
+            <p><strong>Remark:</strong> ${creditNote.remark || 'N/A'}</p>
+          </div>
+          <div class="designations">
+            <h3>Designations</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>VAT Rate</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${creditNote.designations ? creditNote.designations.map(designation => `
+                  <tr>
+                    <td>${designation.description || 'N/A'}</td>
+                    <td>${designation.vatRate || 'N/A'}%</td>
+                    <td>€${designation.price || 0}</td>
+                  </tr>
+                `).join('') : '<tr><td colspan="3">No designations</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          <div class="totals">
+            <h3>Totals</h3>
+            <p><strong>Total Excl. VAT:</strong> €${creditNote.totalExclVat || 0}</p>
+            <p><strong>Total Incl. VAT:</strong> €${creditNote.totalInclVat || 0}</p>
+          </div>
+          <div class="footer">
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </body>
+      </html>
+    `)
+    newWindow.document.close()
   }
 
   const handleGeneratePDF = async (creditNoteId) => {
@@ -440,8 +541,35 @@ const CreditNotes = () => {
   }
 
   const handleSendCreditNote = (creditNoteId) => {
-    console.log('Send credit note:', creditNoteId)
-    // Implement send functionality
+    const creditNote = creditNotes.find(cn => cn.id === creditNoteId)
+    if (!creditNote) return
+    
+    // Create email content
+    const emailSubject = `Credit Note ${creditNote.number}`
+    const emailBody = `
+Dear ${creditNote.client},
+
+Please find attached your credit note ${creditNote.number} dated ${creditNote.date}.
+
+Credit Note Details:
+- Amount: €${creditNote.totalInclVat || 0}
+- Due Date: ${creditNote.dueDate || 'N/A'}
+- Payment Method: ${creditNote.paymentMethod || 'N/A'}
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+Your Limousine Service Team
+    `.trim()
+    
+    // Create mailto link
+    const mailtoLink = `mailto:${creditNote.email || ''}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    
+    // Open email client
+    window.open(mailtoLink)
+    
+    // Show success message
+    alert('Email client opened with credit note details!')
   }
 
   const handlePrint = () => {
@@ -469,63 +597,76 @@ const CreditNotes = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <FileEdit className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">{t('creditNotesTitle')}</span>
-            <span className="sm:hidden">{t('creditNotesTitle')}</span>
-          </h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <FileEdit className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('creditNotesTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des notes de crédit</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / {t('creditNotesTitle')}</span>
-          <span className="sm:hidden">Home / {t('creditNotesTitle')}</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('creditNotesTitle')}</span>
+        </nav>
       </div>
 
       {/* Create Credit Note Button */}
-      <div className="mb-6">
+      <div className="mb-8">
         <button
           onClick={handleCreateCreditNote}
-          className="flex items-center space-x-2 px-6 py-3 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
           style={{ backgroundColor: '#DAA520' }}
         >
-          <Plus className="w-5 h-5" />
-          <span>{t('addCreditNote')}</span>
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+          <span className="hidden sm:inline">{t('addCreditNote')}</span>
+          <span className="sm:hidden">Ajouter</span>
         </button>
       </div>
 
       {/* Credit Notes Table Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Table Header */}
-        <div className="bg-gray-100 px-4 lg:px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            <span className="hidden sm:inline">{t('creditNotesTable')}</span>
-            <span className="sm:hidden">{t('creditNotesTitle')}</span>
-          </h2>
-        </div>
-
-        {/* Search and Display Controls */}
-        <div className="p-4 lg:p-6 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">{t('search')}:</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={t('search') + '...'}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent w-full sm:w-64"
-              />
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Table Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+              <h3 className="text-lg font-semibold text-gray-900">{t('creditNotesTable')}</h3>
+              <div className="flex items-center space-x-2 lg:space-x-3">
+                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Print</span>
+                  <span className="sm:hidden">Print</span>
+                </button>
+              </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
+          </div>
+
+          {/* Search and Display Controls */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('search') + '...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                />
+              </div>
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">{t('display')}/Page:</label>
+                <label className="text-sm text-gray-700 whitespace-nowrap">Affichage/Page:</label>
                 <select
                   value={displayCount}
                   onChange={(e) => setDisplayCount(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
                 >
                   {displayOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -534,56 +675,30 @@ const CreditNotes = () => {
                   ))}
                 </select>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                {/* Filter icons */}
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <Filter className="w-4 h-4" />
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <Filter className="w-4 h-4" />
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <Filter className="w-4 h-4" />
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]">
-                  <Filter className="w-4 h-4" />
-                </button>
-                
-                {/* Print button */}
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center space-x-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('print')}</span>
-                </button>
-              </div>
             </div>
-          </div>
         </div>
 
         {/* Credit Notes Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('number')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('date')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('client')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   {t('remark')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('totalPrice')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('actions')}
                 </th>
               </tr>
@@ -591,45 +706,35 @@ const CreditNotes = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {getFilteredCreditNotes().map((creditNote) => (
                 <tr key={creditNote.id} className="hover:bg-gray-50">
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {creditNote.number}
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {creditNote.date}
                   </td>
-                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
+                  <td className="px-2 lg:px-6 py-4 text-sm text-gray-900">
                     <div className="max-w-xs truncate" title={creditNote.client}>
                       {creditNote.client}
                     </div>
                   </td>
-                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
+                  <td className="px-2 lg:px-6 py-4 text-sm text-gray-900 hidden md:table-cell">
                     <div className="max-w-md truncate" title={creditNote.remark}>
                       {creditNote.remark}
                     </div>
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {creditNote.totalPrice.toFixed(2)}€
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleModifyCreditNote(creditNote.id)}
-                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Modifier
+                  <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-1 lg:space-x-2">
+                      <button className="text-green-600 hover:text-green-900 p-1">
+                        <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
-                      <button
-                        onClick={() => handleGeneratePDF(creditNote.id)}
-                        className="p-1 text-red-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        <FileDown className="w-4 h-4" />
+                      <button className="text-red-600 hover:text-red-900 p-1">
+                        <FileDown className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
-                      <button
-                        onClick={() => handleSendCreditNote(creditNote.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
-                      >
-                        <Mail className="w-4 h-4" />
+                      <button className="text-gray-600 hover:text-gray-900 p-1">
+                        <Mail className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
                     </div>
                   </td>
@@ -639,14 +744,15 @@ const CreditNotes = () => {
           </table>
         </div>
 
-        {/* Summary */}
-        <div className="px-4 lg:px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-gray-600">
-            <div>
-              Affichage de {getFilteredCreditNotes().length} note(s) de crédit sur {creditNotes.length} total
-            </div>
-            <div className="mt-2 sm:mt-0">
-              Total des notes de crédit: {getTotalCreditNotes().toFixed(2)}€
+          {/* Summary */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-gray-600">
+              <div>
+                Affichage de {getFilteredCreditNotes().length} note(s) de crédit sur {creditNotes.length} total
+              </div>
+              <div className="mt-2 sm:mt-0">
+                Total des notes de crédit: {getTotalCreditNotes().toFixed(2)}€
+              </div>
             </div>
           </div>
         </div>
@@ -654,8 +760,8 @@ const CreditNotes = () => {
 
       {/* Create Credit Note Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
@@ -754,8 +860,8 @@ const CreditNotes = () => {
                         )}
                       </div>
                       
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div className="lg:col-span-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="md:col-span-2 lg:col-span-1">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Description
                           </label>
@@ -814,7 +920,7 @@ const CreditNotes = () => {
                   <button
                     type="button"
                     onClick={addDesignation}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 mt-4"
                   >
                     <Plus className="w-4 h-4" />
                     <span>+ Ajouter</span>

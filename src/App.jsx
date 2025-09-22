@@ -4,6 +4,16 @@ import Login from './components/Login'
 import DriverDashboard from './components/DriverDashboard'
 import OwnerDashboard from './components/OwnerDashboard'
 import NotificationCenter from './components/NotificationCenter'
+import FirebaseTest from './components/FirebaseTest'
+import FirebaseConnectionTest from './components/FirebaseConnectionTest'
+import QuickDataSetup from './components/QuickDataSetup'
+import DatabaseSetup from './components/DatabaseSetup'
+import FirebaseDebug from './components/FirebaseDebug'
+import InvoiceGenerator from './components/InvoiceGenerator'
+import InvoicePreview from './components/InvoicePreview'
+import InvoiceTableTest from './components/InvoiceTableTest'
+import FirebaseTableTest from './components/FirebaseTableTest'
+import FirebaseAuthenticatedTest from './components/FirebaseAuthenticatedTest'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { NotificationProvider } from './contexts/NotificationContext'
@@ -32,6 +42,46 @@ function AppRoutes() {
       <Route 
         path="/owner" 
         element={user?.role === 'owner' ? <OwnerDashboard /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/firebase-test" 
+        element={<FirebaseTest />} 
+      />
+      <Route 
+        path="/firebase-connection" 
+        element={<FirebaseConnectionTest />} 
+      />
+      <Route 
+        path="/data-setup" 
+        element={<QuickDataSetup />} 
+      />
+      <Route 
+        path="/database-setup" 
+        element={<DatabaseSetup />} 
+      />
+      <Route 
+        path="/firebase-debug" 
+        element={<FirebaseDebug />} 
+      />
+      <Route 
+        path="/invoice-generator" 
+        element={<InvoiceGenerator />} 
+      />
+      <Route 
+        path="/invoice-preview" 
+        element={<InvoicePreview />} 
+      />
+      <Route 
+        path="/invoice-table-test" 
+        element={<InvoiceTableTest />} 
+      />
+      <Route 
+        path="/firebase-table-test" 
+        element={<FirebaseTableTest />} 
+      />
+      <Route 
+        path="/firebase-auth-test" 
+        element={<FirebaseAuthenticatedTest />} 
       />
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>

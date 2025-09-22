@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { X, MapPin, Clock, Car, Users, DollarSign, User, Calendar } from 'lucide-react'
+import { firestoreService } from '../../services/firestoreService'
 
 function AddTripForm({ onClose, onTripAdded }) {
   const { t } = useLanguage()
@@ -20,19 +21,33 @@ function AddTripForm({ onClose, onTripAdded }) {
 
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [drivers, setDrivers] = useState([])
+  const [vehicles, setVehicles] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
 
-  // Mock data for dropdowns - in real app, this would come from API
-  const drivers = [
-    { id: 1, name: 'John Driver', status: 'active' },
-    { id: 2, name: 'Mike Wilson', status: 'active' },
-    { id: 3, name: 'Sarah Johnson', status: 'offline' }
-  ]
+  // Load drivers and vehicles data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoadingData(true)
+        const [driversData, vehiclesData] = await Promise.all([
+          firestoreService.getDrivers(),
+          firestoreService.getVehicles()
+        ])
+        setDrivers(driversData)
+        setVehicles(vehiclesData)
+      } catch (error) {
+        console.error('Error loading form data:', error)
+        // Fallback to empty arrays
+        setDrivers([])
+        setVehicles([])
+      } finally {
+        setLoadingData(false)
+      }
+    }
 
-  const vehicles = [
-    { id: 1, name: 'Bus #12', type: 'Luxury Bus', capacity: 25, status: 'active' },
-    { id: 2, name: 'Limousine #5', type: 'Stretch Limo', capacity: 8, status: 'active' },
-    { id: 3, name: 'Bus #8', type: 'Standard Bus', capacity: 20, status: 'maintenance' }
-  ]
+    loadData()
+  }, [])
 
   // Set default date to today
   useEffect(() => {
@@ -70,7 +85,7 @@ function AddTripForm({ onClose, onTripAdded }) {
     }
 
     // Validate passenger count against vehicle capacity
-    const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle))
+    const selectedVehicle = vehicles.find(v => v.id === formData.vehicle)
     if (selectedVehicle && formData.passengers > selectedVehicle.capacity) {
       newErrors.passengers = `${t('cannotExceedCapacity')} (${selectedVehicle.capacity})`
     }
@@ -87,13 +102,14 @@ function AddTripForm({ onClose, onTripAdded }) {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const selectedDriver = drivers.find(d => d.id === formData.driver)
+      const selectedVehicle = vehicles.find(v => v.id === formData.vehicle)
 
       const newTrip = {
-        id: Date.now(), // In real app, this would come from the server
-        driver: drivers.find(d => d.id === parseInt(formData.driver))?.name || '',
-        vehicle: vehicles.find(v => v.id === parseInt(formData.vehicle))?.name || '',
+        driverId: formData.driver,
+        driverName: selectedDriver?.name || '',
+        vehicleId: formData.vehicle,
+        vehicleName: selectedVehicle?.name || '',
         pickup: formData.pickup,
         destination: formData.destination,
         date: formData.date,
@@ -136,6 +152,19 @@ function AddTripForm({ onClose, onTripAdded }) {
   }
 
   const selectedVehicle = vehicles.find(v => v.id === parseInt(formData.vehicle))
+
+  if (loadingData) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <span className="ml-4 text-gray-600">Loading drivers and vehicles...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

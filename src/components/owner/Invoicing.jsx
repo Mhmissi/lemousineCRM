@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { FileText, Filter, Plus, Search, Eye, Edit, CheckCircle, FileDown, Calendar, User, DollarSign, Receipt } from 'lucide-react'
-import jsPDF from 'jspdf'
+import { firestoreService } from '../../services/firestoreService'
+import { downloadInvoice, createInvoiceFromTrip, generateInvoiceNumber } from '../../utils/invoiceGenerator'
 
 const Invoicing = () => {
   const { t } = useLanguage()
@@ -10,6 +11,8 @@ const Invoicing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [displayCount, setDisplayCount] = useState(50)
   const [invoices, setInvoices] = useState([])
+  const [trips, setTrips] = useState([])
+  const [clients, setClients] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -35,6 +38,29 @@ const Invoicing = () => {
     ]
   })
   const [errors, setErrors] = useState({})
+
+  // Load data from Firestore
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        const [invoicesData, tripsData, clientsData] = await Promise.all([
+          firestoreService.getInvoices(),
+          firestoreService.getTrips(),
+          firestoreService.getClients()
+        ])
+        setInvoices(invoicesData)
+        setTrips(tripsData)
+        setClients(clientsData)
+      } catch (error) {
+        console.error('Error loading invoicing data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
 
   // Mock data for dropdowns
   const filterOptions = [
@@ -276,51 +302,84 @@ const Invoicing = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    // Calculate totals
-    const totalExclVAT = formData.designations.reduce((sum, designation) => {
-      return sum + (designation.price || 0)
-    }, 0)
+    try {
+      setLoading(true)
 
-    const totalVAT = formData.designations.reduce((sum, designation) => {
-      const vatAmount = (designation.price || 0) * (parseFloat(designation.vatRate) / 100)
-      return sum + vatAmount
-    }, 0)
+      // Calculate totals
+      const totalExclVAT = formData.designations.reduce((sum, designation) => {
+        return sum + (designation.price || 0)
+      }, 0)
 
-    const totalInclVAT = totalExclVAT + totalVAT
+      const totalVAT = formData.designations.reduce((sum, designation) => {
+        const vatAmount = (designation.price || 0) * (parseFloat(designation.vatRate) / 100)
+        return sum + vatAmount
+      }, 0)
 
-    // Generate invoice number
-    const nextInvoiceNumber = `FC ${String(Math.max(...invoices.map(inv => parseInt(inv.number.split(' ')[1]))) + 1).padStart(4, '0')}`
+      const totalInclVAT = totalExclVAT + totalVAT
 
-    // Create new invoice
-    const newInvoice = {
-      id: Math.max(...invoices.map(inv => inv.id)) + 1,
-      number: nextInvoiceNumber,
-      date: formData.date,
-      dueDate: formData.dueDate,
-      client: formData.clientName,
-      payment: paymentMethods.find(pm => pm.value === formData.paymentMethod)?.label || 'Virement',
-      remark: formData.remark,
-      totalExclVAT: totalExclVAT,
-      vat: totalVAT,
-      totalInclVAT: totalInclVAT,
-      deposit: formData.deposit || 0,
-      status: 'draft'
-    }
+      // Generate invoice number
+      const invoiceNumber = generateInvoiceNumber()
 
-    // Add to invoices list
-    setInvoices(prev => [newInvoice, ...prev])
-    
-    // Reset form
-    setFormData({
-      clientType: 'existing',
-      clientName: '',
+      // Create invoice data for PDF
+      const invoiceData = {
+        invoiceNumber: invoiceNumber,
+        date: formData.date,
+        dueDate: formData.dueDate,
+        clientCode: formData.clientType === 'existing' ? formData.clientName : 'CL0001',
+        clientName: formData.clientName,
+        clientAddress: formData.clientAddress,
+        clientPostalCode: formData.postalCode,
+        clientCity: formData.city,
+        paymentMethod: formData.paymentMethod,
+        services: formData.designations.map(designation => ({
+          description: designation.description,
+          priceExclVat: designation.price || 0,
+          vatRate: parseFloat(designation.vatRate),
+          vatAmount: (designation.price || 0) * (parseFloat(designation.vatRate) / 100),
+          priceInclVat: (designation.price || 0) + ((designation.price || 0) * (parseFloat(designation.vatRate) / 100))
+        })),
+        totals: {
+          priceExclVat: totalExclVAT,
+          vatAmount: totalVAT,
+          priceInclVat: totalInclVAT,
+          deposit: formData.deposit || 0
+        }
+      }
+
+      // Save to Firestore
+      const invoiceId = await firestoreService.addInvoice({
+        invoiceNumber: invoiceNumber,
+        date: formData.date,
+        dueDate: formData.dueDate,
+        clientName: formData.clientName,
+        clientAddress: formData.clientAddress,
+        clientPostalCode: formData.postalCode,
+        clientCity: formData.city,
+        paymentMethod: formData.paymentMethod,
+        remark: formData.remark,
+        services: invoiceData.services,
+        totals: invoiceData.totals,
+        status: 'draft'
+      })
+
+      // Generate and download PDF
+      downloadInvoice(invoiceData)
+
+      // Refresh invoices list
+      const updatedInvoices = await firestoreService.getInvoices()
+      setInvoices(updatedInvoices)
+      
+      // Reset form
+      setFormData({
+        clientType: 'existing',
+        clientName: '',
       clientAddress: '',
       postalCode: '',
       city: '',
@@ -339,9 +398,16 @@ const Invoicing = () => {
           price: 0
         }
       ]
-    })
-    setErrors({})
-    setShowCreateModal(false)
+      })
+      setErrors({})
+      setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error creating invoice:', error)
+      setErrors({ general: 'Failed to create invoice. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseModal = () => {
@@ -350,13 +416,113 @@ const Invoicing = () => {
   }
 
   const handleModifyInvoice = (invoiceId) => {
-    console.log('Modify invoice:', invoiceId)
-    // Implement modify functionality
+    const invoice = invoices.find(inv => inv.id === invoiceId)
+    if (!invoice) return
+    
+    // Set form data with existing invoice data
+    setFormData({
+      clientType: 'existing',
+      clientName: invoice.client,
+      clientAddress: invoice.address || '',
+      postalCode: invoice.postalCode || '',
+      city: invoice.city || '',
+      clientVAT: invoice.vat || '',
+      date: invoice.date,
+      paymentMethod: invoice.paymentMethod || 'virement',
+      dueDate: invoice.dueDate || '',
+      deposit: invoice.deposit || 0,
+      remark: invoice.remark || '',
+      vatType: invoice.vatType || 'htva',
+      designations: invoice.designations || [
+        {
+          id: 1,
+          description: '',
+          vatRate: '21',
+          price: 0
+        }
+      ]
+    })
+    
+    // Open the create modal for editing
+    setShowCreateModal(true)
   }
 
   const handleViewInvoice = (invoiceId) => {
-    console.log('View invoice:', invoiceId)
-    // Implement view functionality
+    const invoice = invoices.find(inv => inv.id === invoiceId)
+    if (!invoice) return
+    
+    // Create a new window/tab to display the invoice
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Invoice ${invoice.number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .invoice-info { margin-bottom: 20px; }
+            .invoice-details { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+            .designations { margin-bottom: 20px; }
+            .designations table { width: 100%; border-collapse: collapse; }
+            .designations th, .designations td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            .designations th { background-color: #f5f5f5; }
+            .totals { margin-top: 20px; }
+            .footer { margin-top: 30px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Invoice ${invoice.number}</h1>
+            <p>Date: ${invoice.date}</p>
+          </div>
+          <div class="invoice-info">
+            <h3>Client Information</h3>
+            <p><strong>Client:</strong> ${invoice.client}</p>
+            <p><strong>Address:</strong> ${invoice.address || 'N/A'}</p>
+            <p><strong>City:</strong> ${invoice.city || 'N/A'}</p>
+            <p><strong>VAT:</strong> ${invoice.vat || 'N/A'}</p>
+          </div>
+          <div class="invoice-details">
+            <h3>Invoice Details</h3>
+            <p><strong>Payment Method:</strong> ${invoice.paymentMethod || 'N/A'}</p>
+            <p><strong>Due Date:</strong> ${invoice.dueDate || 'N/A'}</p>
+            <p><strong>Deposit:</strong> €${invoice.deposit || 0}</p>
+            <p><strong>Status:</strong> ${invoice.status}</p>
+            <p><strong>Remark:</strong> ${invoice.remark || 'N/A'}</p>
+          </div>
+          <div class="designations">
+            <h3>Designations</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>VAT Rate</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoice.designations ? invoice.designations.map(designation => `
+                  <tr>
+                    <td>${designation.description || 'N/A'}</td>
+                    <td>${designation.vatRate || 'N/A'}%</td>
+                    <td>€${designation.price || 0}</td>
+                  </tr>
+                `).join('') : '<tr><td colspan="3">No designations</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          <div class="totals">
+            <h3>Totals</h3>
+            <p><strong>Total Excl. VAT:</strong> €${invoice.totalExclVat || 0}</p>
+            <p><strong>Total Incl. VAT:</strong> €${invoice.totalInclVat || 0}</p>
+          </div>
+          <div class="footer">
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </body>
+      </html>
+    `)
+    newWindow.document.close()
   }
 
   const handleGeneratePDF = async (invoiceId) => {
@@ -456,21 +622,21 @@ const Invoicing = () => {
     // Invoice line
     doc.setFont('helvetica', 'normal')
     doc.text('Service de transport limousine', 25, yPosition + 8)
-    doc.text(`${invoice.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition + 8)
-    doc.text(`${invoice.vat.toFixed(2)}€`, pageWidth - 50, yPosition + 8)
-    doc.text(`${invoice.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition + 8)
+    doc.text(`${invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition + 8)
+    doc.text(`${invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition + 8)
+    doc.text(`${invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition + 8)
     yPosition += 20
 
     // Totals
     doc.setFont('helvetica', 'bold')
-    doc.text(`Total HTVA: ${invoice.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition)
-    doc.text(`TVA: ${invoice.vat.toFixed(2)}€`, pageWidth - 50, yPosition)
-    doc.text(`Total TVAC: ${invoice.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition)
+    doc.text(`Total HTVA: ${invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition)
+    doc.text(`TVA: ${invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition)
+    doc.text(`Total TVAC: ${invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition)
     
-    if (invoice.deposit > 0) {
+    if (invoice.totals?.deposit > 0) {
       yPosition += 10
-      doc.text(`Acompte: ${invoice.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
-      doc.text(`Solde: ${(invoice.totalInclVAT - invoice.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
+      doc.text(`Acompte: ${invoice.totals.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
+      doc.text(`Solde: ${(invoice.totals.priceInclVat - invoice.totals.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
     }
 
     // Footer
@@ -543,22 +709,30 @@ const Invoicing = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <FileText className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">{t('invoicingTitle')}</span>
-            <span className="sm:hidden">{t('invoicingTitle')}</span>
-          </h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <FileText className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('invoicingTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des factures</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / {t('invoicingTitle')}</span>
-          <span className="sm:hidden">Home / {t('invoicingTitle')}</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('invoicingTitle')}</span>
+        </nav>
       </div>
 
       {/* Invoice Management Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center space-x-2 mb-6">
           <Receipt className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
@@ -633,84 +807,89 @@ const Invoicing = () => {
             <span>{t('createInvoice')}</span>
           </button>
         </div>
+        </div>
       </div>
 
       {/* Invoice Table Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5" style={{ color: '#DAA520' }} />
-            <h2 className="text-xl font-semibold text-gray-900">
-              <span className="hidden sm:inline">{t('invoiceTable')}</span>
-              <span className="sm:hidden">{t('invoicingTitle')}</span>
-            </h2>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">{t('search')}:</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={t('search') + '...'}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
-              />
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Table Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+              <h3 className="text-lg font-semibold text-gray-900">{t('invoiceTable')}</h3>
+              <div className="flex items-center space-x-2 lg:space-x-3">
+                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                  <FileDown className="w-4 h-4" />
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">Export</span>
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">{t('display')}</label>
-              <select
-                value={displayCount}
-                onChange={(e) => setDisplayCount(Number(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
-              >
-                {displayOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <span className="text-sm text-gray-700">{t('records')}</span>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('search') + '...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-700 whitespace-nowrap">Affichage/Page:</label>
+                <select
+                  value={displayCount}
+                  onChange={(e) => setDisplayCount(Number(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm"
+                >
+                  {displayOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Invoice Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('number')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('date')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   {t('dueDate')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('client')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   {t('payment')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   {t('remark')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   {t('totalExclVat')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   {t('vat')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('totalInclVat')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   {t('deposit')}
                 </th>
-                <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('actions')}
                 </th>
               </tr>
@@ -741,16 +920,16 @@ const Invoicing = () => {
                     </div>
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.totalExclVAT.toFixed(2)}€
+                    {invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.vat.toFixed(2)}€
+                    {invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {invoice.totalInclVAT.toFixed(2)}€
+                    {invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.deposit.toFixed(2)}€
+                    {invoice.totals?.deposit?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center space-x-2">
@@ -796,9 +975,10 @@ const Invoicing = () => {
               Affichage de {getFilteredInvoices().length} facture(s) sur {invoices.length} total
             </div>
             <div className="mt-2 sm:mt-0">
-              Total des factures: {getFilteredInvoices().reduce((sum, inv) => sum + inv.totalInclVAT, 0).toFixed(2)}€
+              Total des factures: {getFilteredInvoices().reduce((sum, inv) => sum + (inv.totals?.priceInclVat || 0), 0).toFixed(2)}€
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -1106,7 +1286,7 @@ const Invoicing = () => {
                   <button
                     type="button"
                     onClick={addDesignation}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 mt-4"
                   >
                     <Plus className="w-4 h-4" />
                     <span>+ Ajouter</span>

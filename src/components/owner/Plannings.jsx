@@ -722,7 +722,7 @@ function Plannings() {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="mb-6 lg:mb-8">
+      <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
@@ -766,7 +766,7 @@ function Plannings() {
       </div>
 
       {/* Calendar Navigation */}
-      <div className="mb-4 lg:mb-6">
+      <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
           <div className="flex items-center justify-between sm:justify-start space-x-2 sm:space-x-4">
             <div className="flex items-center space-x-2">
@@ -838,7 +838,7 @@ function Plannings() {
       {!showListView && (
         <>
           {/* Calendar Grid */}
-          <div className="mb-6 lg:mb-8">
+          <div className="mb-8">
             {viewMode === 'month' && (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                 {renderCalendar(0)}
@@ -870,7 +870,7 @@ function Plannings() {
           </div>
 
           {/* Selected Date Details */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 pb-6 lg:pb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Détails du {selectedDate.toLocaleDateString('fr-FR', { 
                 weekday: 'long', 
@@ -928,7 +928,7 @@ function Plannings() {
 
       {/* List View - Full Page */}
       {showListView && (
-        <div className="space-y-4 lg:space-y-6 pb-6 lg:pb-0">
+        <div className="space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
@@ -961,7 +961,7 @@ function Plannings() {
           </nav>
 
           {/* Filter Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
               <h3 className="text-lg font-semibold text-gray-900">Gestion des plannings</h3>
               <div className="flex items-center space-x-2 lg:space-x-3">
@@ -1025,8 +1025,8 @@ function Plannings() {
           </div>
 
           {/* Table Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 lg:p-6 border-b border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">Course(s)</h3>
@@ -1136,7 +1136,7 @@ function Plannings() {
             </div>
 
             {/* Pagination */}
-            <div className="px-4 lg:px-6 py-4 pb-6 lg:pb-4 border-t border-gray-200">
+            <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                 <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                   Affichage {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, getFilteredSchedules().length)} de {getFilteredSchedules().length} enregistrement(s)
@@ -1187,7 +1187,7 @@ function Plannings() {
       {/* Add Schedule Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
@@ -1254,7 +1254,7 @@ function Plannings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Adresse de départ</label>
                 <input
                   type="text"
-                  placeholder="Enter a location"
+                  placeholder={t('enterLocation')}
                   value={formData.departureAddress}
                   onChange={(e) => handleInputChange('departureAddress', e.target.value)}
                   className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
@@ -1270,7 +1270,7 @@ function Plannings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
                 <input
                   type="text"
-                  placeholder="Enter a location"
+                  placeholder={t('enterLocation')}
                   value={formData.destination}
                   onChange={(e) => handleInputChange('destination', e.target.value)}
                   className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${
@@ -1385,7 +1385,7 @@ function Plannings() {
                   <div className="flex-1 relative">
                     <input
                       type="number"
-                      placeholder="Prix"
+                      placeholder={t('price')}
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
                       className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] ${

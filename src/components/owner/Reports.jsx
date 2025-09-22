@@ -308,22 +308,30 @@ const Reports = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            <span className="hidden sm:inline">{t('reportsTitle')}</span>
-            <span className="sm:hidden">{t('reportsTitle')}</span>
-          </h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <BarChart3 className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('reportsTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Rapports et statistiques</p>
+            </div>
           </div>
-        <div className="text-sm text-gray-500">
-          <span className="hidden sm:inline">Home / {t('reportsTitle')}</span>
-          <span className="sm:hidden">Home / {t('reportsTitle')}</span>
         </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('reportsTitle')}</span>
+        </nav>
       </div>
 
       {/* Report Management Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 mb-6">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center space-x-2 mb-6">
           <FileText className="w-5 h-5" style={{ color: '#DAA520' }} />
           <h2 className="text-xl font-semibold text-gray-900">
@@ -493,80 +501,86 @@ const Reports = () => {
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-orange-600" />
                 <span className="text-sm font-medium text-orange-900">{t('totalDuration')}</span>
-          </div>
+              </div>
               <p className="text-2xl font-bold text-orange-900 mt-2">
                 {reportData.reduce((sum, report) => sum + parseInt(report.duration), 0)}h
               </p>
+            </div>
+          </div>
         </div>
-      </div>
-
-          {/* Report Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('date')}
-                  </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('driver')}
-                  </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('client')}
-                  </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('trip')}
-                  </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('duration')}
-                </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('distance')}
-                </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('price')}
-                </th>
-                  <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('status')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-                {reportData.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.date}
-                    </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.driver}
-                    </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.client}
-                    </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.trip}
-                    </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.duration}
-                  </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.distance}
-                  </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {report.price}€
-                  </td>
-                    <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        {report.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
       )}
+
+          {/* Report Table Section */}
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              {/* Report Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('date')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('driver')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('client')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('trip')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('duration')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('distance')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('price')}
+                      </th>
+                      <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('status')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {reportData.map((report) => (
+                      <tr key={report.id} className="hover:bg-gray-50">
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.date}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.driver}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.client}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.trip}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.duration}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {report.distance}
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {report.price}€
+                        </td>
+                        <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            {report.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
   )
 }

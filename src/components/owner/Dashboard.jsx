@@ -18,6 +18,7 @@ import {
   Users,
   Euro
 } from 'lucide-react'
+import { firestoreService } from '../../services/firestoreService'
 
 function Dashboard({ onNavigate }) {
   const { t } = useLanguage()
@@ -31,28 +32,73 @@ function Dashboard({ onNavigate }) {
   const [revenueData, setRevenueData] = useState([])
 
   useEffect(() => {
-    // Mock data - in real app, this would fetch from API
-    const mockStats = {
-      totalTripsToday: 0,
-      completedTripsToday: 0,
-      pendingTripsToday: 0
+    const loadDashboardData = async () => {
+      try {
+        // Load all trips from Firestore
+        const allTrips = await firestoreService.getTrips()
+        
+        // Get today's date
+        const today = new Date().toISOString().split('T')[0]
+        
+        // Filter today's trips
+        const todayTripsData = allTrips.filter(trip => trip.date === today)
+        
+        // Calculate stats
+        const totalTripsToday = todayTripsData.length
+        const completedTripsToday = todayTripsData.filter(trip => trip.status === 'completed').length
+        const pendingTripsToday = todayTripsData.filter(trip => trip.status === 'assigned' || trip.status === 'active').length
+        
+        // Calculate revenue data for the last 5 months
+        const currentDate = new Date()
+        const months = []
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
+        
+        for (let i = 4; i >= 0; i--) {
+          const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+          const monthName = monthNames[monthDate.getMonth()]
+          const monthStart = monthDate.toISOString().split('T')[0]
+          const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString().split('T')[0]
+          
+          const monthTrips = allTrips.filter(trip => 
+            trip.date >= monthStart && trip.date <= monthEnd && trip.status === 'completed'
+          )
+          
+          const trips = monthTrips.length
+          const revenue = monthTrips.reduce((sum, trip) => sum + (trip.revenue || 0), 0)
+          const avgPrice = trips > 0 ? revenue / trips : 0
+          
+          months.push({
+            month: monthName,
+            trips,
+            revenue,
+            unpaid: 0, // You can implement unpaid logic later
+            avgPrice: Math.round(avgPrice)
+          })
+        }
+        
+        setStats({
+          totalTripsToday,
+          completedTripsToday,
+          pendingTripsToday
+        })
+        
+        setTodayTrips(todayTripsData)
+        setRevenueData(months)
+        
+      } catch (error) {
+        console.error('Error loading dashboard data:', error)
+        // Fallback to empty data
+        setStats({
+          totalTripsToday: 0,
+          completedTripsToday: 0,
+          pendingTripsToday: 0
+        })
+        setTodayTrips([])
+        setRevenueData([])
+      }
     }
 
-    const mockTodayTrips = []
-
-    const mockRevenueData = [
-      { month: 'Mai', trips: 0, revenue: 0, unpaid: 0, avgPrice: 0 },
-      { month: 'Juin', trips: 0, revenue: 0, unpaid: 0, avgPrice: 0 },
-      { month: 'Juillet', trips: 0, revenue: 0, unpaid: 0, avgPrice: 0 },
-      { month: 'Août', trips: 0, revenue: 0, unpaid: 0, avgPrice: 0 },
-      { month: 'Septembre', trips: 0, revenue: 0, unpaid: 0, avgPrice: 0 }
-    ]
-
-    setTimeout(() => {
-      setStats(mockStats)
-      setTodayTrips(mockTodayTrips)
-      setRevenueData(mockRevenueData)
-    }, 500)
+    loadDashboardData()
   }, [])
 
   return (

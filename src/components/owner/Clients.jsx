@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { UserCheck, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { firestoreService } from '../../services/firestoreService'
 
 const Clients = () => {
   const { t } = useLanguage()
@@ -13,29 +14,6 @@ const Clients = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Mock client data based on the image
-  const mockClients = [
-    { id: 1, numero: 1588, company: 'Le Botanique', address: 'Rue Royale 236', postalCode: '1210', city: 'Bruxelles', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 2, numero: 1587, company: 'Candex Solutions Belgium BV', address: 'Patersstraat 100', postalCode: '2300', city: 'Turnhout', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 3, numero: 1586, company: 'Dlc srl', address: 'Clos Lamartine 5', postalCode: '1420', city: 'Braine | Alleud', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 4, numero: 1585, company: 'Reiseakademiet AS', address: 'Box 17', postalCode: '1629', city: 'FREDRIKSTAD - NORGE', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 5, numero: 1584, company: 'The Key as', address: 'Fred Olsensgt 5', postalCode: '0152', city: 'Oslo - Norway', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 6, numero: 1583, company: 'Charmed by Spain S.L.', address: 'aseo de las Delicias N° 30, Piso 5°, Oficina 2ª', postalCode: '28045', city: 'Madrid, España - VAT: B87197620', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 7, numero: 1582, company: 'LATHAM & WATKINS LLP', address: 'Place Sainte Gudule 14', postalCode: '1000', city: 'Bruxelles', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 8, numero: 1581, company: 'Muttrah Water Services & Works LLC', address: 'Al Qurum', postalCode: '879', city: 'Muscat, Oman', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 9, numero: 1580, company: 'Mme : Manzanza', address: 'Avenue du Capricorne 12', postalCode: '1200', city: 'Woluwe Saint lambert', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 10, numero: 1579, company: 'Paroisse du Divin Enfant Jésus', address: 'Av. Houba de Strooper 757, 204 HRCB', postalCode: '1020', city: 'Bruxelles', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 11, numero: 1578, company: 'Brigham Young University', address: '', postalCode: 'Provo', city: 'Utah 84602 - USA', country: '', phone: '', fax: '', email: '', status: 'Activé' },
-    { id: 12, numero: 1577, company: 'ABC Corporation', address: '123 Business Street', postalCode: '1000', city: 'Brussels', country: 'Belgium', phone: '+32 2 123 4567', fax: '+32 2 123 4568', email: 'contact@abccorp.com', status: 'Activé' },
-    { id: 13, numero: 1576, company: 'XYZ Limited', address: '456 Corporate Avenue', postalCode: '2000', city: 'Antwerp', country: 'Belgium', phone: '+32 3 987 6543', fax: '+32 3 987 6544', email: 'info@xyzlimited.be', status: 'Activé' },
-    { id: 14, numero: 1575, company: 'Global Services Inc.', address: '789 International Blvd', postalCode: '3000', city: 'Leuven', country: 'Belgium', phone: '+32 16 555 1234', fax: '+32 16 555 1235', email: 'services@globalinc.com', status: 'Activé' },
-    { id: 15, numero: 1574, company: 'Tech Solutions BV', address: '321 Innovation Drive', postalCode: '4000', city: 'Liège', country: 'Belgium', phone: '+32 4 777 8888', fax: '+32 4 777 8889', email: 'tech@techsolutions.be', status: 'Activé' },
-    { id: 16, numero: 1573, company: 'Luxury Transport Ltd', address: '654 Premium Street', postalCode: '5000', city: 'Namur', country: 'Belgium', phone: '+32 81 999 0000', fax: '+32 81 999 0001', email: 'luxury@transport.be', status: 'Activé' },
-    { id: 17, numero: 1572, company: 'Executive Cars SA', address: '987 Executive Plaza', postalCode: '6000', city: 'Charleroi', country: 'Belgium', phone: '+32 71 111 2222', fax: '+32 71 111 2223', email: 'executive@cars.be', status: 'Activé' },
-    { id: 18, numero: 1571, company: 'VIP Limousine Services', address: '147 VIP Lane', postalCode: '7000', city: 'Mons', country: 'Belgium', phone: '+32 65 333 4444', fax: '+32 65 333 4445', email: 'vip@limousine.be', status: 'Activé' },
-    { id: 19, numero: 1570, company: 'Premium Transport Group', address: '258 Premium Road', postalCode: '8000', city: 'Bruges', country: 'Belgium', phone: '+32 50 555 6666', fax: '+32 50 555 6667', email: 'premium@transport.be', status: 'Activé' },
-    { id: 20, numero: 1569, company: 'Elite Car Services', address: '369 Elite Boulevard', postalCode: '9000', city: 'Ghent', country: 'Belgium', phone: '+32 9 777 8888', fax: '+32 9 777 8889', email: 'elite@carservices.be', status: 'Activé' }
-  ]
 
   const [formData, setFormData] = useState({
     company: '',
@@ -52,7 +30,21 @@ const Clients = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setClients(mockClients)
+    const loadClients = async () => {
+      try {
+        setLoading(true)
+        const clientsData = await firestoreService.getClients()
+        setClients(clientsData)
+      } catch (error) {
+        console.error('Error loading clients:', error)
+        // Fallback to empty array if Firestore fails
+        setClients([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadClients()
   }, [])
 
   // Filter clients based on search term
@@ -138,54 +130,73 @@ const Clients = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    if (showAddModal) {
-      // Add new client
-      const newClient = {
-        id: Math.max(...clients.map(c => c.id)) + 1,
-        numero: Math.max(...clients.map(c => c.numero)) + 1,
-        company: formData.company,
-        address: formData.address,
-        postalCode: formData.postalCode,
-        city: formData.city,
-        country: formData.country,
-        phone: formData.phone,
-        fax: formData.fax,
-        email: formData.email,
-        status: formData.status
-      }
-      setClients(prev => [newClient, ...prev])
-    } else if (showModifyModal) {
-      // Modify existing client
-      setClients(prev => prev.map(client => 
-        client.id === selectedClient.id 
-          ? { ...client, ...formData }
-          : client
-      ))
-    }
+    try {
+      setLoading(true)
 
-    // Reset form and close modal
-    setFormData({
-      company: '',
-      address: '',
-      postalCode: '',
-      city: '',
-      country: '',
-      phone: '',
-      fax: '',
-      email: '',
-      status: 'Activé'
-    })
-    setErrors({})
-    setShowAddModal(false)
-    setShowModifyModal(false)
-    setSelectedClient(null)
+      if (showAddModal) {
+        // Add new client to Firestore
+        const newClient = {
+          company: formData.company,
+          address: formData.address,
+          postalCode: formData.postalCode,
+          city: formData.city,
+          country: formData.country,
+          phone: formData.phone,
+          fax: formData.fax,
+          email: formData.email,
+          status: formData.status,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        const docRef = await firestoreService.addClient(newClient)
+        const addedClient = { id: docRef.id, ...newClient }
+        
+        setClients(prev => [addedClient, ...prev])
+      } else if (showModifyModal) {
+        // Update existing client in Firestore
+        const updatedClient = {
+          ...selectedClient,
+          ...formData,
+          updatedAt: new Date()
+        }
+        
+        await firestoreService.updateClient(selectedClient.id, updatedClient)
+        
+        setClients(prev => prev.map(client => 
+          client.id === selectedClient.id ? updatedClient : client
+        ))
+      }
+
+      // Reset form and close modal
+      setFormData({
+        company: '',
+        address: '',
+        postalCode: '',
+        city: '',
+        country: '',
+        phone: '',
+        fax: '',
+        email: '',
+        status: 'Activé'
+      })
+      setErrors({})
+      setShowAddModal(false)
+      setShowModifyModal(false)
+      setSelectedClient(null)
+    } catch (error) {
+      console.error('Error saving client:', error)
+      alert('Failed to save client. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseModal = () => {
@@ -213,31 +224,43 @@ const Clients = () => {
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
-        <div className="flex items-center space-x-3">
-          <UserCheck className="w-6 h-6 lg:w-8 lg:h-8" style={{ color: '#DAA520' }} />
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('clientsTitle')}</h1>
+      <div className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#FFF8DC' }}>
+              <UserCheck className="w-5 h-5 lg:w-6 lg:h-6" style={{ color: '#DAA520' }} />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t('clientsTitle')}</h1>
+              <p className="text-sm lg:text-base text-gray-600">Gestion des clients</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm" style={{ color: '#DAA520' }}>
-          <span className="hidden sm:inline">Home / {t('clientsTitle')}</span>
-          <span className="sm:hidden">Home / {t('clientsTitle')}</span>
-        </div>
+        
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-xs lg:text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{t('clientsTitle')}</span>
+        </nav>
       </div>
 
       {/* Add Client Button */}
-      <div className="mb-6">
+      <div className="mb-8">
         <button
           onClick={handleAddClient}
-          className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+          className="flex items-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
           style={{ backgroundColor: '#DAA520' }}
         >
-          <Plus className="w-5 h-5" />
-          <span>{t('addClient')}</span>
+          <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+          <span className="hidden sm:inline">{t('addClient')}</span>
+          <span className="sm:hidden">Ajouter</span>
         </button>
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Table Header */}
         <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
@@ -453,6 +476,7 @@ const Clients = () => {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
