@@ -3,6 +3,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { FileText, Filter, Plus, Search, Eye, Edit, CheckCircle, FileDown, Calendar, User, DollarSign, Receipt } from 'lucide-react'
 import { firestoreService } from '../../services/firestoreService'
 import { downloadInvoice, createInvoiceFromTrip, generateInvoiceNumber } from '../../utils/invoiceGenerator'
+import jsPDF from 'jspdf'
 
 const Invoicing = () => {
   const { t } = useLanguage()
@@ -526,136 +527,145 @@ const Invoicing = () => {
   }
 
   const handleGeneratePDF = async (invoiceId) => {
-    const invoice = invoices.find(inv => inv.id === invoiceId)
-    if (!invoice) return
-
-    const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.width
-    const pageHeight = doc.internal.pageSize.height
-    let yPosition = 30
-
-    // Professional color scheme
-    const primaryColor = [218, 165, 32] // Goldenrod
-    const secondaryColor = [52, 73, 94] // Dark gray
-    const accentColor = [230, 126, 34] // Orange
-
-    // Header with professional styling
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-    doc.rect(0, 0, pageWidth, 50, 'F')
-    
     try {
-      // Add the actual logo
-      const logoResponse = await fetch('/logo.png')
-      const logoBlob = await logoResponse.blob()
-      const logoBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(logoBlob)
-      })
+      const invoice = invoices.find(inv => inv.id === invoiceId)
+      if (!invoice) {
+        alert('Invoice not found!')
+        return
+      }
+
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.width
+      const pageHeight = doc.internal.pageSize.height
+      let yPosition = 30
+
+      // Professional color scheme
+      const primaryColor = [218, 165, 32] // Goldenrod
+      const secondaryColor = [52, 73, 94] // Dark gray
+      const accentColor = [230, 126, 34] // Orange
+
+      // Header with professional styling
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+      doc.rect(0, 0, pageWidth, 50, 'F')
       
-      // Add logo to PDF (30x30 pixels)
-      doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
-    } catch (error) {
-      console.log('Logo not found, using text fallback')
-      // Fallback to text if logo not found
+      try {
+        // Add the actual logo
+        const logoResponse = await fetch('/logo.png')
+        const logoBlob = await logoResponse.blob()
+        const logoBase64 = await new Promise((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result)
+          reader.readAsDataURL(logoBlob)
+        })
+        
+        // Add logo to PDF (30x30 pixels)
+        doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
+      } catch (error) {
+        console.log('Logo not found, using text fallback')
+        // Fallback to text if logo not found
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.text('LIMOSTAR', 20, 25)
+      }
+      
+      // Company name
       doc.setTextColor(255, 255, 255)
-      doc.setFontSize(16)
+      doc.setFontSize(20)
       doc.setFont('helvetica', 'bold')
-      doc.text('LIMOSTAR', 20, 25)
+      doc.text('LIMOSTAR', 55, 22)
+      
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Just luxury cars', 55, 28)
+      
+      // Invoice title
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+      doc.text(`FACTURE ${invoice.number}`, pageWidth - 60, 22)
+      
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Date: ${invoice.date}`, pageWidth - 60, 28)
+      doc.text(`Échéance: ${invoice.dueDate}`, pageWidth - 60, 34)
+      
+      yPosition = 70
+
+      // Client information
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+      doc.text('Facturé à:', 20, yPosition)
+      
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+      doc.text(invoice.client, 20, yPosition + 8)
+      doc.text('Méthode de paiement: ' + invoice.payment, 20, yPosition + 16)
+      
+      yPosition += 35
+
+      // Invoice details
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Détails de la facture:', 20, yPosition)
+      yPosition += 15
+
+      // Table header
+      doc.setFillColor(240, 248, 255)
+      doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
+      
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Description', 25, yPosition + 8)
+      doc.text('Total HTVA', pageWidth - 80, yPosition + 8)
+      doc.text('TVA', pageWidth - 50, yPosition + 8)
+      doc.text('Total TVAC', pageWidth - 25, yPosition + 8)
+      yPosition += 15
+
+      // Invoice line
+      doc.setFont('helvetica', 'normal')
+      doc.text('Service de transport limousine', 25, yPosition + 8)
+      doc.text(`${invoice.totalExclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition + 8)
+      doc.text(`${invoice.vat?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition + 8)
+      doc.text(`${invoice.totalInclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition + 8)
+      yPosition += 20
+
+      // Totals
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Total HTVA: ${invoice.totalExclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition)
+      doc.text(`TVA: ${invoice.vat?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition)
+      doc.text(`Total TVAC: ${invoice.totalInclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition)
+      
+      if (invoice.deposit > 0) {
+        yPosition += 10
+        doc.text(`Acompte: ${invoice.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
+        doc.text(`Solde: ${(invoice.totalInclVAT - invoice.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
+      }
+
+      // Footer
+      const footerY = pageHeight - 20
+      doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+      doc.rect(0, footerY, pageWidth, 20, 'F')
+      
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
+      doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
+      
+      const currentDate = new Date().toLocaleDateString('fr-FR')
+      doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
+
+      // Save the PDF
+      const fileName = `facture-${invoice.number}-${invoice.date}.pdf`
+      doc.save(fileName)
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Error generating PDF. Please try again.')
     }
-    
-    // Company name
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('LIMOSTAR', 55, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Just luxury cars', 55, 28)
-    
-    // Invoice title
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text(`FACTURE ${invoice.number}`, pageWidth - 60, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Date: ${invoice.date}`, pageWidth - 60, 28)
-    doc.text(`Échéance: ${invoice.dueDate}`, pageWidth - 60, 34)
-    
-    yPosition = 70
-
-    // Client information
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text('Facturé à:', 20, yPosition)
-    
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(invoice.client, 20, yPosition + 8)
-    doc.text('Méthode de paiement: ' + invoice.payment, 20, yPosition + 16)
-    
-    yPosition += 35
-
-    // Invoice details
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Détails de la facture:', 20, yPosition)
-    yPosition += 15
-
-    // Table header
-    doc.setFillColor(240, 248, 255)
-    doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
-    
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Description', 25, yPosition + 8)
-    doc.text('Total HTVA', pageWidth - 80, yPosition + 8)
-    doc.text('TVA', pageWidth - 50, yPosition + 8)
-    doc.text('Total TVAC', pageWidth - 25, yPosition + 8)
-    yPosition += 15
-
-    // Invoice line
-    doc.setFont('helvetica', 'normal')
-    doc.text('Service de transport limousine', 25, yPosition + 8)
-    doc.text(`${invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition + 8)
-    doc.text(`${invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition + 8)
-    doc.text(`${invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition + 8)
-    yPosition += 20
-
-    // Totals
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Total HTVA: ${invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition)
-    doc.text(`TVA: ${invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition)
-    doc.text(`Total TVAC: ${invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition)
-    
-    if (invoice.totals?.deposit > 0) {
-      yPosition += 10
-      doc.text(`Acompte: ${invoice.totals.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
-      doc.text(`Solde: ${(invoice.totals.priceInclVat - invoice.totals.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
-    }
-
-    // Footer
-    const footerY = pageHeight - 20
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.rect(0, footerY, pageWidth, 20, 'F')
-    
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
-    doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
-    
-    const currentDate = new Date().toLocaleDateString('fr-FR')
-    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
-
-    // Save the PDF
-    const fileName = `facture-${invoice.number}-${invoice.date}.pdf`
-    doc.save(fileName)
   }
 
   const handleCheckInvoice = (invoiceId) => {
@@ -920,16 +930,16 @@ const Invoicing = () => {
                     </div>
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.totals?.priceExclVat?.toFixed(2) || '0.00'}€
+                    {invoice.totalExclVAT?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.totals?.vatAmount?.toFixed(2) || '0.00'}€
+                    {invoice.vat?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {invoice.totals?.priceInclVat?.toFixed(2) || '0.00'}€
+                    {invoice.totalInclVAT?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {invoice.totals?.deposit?.toFixed(2) || '0.00'}€
+                    {invoice.deposit?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center space-x-2">
@@ -975,7 +985,7 @@ const Invoicing = () => {
               Affichage de {getFilteredInvoices().length} facture(s) sur {invoices.length} total
             </div>
             <div className="mt-2 sm:mt-0">
-              Total des factures: {getFilteredInvoices().reduce((sum, inv) => sum + (inv.totals?.priceInclVat || 0), 0).toFixed(2)}€
+              Total des factures: {getFilteredInvoices().reduce((sum, inv) => sum + (inv.totalInclVAT || 0), 0).toFixed(2)}€
             </div>
           </div>
         </div>

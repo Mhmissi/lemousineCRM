@@ -345,7 +345,7 @@ const Clients = () => {
               {currentClients.map((client, index) => (
                 <tr key={client.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {client.numero}
+                    {startIndex + index + 1}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
                     {client.company}
