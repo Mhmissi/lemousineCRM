@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { FileText, Filter, Plus, Search, Eye, Edit, CheckCircle, FileDown, Calendar, User, DollarSign, Receipt } from 'lucide-react'
 import { firestoreService } from '../../services/firestoreService'
 import { downloadInvoice, createInvoiceFromTrip, generateInvoiceNumber } from '../../utils/invoiceGenerator'
-import jsPDF from 'jspdf'
 
 const Invoicing = () => {
   const { t } = useLanguage()
@@ -11,11 +10,13 @@ const Invoicing = () => {
   const [groupByClient, setGroupByClient] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [displayCount, setDisplayCount] = useState(50)
+  const [showPaidOnly, setShowPaidOnly] = useState(false)
+  const [showUnpaidOnly, setShowUnpaidOnly] = useState(false)
   const [invoices, setInvoices] = useState([])
   const [trips, setTrips] = useState([])
   const [clients, setClients] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     clientType: 'existing',
     clientName: '',
@@ -40,77 +41,42 @@ const Invoicing = () => {
   })
   const [errors, setErrors] = useState({})
 
-  // Load data from Firestore
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true)
-        const [invoicesData, tripsData, clientsData] = await Promise.all([
-          firestoreService.getInvoices(),
-          firestoreService.getTrips(),
-          firestoreService.getClients()
-        ])
-        setInvoices(invoicesData)
-        setTrips(tripsData)
-        setClients(clientsData)
-      } catch (error) {
-        console.error('Error loading invoicing data:', error)
-      } finally {
-        setLoading(false)
+  // Reusable function to map invoice data from Firebase
+  const mapInvoiceData = useCallback((invoicesData) => {
+    return invoicesData.map(invoice => {
+      // Extract monetary values with better fallback logic
+      const totals = invoice.totals || {}
+      const services = invoice.services || []
+      
+      // Calculate totals from services if available
+      let calculatedSubtotal = 0
+      let calculatedVat = 0
+      let calculatedTotal = 0
+      
+      if (services.length > 0) {
+        calculatedSubtotal = services.reduce((sum, service) => sum + (service.priceExclVat || service.price || 0), 0)
+        calculatedVat = services.reduce((sum, service) => sum + (service.vatAmount || service.vat || 0), 0)
+        calculatedTotal = services.reduce((sum, service) => sum + (service.priceInclVat || service.total || 0), 0)
       }
-    }
-
-    loadData()
+      
+      return {
+        id: invoice.id,
+        number: invoice.invoiceNumber || invoice.number || `FC-${invoice.id}`,
+        date: invoice.date || invoice.invoiceDate || new Date().toISOString().split('T')[0],
+        dueDate: invoice.dueDate || invoice.paymentDueDate || invoice.date || new Date().toISOString().split('T')[0],
+        client: invoice.clientName || invoice.client || invoice.clientCompany || 'Unknown Client',
+        payment: invoice.paymentMethod || invoice.payment || 'Virement',
+        remark: invoice.remark || invoice.notes || invoice.description || '',
+        totalExclVAT: totals.priceExclVat || totals.subtotal || invoice.totalExclVAT || invoice.subtotal || invoice.totalExclVat || calculatedSubtotal || 0,
+        vat: totals.vatAmount || totals.vat || invoice.vat || invoice.vatAmount || invoice.totalVat || calculatedVat || 0,
+        totalInclVAT: totals.priceInclVat || totals.total || invoice.totalInclVAT || invoice.total || invoice.totalInclVat || calculatedTotal || 0,
+        deposit: totals.deposit || invoice.deposit || invoice.paidAmount || 0,
+        status: invoice.status || 'pending'
+      }
+    })
   }, [])
 
-  // Mock data for dropdowns
-  const filterOptions = [
-    { value: 'all', label: '--Toutes--' },
-    { value: 'paid', label: 'Payées' },
-    { value: 'pending', label: 'En attente' },
-    { value: 'overdue', label: 'En retard' },
-    { value: 'draft', label: 'Brouillons' }
-  ]
-
-  const clientOptions = [
-    { value: 'all', label: '--Choisissez votre client--' },
-    { value: 'candex', label: 'Candex Solutions Belgium BV' },
-    { value: 'tourama', label: 'TOURAMA VOYAGES INTERNATIONAL S.A.' },
-    { value: 'cooltours', label: 'Cooltours GmbH' },
-    { value: 'chevalier', label: 'CHEVALIER FREDERIC LTD' },
-    { value: 'client-e', label: 'Client E' },
-    { value: 'client-f', label: 'Client F' }
-  ]
-
-  const displayOptions = [
-    { value: 10, label: '10' },
-    { value: 25, label: '25' },
-    { value: 50, label: '50' },
-    { value: 100, label: '100' }
-  ]
-
-  const paymentMethods = [
-    { value: 'virement', label: 'Virement' },
-    { value: 'especes', label: 'Espèces' },
-    { value: 'carte', label: 'Carte de crédit' },
-    { value: 'cheque', label: 'Chèque' }
-  ]
-
-  const vatRates = [
-    { value: '0', label: '0%' },
-    { value: '6', label: '6%' },
-    { value: '12', label: '12%' },
-    { value: '21', label: '21%' }
-  ]
-
-  const existingClients = [
-    { value: 'candex', label: 'Candex Solutions Belgium BV' },
-    { value: 'tourama', label: 'TOURAMA VOYAGES INTERNATIONAL S.A.' },
-    { value: 'cooltours', label: 'Cooltours GmbH' },
-    { value: 'chevalier', label: 'CHEVALIER FREDERIC LTD' }
-  ]
-
-  // Mock invoice data
+  // Mock invoice data - moved here to be available for fallback
   const mockInvoices = [
     {
       id: 1,
@@ -198,16 +164,130 @@ const Invoicing = () => {
     }
   ]
 
-  useEffect(() => {
-    setInvoices(mockInvoices)
+  // Load data from Firestore - simplified approach
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true)
+      console.log('🔄 Loading invoicing data...')
+      
+      // Load invoices from Firebase
+      const invoicesData = await firestoreService.getInvoices()
+      console.log('📊 Firebase invoices loaded:', invoicesData?.length || 0, 'invoices')
+      console.log('📋 First invoice structure:', invoicesData?.[0])
+      console.log('💰 Monetary fields in first invoice:', {
+        totalExclVAT: invoicesData?.[0]?.totalExclVAT,
+        totalExclVat: invoicesData?.[0]?.totalExclVat,
+        subtotal: invoicesData?.[0]?.subtotal,
+        vat: invoicesData?.[0]?.vat,
+        vatAmount: invoicesData?.[0]?.vatAmount,
+        totalVat: invoicesData?.[0]?.totalVat,
+        totalInclVAT: invoicesData?.[0]?.totalInclVAT,
+        totalInclVat: invoicesData?.[0]?.totalInclVat,
+        total: invoicesData?.[0]?.total,
+        deposit: invoicesData?.[0]?.deposit,
+        paidAmount: invoicesData?.[0]?.paidAmount,
+        totals: invoicesData?.[0]?.totals
+      })
+      
+      // Always set the invoices - either from Firebase or mock data
+      if (invoicesData && invoicesData.length > 0) {
+        console.log('✅ Setting Firebase invoices to state')
+        
+        // Map Firebase data to expected format
+        const mappedInvoices = mapInvoiceData(invoicesData)
+        
+        console.log('🔄 Mapped invoices:', mappedInvoices)
+        setInvoices(mappedInvoices)
+      } else {
+        console.log('📋 Setting mock invoices to state')
+        setInvoices(mockInvoices)
+      }
+      
+      // Load other data
+      const [tripsData, clientsData] = await Promise.all([
+        firestoreService.getTrips().catch(() => []),
+        firestoreService.getClients().catch(() => [])
+      ])
+      
+      setTrips(tripsData || [])
+      setClients(clientsData || [])
+      
+    } catch (error) {
+      console.error('❌ Error loading invoicing data:', error)
+      console.log('📋 Using mock data as fallback')
+      setInvoices(mockInvoices)
+      setTrips([])
+      setClients([])
+    } finally {
+      setLoading(false)
+      console.log('✅ Loading completed')
+    }
   }, [])
 
+  // Load data on component mount
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Debug effect to monitor invoices state
+  useEffect(() => {
+    console.log('📊 Invoices state changed:', {
+      count: invoices.length,
+      invoices: invoices,
+      loading: loading
+    })
+  }, [invoices, loading])
+
+  // Mock data for dropdowns
+  const filterOptions = [
+    { value: 'all', label: '--Toutes--' },
+    { value: 'paid', label: 'Payées' },
+    { value: 'pending', label: 'En attente' },
+    { value: 'overdue', label: 'En retard' },
+    { value: 'draft', label: 'Brouillons' }
+  ]
+
+  const clientOptions = [
+    { value: 'all', label: '--Choisissez votre client--' },
+    { value: 'candex', label: 'Candex Solutions Belgium BV' },
+    { value: 'tourama', label: 'TOURAMA VOYAGES INTERNATIONAL S.A.' },
+    { value: 'cooltours', label: 'Cooltours GmbH' },
+    { value: 'chevalier', label: 'CHEVALIER FREDERIC LTD' },
+    { value: 'client-e', label: 'Client E' },
+    { value: 'client-f', label: 'Client F' }
+  ]
+
+  const displayOptions = [
+    { value: 10, label: '10' },
+    { value: 25, label: '25' },
+    { value: 50, label: '50' },
+    { value: 100, label: '100' }
+  ]
+
+  const paymentMethods = [
+    { value: 'virement', label: 'Virement' },
+    { value: 'especes', label: 'Espèces' },
+    { value: 'carte', label: 'Carte de crédit' },
+    { value: 'cheque', label: 'Chèque' }
+  ]
+
+  const vatRates = [
+    { value: '0', label: '0%' },
+    { value: '6', label: '6%' },
+    { value: '12', label: '12%' },
+    { value: '21', label: '21%' }
+  ]
+
+  const existingClients = [
+    { value: 'candex', label: 'Candex Solutions Belgium BV' },
+    { value: 'tourama', label: 'TOURAMA VOYAGES INTERNATIONAL S.A.' },
+    { value: 'cooltours', label: 'Cooltours GmbH' },
+    { value: 'chevalier', label: 'CHEVALIER FREDERIC LTD' }
+  ]
+
   const handleShowMonth = () => {
-    setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
+    console.log('📅 Show month clicked - reloading data')
+    loadData()
   }
 
   const handleCreateInvoice = () => {
@@ -354,28 +434,45 @@ const Invoicing = () => {
         }
       }
 
-      // Save to Firestore
-      const invoiceId = await firestoreService.addInvoice({
-        invoiceNumber: invoiceNumber,
-        date: formData.date,
-        dueDate: formData.dueDate,
-        clientName: formData.clientName,
-        clientAddress: formData.clientAddress,
-        clientPostalCode: formData.postalCode,
-        clientCity: formData.city,
-        paymentMethod: formData.paymentMethod,
-        remark: formData.remark,
-        services: invoiceData.services,
-        totals: invoiceData.totals,
-        status: 'draft'
-      })
+      // Save to Firestore with error handling
+      try {
+        const invoiceId = await firestoreService.addInvoice({
+          invoiceNumber: invoiceNumber,
+          date: formData.date,
+          dueDate: formData.dueDate,
+          clientName: formData.clientName,
+          clientAddress: formData.clientAddress,
+          clientPostalCode: formData.postalCode,
+          clientCity: formData.city,
+          paymentMethod: formData.paymentMethod,
+          remark: formData.remark,
+          services: invoiceData.services,
+          totals: invoiceData.totals,
+          status: 'draft'
+        })
+        console.log('Invoice saved successfully:', invoiceId)
+      } catch (firebaseError) {
+        console.error('Error saving to Firebase:', firebaseError)
+        // Continue with PDF generation even if Firebase save fails
+      }
 
       // Generate and download PDF
       downloadInvoice(invoiceData)
 
-      // Refresh invoices list
-      const updatedInvoices = await firestoreService.getInvoices()
-      setInvoices(updatedInvoices)
+      // Refresh invoices list with error handling
+      try {
+        console.log('🔄 Refreshing invoices after submission...')
+        const updatedInvoices = await firestoreService.getInvoices()
+        
+        // Apply the same mapping logic as in loadData
+        const mappedInvoices = mapInvoiceData(updatedInvoices)
+        
+        setInvoices(mappedInvoices)
+        console.log('✅ Invoices refreshed and mapped:', mappedInvoices.length)
+      } catch (refreshError) {
+        console.error('Error refreshing invoices:', refreshError)
+        // Keep existing invoices if refresh fails
+      }
       
       // Reset form
       setFormData({
@@ -534,136 +631,46 @@ const Invoicing = () => {
         return
       }
 
-      const doc = new jsPDF()
-      const pageWidth = doc.internal.pageSize.width
-      const pageHeight = doc.internal.pageSize.height
-      let yPosition = 30
+      // Convert the existing invoice data to our new format with proper validation
+      const invoiceData = {
+        invoiceNumber: invoice.number || 'FC-0000',
+        date: invoice.date || new Date().toISOString().split('T')[0],
+        dueDate: invoice.dueDate || new Date().toISOString().split('T')[0],
+        clientCode: 'CL1595', // Default client code
+        clientName: invoice.client || 'Client non spécifié',
+        clientAddress: [invoice.client || 'Adresse non spécifiée'], // Convert to array format for our generator
+        paymentMethod: invoice.payment || 'Virement',
+        services: [
+          {
+            description: 'Service de transport limousine',
+            priceExclVat: parseFloat(invoice.totalExclVAT) || 0,
+            vatRate: 21, // Default VAT rate
+            vatAmount: parseFloat(invoice.vat) || 0,
+            priceInclVat: parseFloat(invoice.totalInclVAT) || 0
+          }
+        ],
+        totals: {
+          priceExclVat: parseFloat(invoice.totalExclVAT) || 0,
+          vatAmount: parseFloat(invoice.vat) || 0,
+          priceInclVat: parseFloat(invoice.totalInclVAT) || 0,
+          deposit: parseFloat(invoice.deposit) || 0
+        },
+        remark: invoice.remark || 'www.locationautocar.be by Limostar',
+        page: '1'
+      }
 
-      // Professional color scheme
-      const primaryColor = [218, 165, 32] // Goldenrod
-      const secondaryColor = [52, 73, 94] // Dark gray
-      const accentColor = [230, 126, 34] // Orange
+      console.log('Invoice data being passed to generator:', invoiceData)
 
-      // Header with professional styling
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-      doc.rect(0, 0, pageWidth, 50, 'F')
-      
+      // Use our new invoice generator with error handling
       try {
-        // Add the actual logo
-        const logoResponse = await fetch('/logo.png')
-        const logoBlob = await logoResponse.blob()
-        const logoBase64 = await new Promise((resolve) => {
-          const reader = new FileReader()
-          reader.onloadend = () => resolve(reader.result)
-          reader.readAsDataURL(logoBlob)
-        })
-        
-        // Add logo to PDF (30x30 pixels)
-        doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
-      } catch (error) {
-        console.log('Logo not found, using text fallback')
-        // Fallback to text if logo not found
-        doc.setTextColor(255, 255, 255)
-        doc.setFontSize(16)
-        doc.setFont('helvetica', 'bold')
-        doc.text('LIMOSTAR', 20, 25)
+        downloadInvoice(invoiceData)
+      } catch (pdfError) {
+        console.error('Error generating PDF:', pdfError)
+        alert('Error generating PDF. Please try again.')
       }
-      
-      // Company name
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(20)
-      doc.setFont('helvetica', 'bold')
-      doc.text('LIMOSTAR', 55, 22)
-      
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Just luxury cars', 55, 28)
-      
-      // Invoice title
-      doc.setFontSize(18)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-      doc.text(`FACTURE ${invoice.number}`, pageWidth - 60, 22)
-      
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Date: ${invoice.date}`, pageWidth - 60, 28)
-      doc.text(`Échéance: ${invoice.dueDate}`, pageWidth - 60, 34)
-      
-      yPosition = 70
-
-      // Client information
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-      doc.text('Facturé à:', 20, yPosition)
-      
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(10)
-      doc.text(invoice.client, 20, yPosition + 8)
-      doc.text('Méthode de paiement: ' + invoice.payment, 20, yPosition + 16)
-      
-      yPosition += 35
-
-      // Invoice details
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Détails de la facture:', 20, yPosition)
-      yPosition += 15
-
-      // Table header
-      doc.setFillColor(240, 248, 255)
-      doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
-      
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Description', 25, yPosition + 8)
-      doc.text('Total HTVA', pageWidth - 80, yPosition + 8)
-      doc.text('TVA', pageWidth - 50, yPosition + 8)
-      doc.text('Total TVAC', pageWidth - 25, yPosition + 8)
-      yPosition += 15
-
-      // Invoice line
-      doc.setFont('helvetica', 'normal')
-      doc.text('Service de transport limousine', 25, yPosition + 8)
-      doc.text(`${invoice.totalExclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition + 8)
-      doc.text(`${invoice.vat?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition + 8)
-      doc.text(`${invoice.totalInclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition + 8)
-      yPosition += 20
-
-      // Totals
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Total HTVA: ${invoice.totalExclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 80, yPosition)
-      doc.text(`TVA: ${invoice.vat?.toFixed(2) || '0.00'}€`, pageWidth - 50, yPosition)
-      doc.text(`Total TVAC: ${invoice.totalInclVAT?.toFixed(2) || '0.00'}€`, pageWidth - 25, yPosition)
-      
-      if (invoice.deposit > 0) {
-        yPosition += 10
-        doc.text(`Acompte: ${invoice.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
-        doc.text(`Solde: ${(invoice.totalInclVAT - invoice.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
-      }
-
-      // Footer
-      const footerY = pageHeight - 20
-      doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-      doc.rect(0, footerY, pageWidth, 20, 'F')
-      
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
-      doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
-      
-      const currentDate = new Date().toLocaleDateString('fr-FR')
-      doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
-
-      // Save the PDF
-      const fileName = `facture-${invoice.number}-${invoice.date}.pdf`
-      doc.save(fileName)
       
     } catch (error) {
-      console.error('Error generating PDF:', error)
+      console.error('Error in handleGeneratePDF:', error)
       alert('Error generating PDF. Please try again.')
     }
   }
@@ -673,11 +680,52 @@ const Invoicing = () => {
     // Implement check/approve functionality
   }
 
+  const handleToggleInvoicePaymentStatus = async (invoiceId) => {
+    try {
+      const invoice = invoices.find(inv => inv.id === invoiceId)
+      if (!invoice) return
+
+      const newStatus = invoice.status === 'paid' ? 'pending' : 'paid'
+      
+      // Update in Firebase
+      await firestoreService.updateInvoice(invoiceId, { status: newStatus })
+      
+      // Update local state
+      setInvoices(prevInvoices =>
+        prevInvoices.map(inv =>
+          inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+        )
+      )
+      
+      console.log(`Invoice ${invoiceId} status changed to ${newStatus}`)
+    } catch (error) {
+      console.error('Error toggling invoice payment status:', error)
+    }
+  }
+
   const getFilteredInvoices = () => {
+    console.log('🔍 Filtering invoices:', {
+      totalInvoices: invoices.length,
+      invoices: invoices,
+      filterStatus,
+      groupByClient,
+      searchTerm,
+      displayCount,
+      showPaidOnly,
+      showUnpaidOnly
+    })
+    
     let filtered = invoices
 
     if (filterStatus !== 'all') {
       filtered = filtered.filter(invoice => invoice.status === filterStatus)
+    }
+
+    // Apply paid/unpaid filters
+    if (showPaidOnly && !showUnpaidOnly) {
+      filtered = filtered.filter(invoice => invoice.status === 'paid')
+    } else if (showUnpaidOnly && !showPaidOnly) {
+      filtered = filtered.filter(invoice => invoice.status !== 'paid')
     }
 
     if (groupByClient !== 'all') {
@@ -693,7 +741,9 @@ const Invoicing = () => {
       )
     }
 
-    return filtered.slice(0, displayCount)
+    const result = filtered.slice(0, displayCount)
+    console.log('📋 Filtered result:', result.length, 'invoices', result)
+    return result
   }
 
   const getStatusColor = (status) => {
@@ -738,6 +788,22 @@ const Invoicing = () => {
           <span>/</span>
           <span className="text-gray-900 font-medium">{t('invoicingTitle')}</span>
         </nav>
+      </div>
+
+      {/* DEBUG: Show invoice count */}
+      <div style={{ background: '#f0f0f0', padding: '10px', margin: '10px', border: '1px solid #ccc' }}>
+        <strong>DEBUG:</strong> Invoices loaded: {invoices.length} | Loading: {loading.toString()} | 
+        {invoices.length > 0 && <span style={{ color: 'green' }}>✅ INVOICES AVAILABLE</span>}
+        {invoices.length === 0 && !loading && <span style={{ color: 'red' }}>❌ NO INVOICES</span>}
+        {invoices.length > 0 && (
+          <div style={{ marginTop: '5px', fontSize: '12px' }}>
+            First invoice: {invoices[0]?.number || 'No number'} | 
+            Client: {invoices[0]?.client || 'No client'} | 
+            Payment: {invoices[0]?.payment || 'No payment'} | 
+            Total: {invoices[0]?.totalInclVAT || 0}€ | 
+            VAT: {invoices[0]?.vat || 0}€
+          </div>
+        )}
       </div>
 
       {/* Invoice Management Section */}
@@ -785,6 +851,38 @@ const Invoicing = () => {
                   </option>
                 ))}
               </select>
+            </div>
+            {/* Payment Status Checkboxes */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Statut de Paiement
+              </label>
+              <div className="flex flex-col space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPaidOnly}
+                    onChange={(e) => {
+                      setShowPaidOnly(e.target.checked)
+                      if (e.target.checked) setShowUnpaidOnly(false)
+                    }}
+                    className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
+                  />
+                  <span className="text-sm text-gray-700">Acquittées (Payées)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showUnpaidOnly}
+                    onChange={(e) => {
+                      setShowUnpaidOnly(e.target.checked)
+                      if (e.target.checked) setShowPaidOnly(false)
+                    }}
+                    className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
+                  />
+                  <span className="text-sm text-gray-700">Non Payées</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -869,6 +967,9 @@ const Invoicing = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-2 lg:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payée
+                </th>
                 <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('number')}
                 </th>
@@ -907,13 +1008,22 @@ const Invoicing = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {getFilteredInvoices().map((invoice) => (
                 <tr key={invoice.id} className="hover:bg-gray-50">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-center">
+                    <input
+                      type="checkbox"
+                      checked={invoice.status === 'paid'}
+                      onChange={() => handleToggleInvoicePaymentStatus(invoice.id)}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                      title={invoice.status === 'paid' ? 'Marquer comme non payée' : 'Marquer comme payée'}
+                    />
+                  </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {invoice.number}
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {invoice.date}
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                     {invoice.dueDate}
                   </td>
                   <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
@@ -921,24 +1031,24 @@ const Invoicing = () => {
                       {invoice.client}
                     </div>
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
                     {invoice.payment}
                   </td>
-                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">
                     <div className="max-w-xs truncate" title={invoice.remark}>
                       {invoice.remark || '-'}
                     </div>
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                     {invoice.totalExclVAT?.toFixed(2) || '0.00'}€
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
                     {invoice.vat?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {invoice.totalInclVAT?.toFixed(2) || '0.00'}€
                   </td>
-                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
                     {invoice.deposit?.toFixed(2) || '0.00'}€
                   </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNotifications } from '../contexts/NotificationContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import { Bell, X, Check, Trash2, Settings, Filter } from 'lucide-react'
+import { Bell, X, Check, Trash2, Settings, Filter, MapPin, Calendar, Clock, Users, Car, DollarSign } from 'lucide-react'
 
 function NotificationCenter() {
   const { t } = useLanguage()
@@ -40,6 +40,89 @@ function NotificationCenter() {
   const handleRemoveNotification = (e, notificationId) => {
     e.stopPropagation()
     removeNotification(notificationId)
+  }
+
+  // Render trip details if notification contains trip data
+  const renderTripDetails = (notification) => {
+    if (!notification.data) return null
+    
+    const { data } = notification
+    
+    // Check if this is a trip-related notification with details
+    if (notification.type === 'trip' && (data.pickup || data.destination || data.client)) {
+      return (
+        <div className="mt-3 space-y-2 text-xs bg-white bg-opacity-50 p-3 rounded border border-gray-200">
+          {data.client && (
+            <div className="flex items-center space-x-2">
+              <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span className="font-semibold text-gray-700">Client:</span>
+              <span className="text-gray-900">{data.client}</span>
+            </div>
+          )}
+          
+          {data.pickup && (
+            <div className="flex items-start space-x-2">
+              <MapPin className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-gray-700">Pickup:</span>
+                <span className="text-gray-900 ml-1">{data.pickup}</span>
+              </div>
+            </div>
+          )}
+          
+          {data.destination && (
+            <div className="flex items-start space-x-2">
+              <MapPin className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-gray-700">Destination:</span>
+                <span className="text-gray-900 ml-1">{data.destination}</span>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-center space-x-4 pt-2 border-t border-gray-200">
+            {data.date && (
+              <div className="flex items-center space-x-1.5">
+                <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-gray-900">{data.date}</span>
+              </div>
+            )}
+            
+            {(data.startTime || data.time) && (
+              <div className="flex items-center space-x-1.5">
+                <Clock className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                <span className="text-gray-900">{data.startTime || data.time}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {data.vehicle && (
+              <div className="flex items-center space-x-1.5">
+                <Car className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                <span className="text-gray-900">{data.vehicle}</span>
+              </div>
+            )}
+            
+            {data.passengers && (
+              <div className="flex items-center space-x-1.5">
+                <Users className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                <span className="text-gray-900">{data.passengers} passengers</span>
+              </div>
+            )}
+            
+            {data.revenue && (
+              <div className="flex items-center space-x-1.5">
+                <DollarSign className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span className="text-gray-900 font-semibold">${data.revenue}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+    
+    return null
   }
 
   return (
@@ -148,9 +231,13 @@ function NotificationCenter() {
                             <h4 className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
                               {notification.title}
                             </h4>
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            <p className="text-sm text-gray-600 mt-1">
                               {notification.message}
                             </p>
+                            
+                            {/* Trip Details */}
+                            {renderTripDetails(notification)}
+                            
                             <div className="flex items-center space-x-2 mt-2">
                               <span className="text-xs text-gray-500">
                                 {formatTimeAgo(notification.timestamp)}

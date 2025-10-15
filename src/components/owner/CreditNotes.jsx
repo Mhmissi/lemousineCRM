@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { FileEdit, Plus, Search, Eye, Edit, FileDown, Mail, Printer, Filter } from 'lucide-react'
+import { firestoreService } from '../../services/firestoreService'
+import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { db } from '../../config/firebase'
 import jsPDF from 'jspdf'
 
 const CreditNotes = () => {
@@ -9,7 +12,9 @@ const CreditNotes = () => {
   const [displayCount, setDisplayCount] = useState(10)
   const [creditNotes, setCreditNotes] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const isMountedRef = useRef(true)
   const [formData, setFormData] = useState({
     client: '',
     date: new Date().toISOString().split('T')[0],
@@ -165,9 +170,110 @@ const CreditNotes = () => {
     }
   ]
 
-  useEffect(() => {
-    setCreditNotes(mockCreditNotes)
+  // Load credit notes from Firebase with proper cleanup
+  const loadCreditNotes = useCallback(async () => {
+    console.log('🚀 loadCreditNotes called, isMounted:', isMountedRef.current)
+    
+    try {
+      setLoading(true)
+      setError('')
+      console.log('🔄 Loading credit notes from Firebase...')
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout after 10 seconds')), 10000)
+      )
+      
+      // Try service first, then fallback to direct Firebase call
+      let creditNotesData
+      try {
+        console.log('📞 Calling firestoreService.getCreditNotes()...')
+        creditNotesData = await Promise.race([
+          firestoreService.getCreditNotes(),
+          timeoutPromise
+        ])
+        console.log('📋 Raw credit notes data from Firebase (via service):', creditNotesData)
+        console.log('📋 Data type:', typeof creditNotesData, 'Array?', Array.isArray(creditNotesData))
+      } catch (serviceError) {
+        console.log('⚠️ Service failed, trying direct Firebase call:', serviceError.message)
+        console.log('⚠️ Service error details:', serviceError)
+        
+        // Fallback: Direct Firebase call
+        console.log('🔄 Attempting direct Firebase query...')
+        const creditNotesRef = collection(db, 'creditNotes')
+        const q = query(creditNotesRef, orderBy('createdAt', 'desc'))
+        const querySnapshot = await getDocs(q)
+        creditNotesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        console.log('📋 Raw credit notes data from Firebase (direct):', creditNotesData)
+        console.log('📋 Direct data type:', typeof creditNotesData, 'Array?', Array.isArray(creditNotesData))
+      }
+      
+      // Ensure we have an array
+      if (!Array.isArray(creditNotesData)) {
+        console.warn('⚠️ creditNotesData is not an array:', creditNotesData)
+        creditNotesData = []
+      }
+      
+      // Map credit note data to ensure consistent field names
+      const mappedCreditNotes = creditNotesData.map(creditNote => ({
+        id: creditNote.id,
+        number: creditNote.number || creditNote.creditNoteNumber || '',
+        date: creditNote.date || creditNote.creditNoteDate || new Date().toISOString().split('T')[0],
+        client: creditNote.client || creditNote.clientName || creditNote.customer || 'Unknown Client',
+        remark: creditNote.remark || creditNote.description || creditNote.notes || '',
+        totalPrice: creditNote.totalPrice || creditNote.amount || creditNote.total || 0,
+        status: creditNote.status || creditNote.creditNoteStatus || 'active',
+        ...creditNote // Include any other fields
+      }))
+      
+      console.log('📝 Mapped credit notes:', mappedCreditNotes)
+      console.log('📝 Mapped data length:', mappedCreditNotes.length)
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        console.log('✅ Component still mounted, updating state...')
+        setCreditNotes(mappedCreditNotes)
+        setError('')
+        console.log('✅ Credit notes state updated with', mappedCreditNotes.length, 'items')
+      } else {
+        console.log('⚠️ Component unmounted, skipping state update')
+      }
+    } catch (error) {
+      console.error('❌ Error loading credit notes:', error)
+      console.error('❌ Error stack:', error.stack)
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        if (error.message.includes('timeout')) {
+          setError('Connection timeout. Please check your internet connection and try again.')
+        } else {
+          setError(`Failed to load credit notes: ${error.message}`)
+        }
+        setCreditNotes([])
+        console.log('❌ Error state set, credit notes cleared')
+      }
+    } finally {
+      // Only update loading state if component is still mounted
+      if (isMountedRef.current) {
+        setLoading(false)
+        console.log('🏁 Loading completed, loading set to false')
+      } else {
+        console.log('⚠️ Component unmounted, skipping loading state update')
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    loadCreditNotes()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, []) // Remove loadCreditNotes dependency to prevent infinite loop
 
   const handleCreateCreditNote = () => {
     setShowCreateModal(true)
@@ -250,59 +356,73 @@ const CreditNotes = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    // Calculate total price
-    const totalPrice = formData.designations.reduce((sum, designation) => {
-      return sum + (designation.price || 0)
-    }, 0)
+    setLoading(true)
 
-    // Generate credit note number
-    const currentYear = new Date().getFullYear()
-    const nextNumber = Math.max(...creditNotes.map(cn => {
-      const year = parseInt(cn.number.substring(0, 4))
-      if (year === currentYear) {
-        return parseInt(cn.number.substring(4))
-      }
-      return 0
-    })) + 1
-    const creditNoteNumber = `${currentYear}${String(nextNumber).padStart(3, '0')}`
+    try {
+      // Calculate total price
+      const totalPrice = formData.designations.reduce((sum, designation) => {
+        return sum + (designation.price || 0)
+      }, 0)
 
-    // Create new credit note
-    const newCreditNote = {
-      id: Math.max(...creditNotes.map(cn => cn.id)) + 1,
-      number: creditNoteNumber,
-      date: formData.date,
-      client: clients.find(c => c.value === formData.client)?.label || formData.client,
-      remark: formData.remark,
-      totalPrice: totalPrice,
-      status: 'active'
-    }
-
-    // Add to credit notes list
-    setCreditNotes(prev => [newCreditNote, ...prev])
-    
-    // Reset form
-    setFormData({
-      client: '',
-      date: new Date().toISOString().split('T')[0],
-      remark: '',
-      designations: [
-        {
-          id: 1,
-          description: '',
-          vatRate: '21',
-          price: 0
+      // Generate credit note number
+      const currentYear = new Date().getFullYear()
+      const nextNumber = Math.max(...creditNotes.map(cn => {
+        const year = parseInt(cn.number.substring(0, 4))
+        if (year === currentYear) {
+          return parseInt(cn.number.substring(4))
         }
-      ]
-    })
-    setErrors({})
-    setShowCreateModal(false)
+        return 0
+      })) + 1
+      const creditNoteNumber = `${currentYear}${String(nextNumber).padStart(3, '0')}`
+
+      // Create new credit note data for Firebase
+      const creditNoteData = {
+        number: creditNoteNumber,
+        date: formData.date,
+        client: clients.find(c => c.value === formData.client)?.label || formData.client,
+        remark: formData.remark,
+        totalPrice: totalPrice,
+        status: 'active',
+        designations: formData.designations
+      }
+
+      // Save to Firebase
+      const docRef = await firestoreService.addCreditNote(creditNoteData)
+      console.log('Credit note created with ID:', docRef)
+
+      // Reload credit notes from Firebase
+      await loadCreditNotes()
+      
+      // Reset form
+      setFormData({
+        client: '',
+        date: new Date().toISOString().split('T')[0],
+        remark: '',
+        designations: [
+          {
+            id: 1,
+            description: '',
+            vatRate: '21',
+            price: 0
+          }
+        ]
+      })
+      setErrors({})
+      setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('Error creating credit note:', error)
+      setErrors({ submit: 'Failed to create credit note. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseModal = () => {
@@ -316,17 +436,8 @@ const CreditNotes = () => {
     
     // Set form data with existing credit note data
     setFormData({
-      clientType: 'existing',
-      clientName: creditNote.client,
-      clientAddress: creditNote.address || '',
-      postalCode: creditNote.postalCode || '',
-      city: creditNote.city || '',
-      clientVAT: creditNote.vat || '',
-      company: creditNote.company || '',
-      date: creditNote.date,
-      paymentMethod: creditNote.paymentMethod || 'virement',
-      dueDate: creditNote.dueDate || '',
-      deposit: creditNote.deposit || 0,
+      client: creditNote.client || '',
+      date: creditNote.date || new Date().toISOString().split('T')[0],
       remark: creditNote.remark || '',
       designations: creditNote.designations || [
         {
@@ -573,10 +684,121 @@ Your Limousine Service Team
   }
 
   const handlePrint = () => {
-    window.print()
+    if (creditNotes.length === 0) {
+      alert('No credit notes to print')
+      return
+    }
+
+    try {
+      // Create new PDF document
+      const pdf = new jsPDF()
+      
+      // Set up PDF styling
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 20
+      const contentWidth = pageWidth - (margin * 2)
+      
+      let yPosition = margin
+      
+      // Add title
+      pdf.setFontSize(20)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Credit Notes Report', margin, yPosition)
+      yPosition += 15
+      
+      // Add date
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition)
+      yPosition += 20
+      
+      // Add table headers
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'bold')
+      const headers = ['Number', 'Date', 'Client', 'Remark', 'Total Price']
+      const colWidths = [25, 30, 50, 40, 25]
+      let xPosition = margin
+      
+      // Draw header row
+      headers.forEach((header, index) => {
+        pdf.text(header, xPosition, yPosition)
+        xPosition += colWidths[index]
+      })
+      
+      yPosition += 10
+      
+      // Draw line under headers
+      pdf.setLineWidth(0.5)
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 5
+      
+      // Add credit notes data
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'normal')
+      
+      getFilteredCreditNotes().forEach((creditNote, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage()
+          yPosition = margin
+        }
+        
+        xPosition = margin
+        
+        // Add row data
+        const rowData = [
+          creditNote.number || '',
+          creditNote.date || '',
+          creditNote.client || '',
+          creditNote.remark || '',
+          `€${creditNote.totalPrice || 0}`
+        ]
+        
+        rowData.forEach((data, colIndex) => {
+          // Truncate long text
+          let displayText = data
+          if (colIndex === 2 && data.length > 25) { // Client column
+            displayText = data.substring(0, 22) + '...'
+          } else if (colIndex === 3 && data.length > 20) { // Remark column
+            displayText = data.substring(0, 17) + '...'
+          }
+          
+          pdf.text(displayText, xPosition, yPosition)
+          xPosition += colWidths[colIndex]
+        })
+        
+        yPosition += 8
+        
+        // Add separator line every 5 rows
+        if ((index + 1) % 5 === 0 && index < getFilteredCreditNotes().length - 1) {
+          pdf.setLineWidth(0.2)
+          pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+          yPosition += 5
+        }
+      })
+      
+      // Add summary at the end
+      yPosition += 15
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(`Total Credit Notes: ${getFilteredCreditNotes().length}`, margin, yPosition)
+      yPosition += 8
+      pdf.text(`Total Amount: €${getTotalCreditNotes().toFixed(2)}`, margin, yPosition)
+      
+      // Save the PDF
+      const fileName = `credit-notes-report-${new Date().toISOString().split('T')[0]}.pdf`
+      pdf.save(fileName)
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Error generating PDF. Please try again.')
+    }
   }
 
   const getFilteredCreditNotes = () => {
+    console.log('🔍 Filtering credit notes. Total:', creditNotes.length, 'Search term:', searchTerm, 'Display count:', displayCount)
+    console.log('🔍 Credit notes array:', creditNotes)
     let filtered = creditNotes
 
     if (searchTerm) {
@@ -585,9 +807,13 @@ Your Limousine Service Team
         creditNote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
         creditNote.remark.toLowerCase().includes(searchTerm.toLowerCase())
       )
+      console.log('🔍 After search filter:', filtered.length, 'items')
     }
 
-    return filtered.slice(0, displayCount)
+    const result = filtered.slice(0, displayCount)
+    console.log('🔍 Final filtered result:', result.length, 'items')
+    console.log('🔍 Final result array:', result)
+    return result
   }
 
   const getTotalCreditNotes = () => {
@@ -639,7 +865,11 @@ Your Limousine Service Team
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
               <h3 className="text-lg font-semibold text-gray-900">{t('creditNotesTable')}</h3>
               <div className="flex items-center space-x-2 lg:space-x-3">
-                <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                <button 
+                  onClick={handlePrint}
+                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                  title="Print all credit notes"
+                >
                   <Printer className="w-4 h-4" />
                   <span className="hidden sm:inline">Print</span>
                   <span className="sm:hidden">Print</span>
@@ -678,33 +908,135 @@ Your Limousine Service Team
             </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="text-red-800">
+                <strong>Error:</strong> {error}
+              </div>
+              <button
+                onClick={loadCreditNotes}
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Credit Notes Table */}
         <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('number')}
-                </th>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('date')}
-                </th>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('client')}
-                </th>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                  {t('remark')}
-                </th>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('totalPrice')}
-                </th>
-                <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('actions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {getFilteredCreditNotes().map((creditNote) => (
+          {/* Debug Info */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-blue-800">
+                <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
+                Credit Notes: {creditNotes.length} | 
+                Filtered: {getFilteredCreditNotes().length} | 
+                Search: "{searchTerm}" | 
+                Display Count: {displayCount} |
+                Mounted: {isMountedRef.current ? 'Yes' : 'No'}
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={async () => {
+                    console.log('🧪 Testing direct Firebase connection...')
+                    try {
+                      const creditNotesRef = collection(db, 'creditNotes')
+                      const q = query(creditNotesRef, orderBy('createdAt', 'desc'))
+                      const querySnapshot = await getDocs(q)
+                      const directData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                      }))
+                      console.log('🧪 Direct Firebase test result:', directData)
+                      alert(`Direct Firebase test: Found ${directData.length} credit notes`)
+                    } catch (error) {
+                      console.error('🧪 Direct Firebase test failed:', error)
+                      alert(`Direct Firebase test failed: ${error.message}`)
+                    }
+                  }}
+                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                >
+                  Test Firebase
+                </button>
+                <button
+                  onClick={loadCreditNotes}
+                  disabled={loading}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Loading...' : 'Refresh'}
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('🔍 Current state debug:')
+                    console.log('  - loading:', loading)
+                    console.log('  - creditNotes:', creditNotes)
+                    console.log('  - creditNotes.length:', creditNotes.length)
+                    console.log('  - isMounted:', isMountedRef.current)
+                    console.log('  - getFilteredCreditNotes():', getFilteredCreditNotes())
+                  }}
+                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+                >
+                  Debug State
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DAA520]"></div>
+              <span className="ml-4 text-gray-600">Loading credit notes...</span>
+            </div>
+          ) : getFilteredCreditNotes().length === 0 ? (
+            <div className="text-center py-12">
+              <FileEdit className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No credit notes found</h3>
+              <p className="text-gray-600 mb-4">
+                {creditNotes.length === 0 
+                  ? "Get started by creating your first credit note."
+                  : "No credit notes match your search criteria."
+                }
+              </p>
+              {creditNotes.length === 0 && (
+                <button
+                  onClick={handleCreateCreditNote}
+                  className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base mx-auto"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span>{t('addCreditNote')}</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('number')}
+                  </th>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('date')}
+                  </th>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('client')}
+                  </th>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    {t('remark')}
+                  </th>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('totalPrice')}
+                  </th>
+                  <th className="px-2 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('actions')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {getFilteredCreditNotes().map((creditNote) => (
                 <tr key={creditNote.id} className="hover:bg-gray-50">
                   <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {creditNote.number}
@@ -727,21 +1059,34 @@ Your Limousine Service Team
                   </td>
                   <td className="px-2 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-1 lg:space-x-2">
-                      <button className="text-green-600 hover:text-green-900 p-1">
+                      <button 
+                        onClick={() => handleModifyCreditNote(creditNote.id)}
+                        className="text-green-600 hover:text-green-900 p-1"
+                        title="Modifier"
+                      >
                         <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
-                      <button className="text-red-600 hover:text-red-900 p-1">
+                      <button 
+                        onClick={() => handleGeneratePDF(creditNote.id)}
+                        className="text-red-600 hover:text-red-900 p-1"
+                        title="Générer PDF"
+                      >
                         <FileDown className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
-                      <button className="text-gray-600 hover:text-gray-900 p-1">
+                      <button 
+                        onClick={() => handleSendCreditNote(creditNote.id)}
+                        className="text-gray-600 hover:text-gray-900 p-1"
+                        title="Envoyer par email"
+                      >
                         <Mail className="w-3 h-3 lg:w-4 lg:h-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
           {/* Summary */}

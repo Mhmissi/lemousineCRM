@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import jsPDF from 'jspdf'
+import { firestoreService } from '../../services/firestoreService'
 import { 
   Calendar, 
   Plus, 
@@ -23,7 +24,8 @@ import {
   Trash2,
   Printer,
   Grid3X3,
-  List
+  List,
+  RefreshCw
 } from 'lucide-react'
 
 function Plannings() {
@@ -35,34 +37,47 @@ function Plannings() {
   const [schedules, setSchedules] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
   const [showListView, setShowListView] = useState(false)
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0])
+  const [filterDate, setFilterDate] = useState(() => {
+    // Use selectedDate if available, otherwise use today
+    return new Date().toISOString().split('T')[0]
+  })
   const [filterDriver, setFilterDriver] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [formData, setFormData] = useState({
-    company: 'LIMOSTAR',
-    date: new Date().toISOString().split('T')[0],
-    time: new Date().toTimeString().slice(0, 5),
-    departureAddress: '',
-    destination: '',
-    client: 'A&M sprl',
-    driver: 'Seddik',
-    car: 'Van',
-    passengers: 1,
-    passengerNames: '',
-    price: '',
-    vatIncluded: false,
-    paymentMethod: 'Invoice',
-    comments: ''
+  const [formData, setFormData] = useState(() => {
+    // Initialize with timezone-safe date formatting
+    const year = selectedDate.getFullYear()
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+    const day = String(selectedDate.getDate()).padStart(2, '0')
+    
+    return {
+      company: 'LIMOSTAR',
+      date: `${year}-${month}-${day}`,
+      time: new Date().toTimeString().slice(0, 5),
+      departureAddress: '',
+      destination: '',
+      client: 'A&M sprl',
+      driver: 'Seddik',
+      car: 'Van',
+      passengers: 1,
+      passengerNames: '',
+      price: '',
+      vatIncluded: false,
+      paymentMethod: 'Invoice',
+      comments: ''
+    }
   })
   const [errors, setErrors] = useState({})
+  const [drivers, setDrivers] = useState([])
+  const [vehicles, setVehicles] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
+  const [editingSchedule, setEditingSchedule] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
   // Mock data for dropdowns
   const companies = ['LIMOSTAR', 'PREMIUM CARS', 'LUXURY TRANSPORT']
   const clients = ['A&M sprl', 'CORPORATE CLIENT', 'WEDDING PARTY', 'AIRPORT SERVICE']
-  const drivers = ['Seddik', 'Jean Dupont', 'Marie Martin', 'Pierre Durand']
-  const cars = ['Van', 'Limousine', 'Bus', 'Sedan', 'SUV']
   const paymentMethods = ['Invoice', 'Cash', 'Credit Card']
 
   // Day names
@@ -72,48 +87,119 @@ function Plannings() {
     t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
   ]
 
-  // Mock schedules data
+  // Function to load data from Firestore (memoized to prevent unnecessary re-renders)
+  const loadData = useCallback(async () => {
+    try {
+      setLoadingData(true)
+      const [tripsData, driversData, vehiclesData] = await Promise.all([
+        firestoreService.getTrips(),
+        firestoreService.getDrivers(),
+        firestoreService.getVehicles()
+      ])
+      
+      // Get profiles data to include driver profiles
+      const profilesData = await firestoreService.getProfiles()
+      
+      // Get real drivers from drivers collection (with Firebase Auth)
+      const realDriversFromDriversCollection = driversData
+        .filter(driver => driver.firebaseAuthId)
+      
+      // Get real drivers from profiles collection (classe === 'driver' with Firebase Auth)
+      const realDriversFromProfiles = profilesData
+        .filter(profile => profile.classe === 'driver' && profile.firebaseAuthId)
+        .map(profile => ({
+          id: profile.id,
+          name: profile.name || profile.displayName || profile.fullName || 'Unknown Driver',
+          email: profile.email || profile.username || '',
+          firebaseAuthId: profile.firebaseAuthId,
+          source: 'profiles',
+          ...profile
+        }))
+      
+      // Combine and deduplicate
+      const allRealDrivers = [...realDriversFromDriversCollection, ...realDriversFromProfiles]
+      const realDrivers = allRealDrivers.reduce((acc, driver) => {
+        const existingDriver = acc.find(d => d.email === driver.email)
+        if (!existingDriver) {
+          acc.push(driver)
+        } else if (driver.source === 'drivers' && existingDriver.source === 'profiles') {
+          const index = acc.findIndex(d => d.email === driver.email)
+          acc[index] = driver
+        }
+        return acc
+      }, [])
+      
+      console.log('Firebase data loaded:', {
+        trips: tripsData.length,
+        allDrivers: driversData.length,
+        profileDrivers: realDriversFromProfiles.length,
+        realDrivers: realDrivers.length,
+        vehicles: vehiclesData.length
+      })
+      console.log('✅ Real drivers with Firebase Auth:', realDrivers)
+      
+      // Transform trips data to match the schedule format
+      const formattedSchedules = tripsData.map(trip => {
+        const [startTime, endTime] = trip.time ? trip.time.split(' - ') : ['09:00', '11:00']
+        
+        // Parse date without timezone conversion
+        let tripDate
+        if (trip.date instanceof Date) {
+          tripDate = trip.date
+        } else if (typeof trip.date === 'string') {
+          // Parse YYYY-MM-DD without timezone shift
+          const [year, month, day] = trip.date.split('-').map(Number)
+          tripDate = new Date(year, month - 1, day)
+        } else {
+          tripDate = new Date(trip.date)
+        }
+        
+        return {
+          id: trip.id,
+          title: `${trip.pickup} → ${trip.destination}`,
+          date: tripDate,
+          time: startTime || '09:00',
+          duration: '2h', // Default duration
+          location: trip.pickup,
+          passengers: trip.passengers || 1,
+          driver: trip.driverName || 'Unknown Driver',
+          status: trip.status === 'assigned' ? 'pending' : trip.status === 'completed' ? 'confirmed' : trip.status,
+          color: 'blue',
+          price: trip.revenue || 0,
+          client: trip.client || 'Unknown Client',
+          car: trip.vehicleName || 'Unknown Vehicle',
+          comments: trip.notes || '',
+          paymentMethod: 'Invoice',
+          passengerNames: '',
+          vatIncluded: false
+        }
+      })
+      
+      setSchedules(formattedSchedules)
+      setDrivers(realDrivers) // Only show real drivers
+      setVehicles(vehiclesData)
+    } catch (error) {
+      console.error('Error loading data:', error)
+      setSchedules([])
+      setDrivers([])
+      setVehicles([])
+    } finally {
+      setLoadingData(false)
+    }
+  }, []) // Empty dependency array since this doesn't depend on any props or state
+
+  // Load data from Firestore on component mount
   useEffect(() => {
-    const mockSchedules = [
-      {
-        id: 1,
-        title: 'Service VIP - Aéroport',
-        date: new Date(2025, 8, 13), // September 13, 2025
-        time: '09:00',
-        duration: '2h',
-        location: 'Aéroport Charles de Gaulle',
-        passengers: 4,
-        driver: 'Jean Dupont',
-        status: 'confirmed',
-        color: 'blue'
-      },
-      {
-        id: 2,
-        title: 'Mariage - Château',
-        date: new Date(2025, 8, 15),
-        time: '14:00',
-        duration: '4h',
-        location: 'Château de Versailles',
-        passengers: 8,
-        driver: 'Marie Martin',
-        status: 'pending',
-        color: 'green'
-      },
-      {
-        id: 3,
-        title: 'Événement d\'entreprise',
-        date: new Date(2025, 9, 2),
-        time: '18:00',
-        duration: '3h',
-        location: 'Centre des Congrès',
-        passengers: 12,
-        driver: 'Pierre Durand',
-        status: 'confirmed',
-        color: 'purple'
-      }
-    ]
-    setSchedules(mockSchedules)
-  }, [])
+    loadData()
+  }, [loadData])
+
+  // Sync filterDate with selectedDate without timezone conversion
+  useEffect(() => {
+    const year = selectedDate.getFullYear()
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+    const day = String(selectedDate.getDate()).padStart(2, '0')
+    setFilterDate(`${year}-${month}-${day}`)
+  }, [selectedDate])
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
@@ -270,60 +356,172 @@ function Plannings() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (validateForm()) {
-      // Create new schedule
-      const newSchedule = {
-        id: Date.now(),
-        title: `${formData.departureAddress} → ${formData.destination}`,
-        date: new Date(formData.date),
-        time: formData.time,
-        duration: '2h', // Default duration
-        location: formData.departureAddress,
-        passengers: formData.passengers,
-        driver: formData.driver,
-        status: 'pending',
-        color: 'blue',
-        price: formData.price,
-        client: formData.client,
-        car: formData.car,
-        comments: formData.comments
+      try {
+        // Create new trip data for Firestore
+        const newTripData = {
+          driverId: formData.driver, // This should be the driver ID, not name
+          driverName: formData.driver,
+          vehicleId: formData.car, // This should be the vehicle ID, not name
+          vehicleName: formData.car,
+          pickup: formData.departureAddress,
+          destination: formData.destination,
+          date: formData.date,
+          time: `${formData.time} - ${formData.time}`, // Default end time same as start
+          status: 'assigned',
+          passengers: formData.passengers,
+          revenue: parseFloat(formData.price) || 0,
+          client: formData.client,
+          notes: formData.comments,
+          company: formData.company,
+          paymentMethod: formData.paymentMethod,
+          passengerNames: formData.passengerNames,
+          vatIncluded: formData.vatIncluded,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+
+        // Save to Firestore
+        if (editingSchedule) {
+          // Update existing trip
+          await firestoreService.updateTrip(editingSchedule.id, newTripData)
+          alert('Course modifiée avec succès!')
+        } else {
+          // Create new trip
+          const tripId = await firestoreService.addTrip(newTripData)
+          alert('Course ajoutée avec succès!')
+        }
+        
+        // Reload data from Firestore to ensure consistency
+        await loadData()
+        setShowAddModal(false)
+        setEditingSchedule(null)
+        
+        // Reset form with current selected date
+        setFormData({
+          company: 'LIMOSTAR',
+          date: filterDate, // Use the current filter date
+          time: new Date().toTimeString().slice(0, 5),
+          departureAddress: '',
+          destination: '',
+          client: 'A&M sprl',
+          driver: drivers.length > 0 ? drivers[0].name : 'Seddik',
+          car: vehicles.length > 0 ? vehicles[0].name : 'Van',
+          passengers: 1,
+          passengerNames: '',
+          price: '',
+          vatIncluded: false,
+          paymentMethod: 'Invoice',
+          comments: ''
+        })
+        
+      } catch (error) {
+        console.error('Error adding course:', error)
+        alert('Erreur lors de l\'ajout de la course. Veuillez réessayer.')
       }
-      
-      setSchedules(prev => [...prev, newSchedule])
-      setShowAddModal(false)
-      
-      // Reset form
-      setFormData({
-        company: 'LIMOSTAR',
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toTimeString().slice(0, 5),
-        departureAddress: '',
-        destination: '',
-        client: 'A&M sprl',
-        driver: 'Seddik',
-        car: 'Van',
-        passengers: 1,
-        passengerNames: '',
-        price: '',
-        vatIncluded: false,
-        paymentMethod: 'Invoice',
-        comments: ''
-      })
     }
   }
 
-  const handleDayClick = (date) => {
+  const handleDayClick = useCallback((date) => {
     setSelectedDate(date)
-    setFilterDate(date.toISOString().split('T')[0])
+    // Format date without timezone conversion
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    setFilterDate(`${year}-${month}-${day}`)
     setShowListView(true)
+  }, [])
+
+  const handleEditSchedule = useCallback((schedule) => {
+    setEditingSchedule(schedule)
+    // Format date without timezone conversion
+    const year = schedule.date.getFullYear()
+    const month = String(schedule.date.getMonth() + 1).padStart(2, '0')
+    const day = String(schedule.date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    
+    setFormData({
+      company: schedule.company || 'LIMOSTAR',
+      date: dateStr,
+      time: schedule.time,
+      departureAddress: schedule.location,
+      destination: schedule.destination || '',
+      client: schedule.client,
+      driver: schedule.driver,
+      car: schedule.car,
+      passengers: schedule.passengers,
+      passengerNames: schedule.passengerNames || '',
+      price: schedule.price.toString(),
+      vatIncluded: schedule.vatIncluded || false,
+      paymentMethod: schedule.paymentMethod || 'Invoice',
+      comments: schedule.comments || ''
+    })
+    setShowAddModal(true)
+  }, [])
+
+  const handleDeleteSchedule = useCallback(async (scheduleId) => {
+    try {
+      await firestoreService.deleteTrip(scheduleId)
+      await loadData() // Reload data after deletion
+      setShowDeleteConfirm(null)
+      alert('Course supprimée avec succès!')
+    } catch (error) {
+      console.error('Error deleting schedule:', error)
+      alert('Erreur lors de la suppression de la course. Veuillez réessayer.')
+    }
+  }, [loadData])
+
+  const handleConfirmSchedule = useCallback(async (schedule) => {
+    try {
+      await firestoreService.updateTrip(schedule.id, { 
+        status: 'completed',
+        updatedAt: new Date()
+      })
+      await loadData() // Reload data after update
+      alert('Course confirmée avec succès!')
+    } catch (error) {
+      console.error('Error confirming schedule:', error)
+      alert('Erreur lors de la confirmation de la course. Veuillez réessayer.')
+    }
+  }, [loadData])
+
+  // Helper function to format date without timezone conversion
+  const formatDateLocal = (date) => {
+    if (!date) return ''
+    const d = date instanceof Date ? date : new Date(date)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
-  const getFilteredSchedules = () => {
-    let filtered = schedules.filter(schedule => {
-      const scheduleDate = schedule.date.toISOString().split('T')[0]
-      const matchesDate = scheduleDate === filterDate
+  // Helper function to normalize date format
+  const normalizeDate = (date) => {
+    if (date instanceof Date) {
+      return formatDateLocal(date)
+    } else if (typeof date === 'string') {
+      if (date.includes('/')) {
+        // Convert MM/DD/YYYY to YYYY-MM-DD
+        const [month, day, year] = date.split('/')
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      } else {
+        return date.split('T')[0]
+      }
+    } else {
+      return formatDateLocal(new Date(date))
+    }
+  }
+
+  // Memoized filtered schedules to prevent unnecessary recalculations
+  const filteredSchedules = useMemo(() => {
+    return schedules.filter(schedule => {
+      // Use the helper function for consistent date comparison
+      const scheduleDateStr = normalizeDate(schedule.date)
+      const filterDateStr = normalizeDate(filterDate)
+      
+      const matchesDate = scheduleDateStr === filterDateStr
       const matchesDriver = filterDriver === 'all' || schedule.driver === filterDriver
       const matchesSearch = searchTerm === '' || 
         schedule.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -332,18 +530,16 @@ function Plannings() {
       
       return matchesDate && matchesDriver && matchesSearch
     })
-    
-    return filtered
-  }
+  }, [schedules, filterDate, filterDriver, searchTerm])
 
-  const getPaginatedSchedules = () => {
-    const filtered = getFilteredSchedules()
+  // Memoized paginated schedules
+  const paginatedSchedules = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
-    return filtered.slice(startIndex, endIndex)
-  }
+    return filteredSchedules.slice(startIndex, endIndex)
+  }, [filteredSchedules, currentPage, itemsPerPage])
 
-  const totalPages = Math.ceil(getFilteredSchedules().length / itemsPerPage)
+  const totalPages = Math.ceil(filteredSchedules.length / itemsPerPage)
 
   const generatePDF = async () => {
     const doc = new jsPDF()
@@ -416,7 +612,7 @@ function Plannings() {
     yPosition += 25
 
     // Get filtered schedules for the selected date
-    const schedulesForPDF = getFilteredSchedules()
+    const schedulesForPDF = filteredSchedules
     
     if (schedulesForPDF.length === 0) {
       // No schedules message
@@ -746,7 +942,14 @@ function Plannings() {
               </button>
             </div>
             <button 
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                // Set form date to current filter date before opening modal
+                setFormData(prev => ({
+                  ...prev,
+                  date: filterDate
+                }))
+                setShowAddModal(true)
+              }}
               className="flex items-center justify-center space-x-2 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base"
               style={{ backgroundColor: '#DAA520' }}
             >
@@ -966,6 +1169,15 @@ function Plannings() {
               <h3 className="text-lg font-semibold text-gray-900">Gestion des plannings</h3>
               <div className="flex items-center space-x-2 lg:space-x-3">
                 <button 
+                  onClick={loadData}
+                  disabled={loadingData}
+                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingData ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                  <span className="sm:hidden">Refresh</span>
+                </button>
+                <button 
                   onClick={generatePDF}
                   className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
                 >
@@ -1001,7 +1213,7 @@ function Plannings() {
                 >
                   <option value="all">--Toute la liste--</option>
                   {drivers.map(driver => (
-                    <option key={driver} value={driver}>{driver}</option>
+                    <option key={driver.id} value={driver.name}>{driver.name}</option>
                   ))}
                 </select>
               </div>
@@ -1015,7 +1227,14 @@ function Plannings() {
           {/* Add Trip Button */}
           <div className="flex justify-end">
             <button 
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                // Set form date to current filter date before opening modal
+                setFormData(prev => ({
+                  ...prev,
+                  date: filterDate
+                }))
+                setShowAddModal(true)
+              }}
               className="flex items-center space-x-2 px-6 py-3 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
               style={{ backgroundColor: '#DAA520' }}
             >
@@ -1084,7 +1303,7 @@ function Plannings() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {getPaginatedSchedules().map((schedule, index) => (
+                  {paginatedSchedules.map((schedule, index) => (
                     <tr key={schedule.id} className="hover:bg-gray-50">
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {(currentPage - 1) * itemsPerPage + index + 1}
@@ -1118,13 +1337,28 @@ function Plannings() {
                       </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-1 lg:space-x-2">
-                          <button className="text-green-600 hover:text-green-900 p-1">
+                          <button 
+                            onClick={() => handleEditSchedule(schedule)}
+                            className="text-green-600 hover:text-green-900 p-1"
+                            title="Modifier"
+                          >
                             <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
                           </button>
-                          <button className="p-1" style={{ color: '#DAA520' }}>
-                            <Check className="w-3 h-3 lg:w-4 lg:h-4" />
-                          </button>
-                          <button className="text-red-600 hover:text-red-900 p-1">
+                          {schedule.status !== 'confirmed' && schedule.status !== 'completed' && (
+                            <button 
+                              onClick={() => handleConfirmSchedule(schedule)}
+                              className="p-1" 
+                              style={{ color: '#DAA520' }}
+                              title="Confirmer"
+                            >
+                              <Check className="w-3 h-3 lg:w-4 lg:h-4" />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => setShowDeleteConfirm(schedule.id)}
+                            className="text-red-600 hover:text-red-900 p-1"
+                            title="Supprimer"
+                          >
                             <Trash2 className="w-3 h-3 lg:w-4 lg:h-4" />
                           </button>
                         </div>
@@ -1139,7 +1373,7 @@ function Plannings() {
             <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                 <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
-                  Affichage {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, getFilteredSchedules().length)} de {getFilteredSchedules().length} enregistrement(s)
+                  Affichage {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, filteredSchedules.length)} de {filteredSchedules.length} enregistrement(s)
                 </div>
                 <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                   <button
@@ -1192,10 +1426,15 @@ function Plannings() {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <Menu className="w-5 h-5 text-gray-600" />
-                <h3 className="text-xl font-semibold text-gray-900">Nouvelle course</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {editingSchedule ? 'Modifier la course' : 'Nouvelle course'}
+                </h3>
               </div>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false)
+                  setEditingSchedule(null)
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1308,7 +1547,7 @@ function Plannings() {
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                     >
                       {drivers.map(driver => (
-                        <option key={driver} value={driver}>{driver}</option>
+                        <option key={driver.id} value={driver.name}>{driver.name}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -1322,8 +1561,8 @@ function Plannings() {
                       onChange={(e) => handleInputChange('car', e.target.value)}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-[#DAA520] appearance-none bg-white"
                     >
-                      {cars.map(car => (
-                        <option key={car} value={car}>{car}</option>
+                      {vehicles.map(vehicle => (
+                        <option key={vehicle.id} value={vehicle.name}>{vehicle.name}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -1455,10 +1694,45 @@ function Plannings() {
                   className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
                   style={{ backgroundColor: '#DAA520' }}
                 >
-                  Enregistrer
+                  {editingSchedule ? 'Modifier' : 'Enregistrer'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Confirmer la suppression</h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                Êtes-vous sûr de vouloir supprimer cette course ? Cette action est irréversible.
+              </p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleDeleteSchedule(showDeleteConfirm)}
+                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

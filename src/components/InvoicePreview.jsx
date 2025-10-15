@@ -7,30 +7,29 @@ function InvoicePreview() {
   const generateSampleInvoice = async () => {
     setGenerating(true);
     
-    // Sample data matching the Limostar format
+    // Sample data matching the EXACT model structure
     const sampleInvoiceData = {
-      invoiceNumber: generateInvoiceNumber(),
-      date: '2024-01-19',
-      dueDate: '2024-01-22',
-      clientCode: 'CL1591',
-      clientName: 'Ecole Jacques Brel',
-      clientAddress: 'Rue Esseghem 101',
-      clientPostalCode: '1090',
-      clientCity: 'Jette',
+      invoiceNumber: '2025015',
+      page: '1',
+      date: '16-05-2025',
+      dueDate: '2025-05-16',
+      clientCode: 'CL1595',
+      clientName: 'Travessia Virtual Lda',
+      clientAddress: ['Brussels', 'Belgium'],
       paymentMethod: 'Virement',
       services: [
         {
-          description: 'Autocar de 52 places pour un trajet aller/retour au départ de Jette le 26 septembre 2025 pour 46 enfants et 4 accompagnateurs. Départ: 8h sur le parking de la salle Omnisport de Jette, avenue du Comté de Jette 3 - 1090. Destination: Chateau de Moha, rue du Madot 101A, 4520 Wanze. Retour pour 17h30.',
-          priceExclVat: 900.00,
+          description: 'Service de transport limousine',
+          priceExclVat: 5400.00,
           vatRate: 6,
-          vatAmount: 54.00,
-          priceInclVat: 954.00
+          vatAmount: 324.00,
+          priceInclVat: 5724.00
         }
       ],
       totals: {
-        priceExclVat: 900.00,
-        vatAmount: 54.00,
-        priceInclVat: 954.00,
+        priceExclVat: 5400.00,
+        vatAmount: 324.00,
+        priceInclVat: 5724.00,
         deposit: 0
       }
     };
@@ -126,4 +125,6 @@ function InvoicePreview() {
 }
 
 export default InvoicePreview;
+
+
 

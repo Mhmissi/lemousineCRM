@@ -41,7 +41,7 @@ function AppRoutes() {
       />
       <Route 
         path="/owner" 
-        element={user?.role === 'owner' ? <OwnerDashboard /> : <Navigate to="/login" />} 
+        element={user?.role === 'owner' || user?.role === 'admin' ? <OwnerDashboard /> : <Navigate to="/login" />} 
       />
       <Route 
         path="/firebase-test" 

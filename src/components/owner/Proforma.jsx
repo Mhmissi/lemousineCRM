@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { Grid3X3, Plus, Search, Eye, Edit, FileDown, Mail, CheckCircle, Filter, Printer } from 'lucide-react'
-import jsPDF from 'jspdf'
+import { downloadProforma } from '../../utils/invoiceGenerator'
+import { firestoreService } from '../../services/firestoreService'
 
 const Proforma = () => {
   const { t } = useLanguage()
@@ -12,6 +13,8 @@ const Proforma = () => {
   const [proformas, setProformas] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showPaidOnly, setShowPaidOnly] = useState(false)
+  const [showUnpaidOnly, setShowUnpaidOnly] = useState(false)
   const [formData, setFormData] = useState({
     clientType: 'existing',
     clientName: '',
@@ -182,7 +185,45 @@ const Proforma = () => {
   ]
 
   useEffect(() => {
-    setProformas(mockProformas)
+    const loadProformas = async () => {
+      try {
+        setLoading(true)
+        // Try to load from Firebase
+        const proformasData = await firestoreService.getQuotes()
+        
+        if (proformasData && proformasData.length > 0) {
+          // Map Firebase data to expected format
+          const mappedProformas = proformasData.map(proforma => ({
+            id: proforma.id,
+            number: proforma.proformaNumber || proforma.number || `PF-${proforma.id}`,
+            date: proforma.date || proforma.proformaDate || new Date().toISOString().split('T')[0],
+            dueDate: proforma.dueDate || proforma.paymentDueDate || proforma.date || new Date().toISOString().split('T')[0],
+            client: proforma.clientName || proforma.client || proforma.clientCompany || 'Unknown Client',
+            payment: proforma.paymentMethod || proforma.payment || 'Virement',
+            remark: proforma.remark || proforma.notes || proforma.description || '',
+            totalExclVAT: proforma.totals?.priceExclVat || proforma.totalExclVAT || proforma.subtotal || 0,
+            vat: proforma.totals?.vatAmount || proforma.vat || proforma.vatAmount || 0,
+            totalInclVAT: proforma.totals?.priceInclVat || proforma.totalInclVAT || proforma.total || 0,
+            deposit: proforma.totals?.deposit || proforma.deposit || proforma.paidAmount || 0,
+            status: proforma.status || 'pending'
+          }))
+          setProformas(mappedProformas)
+          console.log('✅ Proformas loaded from Firebase:', mappedProformas.length)
+        } else {
+          // Use mock data as fallback
+          setProformas(mockProformas)
+          console.log('📋 Using mock proformas data')
+        }
+      } catch (error) {
+        console.error('❌ Error loading proformas from Firebase:', error)
+        // Use mock data as fallback
+        setProformas(mockProformas)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadProformas()
   }, [])
 
   const handleShowProformas = () => {
@@ -290,80 +331,127 @@ const Proforma = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    // Calculate totals
-    const totalExclVAT = formData.designations.reduce((sum, designation) => {
-      return sum + (designation.price || 0)
-    }, 0)
+    try {
+      setLoading(true)
 
-    const totalVAT = formData.designations.reduce((sum, designation) => {
-      const vatAmount = (designation.price || 0) * (parseFloat(designation.vatRate) / 100)
-      return sum + vatAmount
-    }, 0)
+      // Calculate totals
+      const totalExclVAT = formData.designations.reduce((sum, designation) => {
+        return sum + (designation.price || 0)
+      }, 0)
 
-    const totalInclVAT = totalExclVAT + totalVAT
+      const totalVAT = formData.designations.reduce((sum, designation) => {
+        const vatAmount = (designation.price || 0) * (parseFloat(designation.vatRate) / 100)
+        return sum + vatAmount
+      }, 0)
 
-    // Generate proforma number
-    const currentYear = new Date().getFullYear()
-    const nextNumber = Math.max(...proformas.map(p => {
-      const year = parseInt(p.number.substring(0, 4))
-      if (year === currentYear) {
-        return parseInt(p.number.substring(4))
-      }
-      return 0
-    })) + 1
-    const proformaNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
+      const totalInclVAT = totalExclVAT + totalVAT
 
-    // Create new proforma
-    const newProforma = {
-      id: Math.max(...proformas.map(p => p.id)) + 1,
-      number: proformaNumber,
-      date: formData.date,
-      dueDate: formData.dueDate,
-      client: formData.clientName,
-      payment: paymentMethods.find(pm => pm.value === formData.paymentMethod)?.label || 'Virement',
-      remark: formData.remark,
-      totalExclVAT: totalExclVAT,
-      vat: totalVAT,
-      totalInclVAT: totalInclVAT,
-      deposit: formData.deposit || 0,
-      status: 'pending'
-    }
-
-    // Add to proformas list
-    setProformas(prev => [newProforma, ...prev])
-    
-    // Reset form
-    setFormData({
-      clientType: 'existing',
-      clientName: '',
-      clientAddress: '',
-      postalCode: '',
-      city: '',
-      clientVAT: '',
-      company: '',
-      date: new Date().toISOString().split('T')[0],
-      paymentMethod: 'virement',
-      dueDate: '',
-      deposit: 0,
-      remark: '',
-      designations: [
-        {
-          id: 1,
-          description: '',
-          vatRate: '21',
-          price: 0
+      // Generate proforma number
+      const currentYear = new Date().getFullYear()
+      const nextNumber = Math.max(...proformas.map(p => {
+        const year = parseInt(p.number.substring(0, 4))
+        if (year === currentYear) {
+          return parseInt(p.number.substring(4))
         }
-      ]
-    })
-    setErrors({})
-    setShowCreateModal(false)
+        return 0
+      })) + 1
+      const proformaNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
+
+      // Prepare proforma data for Firebase
+      const proformaData = {
+        proformaNumber: proformaNumber,
+        date: formData.date,
+        dueDate: formData.dueDate,
+        clientName: formData.clientName,
+        clientAddress: formData.clientAddress,
+        clientPostalCode: formData.postalCode,
+        clientCity: formData.city,
+        clientVAT: formData.clientVAT,
+        company: formData.company,
+        paymentMethod: formData.paymentMethod,
+        remark: formData.remark,
+        services: formData.designations.map(designation => ({
+          description: designation.description,
+          priceExclVat: designation.price || 0,
+          vatRate: parseFloat(designation.vatRate),
+          vatAmount: (designation.price || 0) * (parseFloat(designation.vatRate) / 100),
+          priceInclVat: (designation.price || 0) + ((designation.price || 0) * (parseFloat(designation.vatRate) / 100))
+        })),
+        totals: {
+          priceExclVat: totalExclVAT,
+          vatAmount: totalVAT,
+          priceInclVat: totalInclVAT,
+          deposit: formData.deposit || 0
+        },
+        status: 'pending'
+      }
+
+      // Save to Firebase
+      try {
+        const proformaId = await firestoreService.addQuote(proformaData)
+        console.log('✅ Proforma saved to Firebase with ID:', proformaId)
+
+        // Create local proforma object
+        const newProforma = {
+          id: proformaId,
+          number: proformaNumber,
+          date: formData.date,
+          dueDate: formData.dueDate,
+          client: formData.clientName,
+          payment: paymentMethods.find(pm => pm.value === formData.paymentMethod)?.label || 'Virement',
+          remark: formData.remark,
+          totalExclVAT: totalExclVAT,
+          vat: totalVAT,
+          totalInclVAT: totalInclVAT,
+          deposit: formData.deposit || 0,
+          status: 'pending'
+        }
+
+        // Add to proformas list
+        setProformas(prev => [newProforma, ...prev])
+      } catch (firebaseError) {
+        console.error('❌ Error saving proforma to Firebase:', firebaseError)
+        alert('Erreur lors de la sauvegarde du proforma. Veuillez réessayer.')
+      }
+      
+      // Reset form
+      setFormData({
+        clientType: 'existing',
+        clientName: '',
+        clientAddress: '',
+        postalCode: '',
+        city: '',
+        clientVAT: '',
+        company: '',
+        date: new Date().toISOString().split('T')[0],
+        paymentMethod: 'virement',
+        dueDate: '',
+        deposit: 0,
+        remark: '',
+        designations: [
+          {
+            id: 1,
+            description: '',
+            vatRate: '21',
+            price: 0
+          }
+        ]
+      })
+      setErrors({})
+      setShowCreateModal(false)
+    } catch (error) {
+      console.error('❌ Error creating proforma:', error)
+      setErrors({ general: 'Failed to create proforma. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseModal = () => {
@@ -486,142 +574,44 @@ const Proforma = () => {
     const proforma = proformas.find(p => p.id === proformaId)
     if (!proforma) return
 
-    const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.width
-    const pageHeight = doc.internal.pageSize.height
-    let yPosition = 30
-
-    // Professional color scheme
-    const primaryColor = [218, 165, 32] // Goldenrod
-    const secondaryColor = [52, 73, 94] // Dark gray
-    const accentColor = [230, 126, 34] // Orange
-
-    // Header with professional styling
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-    doc.rect(0, 0, pageWidth, 50, 'F')
-    
     try {
-      // Add the actual logo
-      const logoResponse = await fetch('/logo.png')
-      const logoBlob = await logoResponse.blob()
-      const logoBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(logoBlob)
-      })
+      console.log('Generating proforma PDF for:', proforma)
       
-      // Add logo to PDF (30x30 pixels)
-      doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
+      // Map proforma data to our PDF generator format
+      const proformaData = {
+        proformaNumber: proforma.number || 'PF-0000',
+        date: proforma.date || new Date().toISOString().split('T')[0],
+        dueDate: proforma.dueDate || new Date().toISOString().split('T')[0],
+        clientCode: 'CL1595', // Default client code
+        clientName: proforma.client || 'Client non spécifié',
+        clientAddress: [proforma.client || 'Adresse non spécifiée'], // Convert to array format for our generator
+        paymentMethod: proforma.payment || 'Virement',
+        services: [
+          {
+            description: 'Service de transport limousine',
+            priceExclVat: parseFloat(proforma.totalExclVAT) || 0,
+            vatRate: 21, // Default VAT rate
+            vatAmount: parseFloat(proforma.vat) || 0,
+            priceInclVat: parseFloat(proforma.totalInclVAT) || 0
+          }
+        ],
+        totals: {
+          priceExclVat: parseFloat(proforma.totalExclVAT) || 0,
+          vatAmount: parseFloat(proforma.vat) || 0,
+          priceInclVat: parseFloat(proforma.totalInclVAT) || 0,
+          deposit: parseFloat(proforma.deposit) || 0
+        },
+        remark: proforma.remark || 'www.locationautocar.be by Limostar',
+        page: '1'
+      }
+
+      // Use our proforma PDF generator
+      downloadProforma(proformaData)
+      
     } catch (error) {
-      console.log('Logo not found, using text fallback')
-      // Fallback to text if logo not found
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text('LIMOSTAR', 20, 25)
+      console.error('Error generating proforma PDF:', error)
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     }
-    
-    // Company name
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('LIMOSTAR', 55, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Just luxury cars', 55, 28)
-    
-    // Proforma title
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text(`PROFORMA ${proforma.number}`, pageWidth - 80, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Date: ${proforma.date}`, pageWidth - 80, 28)
-    doc.text(`Échéance: ${proforma.dueDate}`, pageWidth - 80, 34)
-    
-    yPosition = 70
-
-    // Client information
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text('Proforma pour:', 20, yPosition)
-    
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(proforma.client, 20, yPosition + 8)
-    doc.text('Méthode de paiement: ' + proforma.payment, 20, yPosition + 16)
-    
-    yPosition += 35
-
-    // Proforma details
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Détails de la proforma:', 20, yPosition)
-    yPosition += 15
-
-    // Table header
-    doc.setFillColor(240, 248, 255)
-    doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
-    
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Description', 25, yPosition + 8)
-    doc.text('Total HTVA', pageWidth - 80, yPosition + 8)
-    doc.text('TVA', pageWidth - 50, yPosition + 8)
-    doc.text('Total TVAC', pageWidth - 25, yPosition + 8)
-    yPosition += 15
-
-    // Proforma line
-    doc.setFont('helvetica', 'normal')
-    doc.text('Service de transport limousine', 25, yPosition + 8)
-    doc.text(`${proforma.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition + 8)
-    doc.text(`${proforma.vat.toFixed(2)}€`, pageWidth - 50, yPosition + 8)
-    doc.text(`${proforma.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition + 8)
-    yPosition += 20
-
-    // Totals
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Total HTVA: ${proforma.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition)
-    doc.text(`TVA: ${proforma.vat.toFixed(2)}€`, pageWidth - 50, yPosition)
-    doc.text(`Total TVAC: ${proforma.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition)
-    
-    if (proforma.deposit > 0) {
-      yPosition += 10
-      doc.text(`Acompte: ${proforma.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
-      doc.text(`Solde: ${(proforma.totalInclVAT - proforma.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
-    }
-
-    // Remark
-    if (proforma.remark) {
-      yPosition += 20
-      doc.setFont('helvetica', 'bold')
-      doc.text('Remarque:', 20, yPosition)
-      doc.setFont('helvetica', 'normal')
-      doc.text(proforma.remark, 20, yPosition + 8)
-    }
-
-    // Footer
-    const footerY = pageHeight - 20
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.rect(0, footerY, pageWidth, 20, 'F')
-    
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
-    doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
-    
-    const currentDate = new Date().toLocaleDateString('fr-FR')
-    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
-
-    // Save the PDF
-    const fileName = `proforma-${proforma.number}-${proforma.date}.pdf`
-    doc.save(fileName)
   }
 
   const handleSendProforma = (proformaId) => {
@@ -634,6 +624,29 @@ const Proforma = () => {
     // Implement check/approve functionality
   }
 
+  const handleToggleProformaPaymentStatus = async (proformaId) => {
+    try {
+      const proforma = proformas.find(p => p.id === proformaId)
+      if (!proforma) return
+
+      const newStatus = proforma.status === 'paid' ? 'pending' : 'paid'
+      
+      // Update in Firebase
+      await firestoreService.updateQuote(proformaId, { status: newStatus })
+      
+      // Update local state
+      setProformas(prevProformas =>
+        prevProformas.map(p =>
+          p.id === proformaId ? { ...p, status: newStatus } : p
+        )
+      )
+      
+      console.log(`Proforma ${proformaId} status changed to ${newStatus}`)
+    } catch (error) {
+      console.error('Error toggling proforma payment status:', error)
+    }
+  }
+
   const handlePrint = () => {
     window.print()
   }
@@ -643,6 +656,13 @@ const Proforma = () => {
 
     if (filterStatus !== 'all') {
       filtered = filtered.filter(proforma => proforma.status === filterStatus)
+    }
+
+    // Apply paid/unpaid filters
+    if (showPaidOnly && !showUnpaidOnly) {
+      filtered = filtered.filter(proforma => proforma.status === 'paid')
+    } else if (showUnpaidOnly && !showPaidOnly) {
+      filtered = filtered.filter(proforma => proforma.status !== 'paid')
     }
 
     if (groupByClient !== 'all') {
@@ -742,6 +762,38 @@ const Proforma = () => {
                 ))}
               </select>
             </div>
+            {/* Payment Status Checkboxes */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Statut de Paiement
+              </label>
+              <div className="flex flex-col space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPaidOnly}
+                    onChange={(e) => {
+                      setShowPaidOnly(e.target.checked)
+                      if (e.target.checked) setShowUnpaidOnly(false)
+                    }}
+                    className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
+                  />
+                  <span className="text-sm text-gray-700">Acquittées (Payées)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showUnpaidOnly}
+                    onChange={(e) => {
+                      setShowUnpaidOnly(e.target.checked)
+                      if (e.target.checked) setShowPaidOnly(false)
+                    }}
+                    className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
+                  />
+                  <span className="text-sm text-gray-700">Non Payées</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -825,6 +877,9 @@ const Proforma = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-2 lg:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payée
+                </th>
                 <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('number')}
                 </th>
@@ -863,6 +918,15 @@ const Proforma = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {getFilteredProformas().map((proforma) => (
                 <tr key={proforma.id} className="hover:bg-gray-50">
+                  <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-center">
+                    <input
+                      type="checkbox"
+                      checked={proforma.status === 'paid'}
+                      onChange={() => handleToggleProformaPaymentStatus(proforma.id)}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                      title={proforma.status === 'paid' ? 'Marquer comme non payée' : 'Marquer comme payée'}
+                    />
+                  </td>
                   <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {proforma.number}
                   </td>

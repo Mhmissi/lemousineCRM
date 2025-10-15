@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { User, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { firestoreService } from '../../services/firestoreService'
+import { auth } from '../../config/firebase'
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
+import AddExistingDriverForm from '../AddExistingDriverForm'
 
 const Drivers = () => {
   const { t } = useLanguage()
@@ -13,34 +16,124 @@ const Drivers = () => {
   const [showModifyModal, setShowModifyModal] = useState(false)
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const isMountedRef = useRef(true)
 
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    status: 'Driver status'
+    password: '',
+    status: 'active'
   })
 
   const [errors, setErrors] = useState({})
 
-  useEffect(() => {
-    const loadDrivers = async () => {
-      try {
-        setLoading(true)
-        const driversData = await firestoreService.getDrivers()
-        setDrivers(driversData)
-      } catch (error) {
-        console.error('Error loading drivers:', error)
-        // Fallback to empty array if Firestore fails
+  const loadDrivers = useCallback(async () => {
+    console.log('🚀 loadDrivers called, isMounted:', isMountedRef.current)
+    
+    try {
+      setLoading(true)
+      setError('')
+      console.log('🔄 Loading REAL drivers (those with Firebase Auth accounts)...')
+      
+      // Fetch from both collections in parallel
+      const [driversData, profilesData] = await Promise.all([
+        firestoreService.getDrivers(),
+        firestoreService.getProfiles()
+      ])
+      
+      console.log('📋 Raw drivers data from drivers collection:', driversData)
+      console.log('📋 Raw profiles data from profiles collection:', profilesData)
+      
+      // ONLY get drivers that have Firebase Auth IDs (real authenticated drivers)
+      const realDriversFromDriversCollection = driversData
+        .filter(driver => driver.firebaseAuthId) // Must have Firebase Auth
+        .map(driver => ({
+          id: driver.id,
+          name: driver.name || driver.fullName || driver.displayName || 'Unknown Driver',
+          email: driver.email || driver.emailAddress || '',
+          phone: driver.phone || driver.phoneNumber || driver.mobile || '',
+          status: driver.status || driver.driverStatus || (driver.active ? 'active' : 'inactive'),
+          license: driver.license || driver.driverLicense || driver.licenseNumber || '',
+          experience: driver.experience || driver.yearsExperience || 0,
+          rating: driver.rating || driver.averageRating || 0,
+          source: 'drivers',
+          firebaseAuthId: driver.firebaseAuthId,
+          ...driver
+        }))
+      
+      // ONLY get profiles that are drivers AND have Firebase Auth IDs
+      const realDriversFromProfiles = profilesData
+        .filter(profile => profile.classe === 'driver' && profile.firebaseAuthId)
+        .map(profile => ({
+          id: profile.id,
+          name: profile.name || profile.displayName || profile.fullName || 'Unknown Driver',
+          email: profile.email || profile.username || '',
+          phone: profile.phone || profile.phoneNumber || '',
+          status: 'active',
+          license: '',
+          experience: 0,
+          rating: 0,
+          source: 'profiles',
+          firebaseAuthId: profile.firebaseAuthId,
+          ...profile
+        }))
+      
+      console.log('✅ Real drivers from drivers collection (with Firebase Auth):', realDriversFromDriversCollection.length)
+      console.log('✅ Real drivers from profiles collection (with Firebase Auth):', realDriversFromProfiles.length)
+      
+      // Combine and remove duplicates based on email
+      const allRealDrivers = [...realDriversFromDriversCollection, ...realDriversFromProfiles]
+      
+      // Deduplicate: prioritize drivers collection over profiles
+      const uniqueDrivers = allRealDrivers.reduce((acc, driver) => {
+        const existingDriver = acc.find(d => d.email === driver.email)
+        if (!existingDriver) {
+          acc.push(driver)
+        } else if (driver.source === 'drivers' && existingDriver.source === 'profiles') {
+          // Replace profile with driver record if both exist
+          const index = acc.findIndex(d => d.email === driver.email)
+          acc[index] = driver
+        }
+        return acc
+      }, [])
+      
+      console.log('✅ Final list of REAL drivers (deduplicated):', uniqueDrivers)
+      console.log('📧 Emails:', uniqueDrivers.map(d => d.email))
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setDrivers(uniqueDrivers)
+        setError('')
+        console.log('✅ Drivers state updated with', uniqueDrivers.length, 'REAL drivers')
+        console.log(`   - With Firebase Auth from drivers collection: ${realDriversFromDriversCollection.length}`)
+        console.log(`   - With Firebase Auth from profiles collection: ${realDriversFromProfiles.length}`)
+      }
+    } catch (error) {
+      console.error('❌ Error loading drivers:', error)
+      if (isMountedRef.current) {
+        setError(`Failed to load drivers: ${error.message}`)
         setDrivers([])
-      } finally {
+      }
+    } finally {
+      if (isMountedRef.current) {
         setLoading(false)
+        console.log('🏁 Loading completed')
       }
     }
-
-    loadDrivers()
   }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    loadDrivers()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadDrivers])
 
   // Filter drivers based on search term
   const filteredDrivers = drivers.filter(driver =>
@@ -78,7 +171,7 @@ const Drivers = () => {
       name: driver.name,
       email: driver.email,
       phone: driver.phone || '',
-      status: driver.active ? 'Activé' : 'Désactivé'
+      status: driver.active ? 'active' : 'inactive'
     })
     setShowModifyModal(true)
   }
@@ -110,8 +203,20 @@ const Drivers = () => {
       newErrors.name = 'Le nom du chauffeur est requis'
     }
 
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'L\'email n\'est pas valide'
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'Le mot de passe est requis'
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères'
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Le téléphone est requis'
     }
 
     if (!formData.status || formData.status === 'Driver status') {
@@ -133,20 +238,45 @@ const Drivers = () => {
       setLoading(true)
 
       if (showAddModal) {
-        // Add new driver to Firestore
+        // Create Firebase Authentication user first
+        console.log('🔐 Creating Firebase Authentication user...')
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
+        const firebaseUser = userCredential.user
+        
+        console.log('✅ Firebase Auth user created:', firebaseUser.uid)
+        
+        // Send email verification
+        try {
+          await sendEmailVerification(firebaseUser)
+          console.log('📧 Email verification sent')
+        } catch (emailError) {
+          console.warn('⚠️ Could not send email verification:', emailError)
+          // Don't fail the whole process if email verification fails
+        }
+        
+        // Add driver to Firestore
         const newDriver = {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          active: formData.status === 'Activé',
+          active: formData.status === 'active',
+          firebaseAuthId: firebaseUser.uid, // Link to Firebase Auth user
           createdAt: new Date(),
           updatedAt: new Date()
         }
         
+        console.log('💾 Saving new driver to Firestore:', newDriver)
+        
         const docRef = await firestoreService.addDriver(newDriver)
         const addedDriver = { id: docRef.id, ...newDriver }
         
-        setDrivers(prev => [addedDriver, ...prev])
+        console.log('✅ Driver saved with ID:', docRef.id)
+        
+        // Show success message
+        alert(`Driver created successfully! Firebase Auth ID: ${firebaseUser.uid}\nEmail verification sent to ${formData.email}`)
+        
+        // Reload drivers instead of just adding to state
+        await loadDrivers()
       } else if (showModifyModal) {
         // Update existing driver in Firestore
         const updatedDriver = {
@@ -154,7 +284,7 @@ const Drivers = () => {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          active: formData.status === 'Activé',
+          active: formData.status === 'active',
           updatedAt: new Date()
         }
         
@@ -170,15 +300,27 @@ const Drivers = () => {
         name: '',
         email: '',
         phone: '',
-        status: 'Driver status'
+        password: '',
+        status: 'active'
       })
       setErrors({})
       setShowAddModal(false)
       setShowModifyModal(false)
       setSelectedDriver(null)
     } catch (error) {
-      console.error('Error saving driver:', error)
-      alert('Failed to save driver. Please try again.')
+      console.error('❌ Error saving driver:', error)
+      
+      // Handle specific Firebase Auth errors
+      let errorMessage = error.message
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Un chauffeur avec cet email existe déjà'
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Le mot de passe est trop faible'
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'L\'adresse email n\'est pas valide'
+      }
+      
+      setError(`Failed to save driver: ${errorMessage}`)
     } finally {
       setLoading(false)
     }
@@ -203,6 +345,60 @@ const Drivers = () => {
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen pb-20 lg:pb-6">
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-red-800">
+              <strong>Error:</strong> {error}
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="text-red-600 hover:text-red-800 font-medium"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Existing Driver Form */}
+      <AddExistingDriverForm />
+
+      {/* Debug Panel */}
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-blue-800">
+            <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
+            Real Drivers (with Firebase Auth): {drivers.length} |
+            From Drivers Collection: {drivers.filter(d => d.source === 'drivers').length} |
+            From Profiles Collection: {drivers.filter(d => d.source === 'profiles').length} |
+            Filtered: {filteredDrivers.length} | 
+            Search: "{searchTerm}" | 
+            Display Count: {displayCount} |
+            Mounted: {isMountedRef.current ? 'Yes' : 'No'}
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={loadDrivers}
+              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+            >
+              Refresh
+            </button>
+            <button
+              onClick={() => {
+                console.log('Current drivers state:', drivers)
+                console.log('Filtered drivers:', filteredDrivers)
+                console.log('Form data:', formData)
+              }}
+              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+            >
+              Debug State
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 space-y-4 lg:space-y-0">
@@ -498,6 +694,25 @@ const Drivers = () => {
                     )}
                   </div>
 
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mot de passe *
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      placeholder="Mot de passe (minimum 6 caractères)"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent ${
+                        errors.password ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                    )}
+                  </div>
+
                   {/* Téléphone */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -526,8 +741,8 @@ const Drivers = () => {
                         }`}
                       >
                         <option value="Driver status">{t('driverStatus')}</option>
-                        <option value="Activé">{t('active')}</option>
-                        <option value="Désactivé">{t('inactive')}</option>
+                        <option value="active">{t('active')}</option>
+                        <option value="inactive">{t('inactive')}</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,8 +866,8 @@ const Drivers = () => {
                         }`}
                       >
                         <option value="Driver status">{t('driverStatus')}</option>
-                        <option value="Activé">{t('active')}</option>
-                        <option value="Désactivé">{t('inactive')}</option>
+                        <option value="active">{t('active')}</option>
+                        <option value="inactive">{t('inactive')}</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

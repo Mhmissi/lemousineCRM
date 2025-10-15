@@ -1,35 +1,72 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useNotifications } from '../../contexts/NotificationContext'
 import { MapPin, Plus, Clock, Car, Users, Filter, Search } from 'lucide-react'
 import AddTripForm from './AddTripForm'
 import { firestoreService } from '../../services/firestoreService'
+import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../../constants/notificationTypes'
 
 function Trips() {
   const { t } = useLanguage()
+  const { addNotification } = useNotifications()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showAddForm, setShowAddForm] = useState(false)
+  const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    // Load trips from Firestore
-    const loadTrips = async () => {
-      try {
-        setLoading(true)
-        const tripsData = await firestoreService.getTrips()
-        setTrips(tripsData)
-      } catch (error) {
-        console.error('Error loading trips:', error)
+  // Load trips from Firestore with proper cleanup
+  const loadTrips = useCallback(async () => {
+    try {
+      setLoading(true)
+      const tripsData = await firestoreService.getTrips()
+      
+      // Map trip data to ensure consistent field names
+      const mappedTrips = tripsData.map(trip => ({
+        id: trip.id,
+        client: trip.client || trip.clientName || trip.customer || trip.customerName || 'Unknown Client',
+        driver: trip.driver || trip.driverName || trip.driverId || 'Unassigned',
+        vehicle: trip.vehicle || trip.vehicleId || trip.car || 'Unassigned',
+        pickup: trip.pickup || trip.pickupLocation || trip.from || trip.startLocation || 'Unknown',
+        destination: trip.destination || trip.dropoffLocation || trip.to || trip.endLocation || 'Unknown',
+        date: trip.date || trip.tripDate || trip.scheduledDate || new Date().toISOString().split('T')[0],
+        startTime: trip.startTime || trip.time || trip.pickupTime || '09:00',
+        endTime: trip.endTime || trip.dropoffTime || trip.estimatedEndTime || '11:00',
+        passengers: trip.passengers || trip.passengerCount || trip.numberOfPassengers || 1,
+        status: trip.status || trip.tripStatus || 'assigned',
+        revenue: trip.revenue || trip.price || trip.total || trip.amount || trip.cost || trip.fare || 0,
+        notes: trip.notes || trip.description || trip.remarks || '',
+        ...trip // Include any other fields
+      }))
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setTrips(mappedTrips)
+      }
+    } catch (error) {
+      console.error('Error loading trips:', error)
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
         // Fallback to empty array if Firestore fails
         setTrips([])
-      } finally {
+      }
+    } finally {
+      // Only update loading state if component is still mounted
+      if (isMountedRef.current) {
         setLoading(false)
       }
     }
-
-    loadTrips()
   }, [])
+
+  useEffect(() => {
+    loadTrips()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadTrips])
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -53,13 +90,56 @@ function Trips() {
         updatedAt: new Date()
       }
       
+      console.log('🚗 Creating new trip:', tripData)
+      console.log('📧 Driver Firebase Auth ID:', tripData.driverFirebaseAuthId)
+      console.log('👤 Driver Name:', tripData.driverName)
+      console.log('📅 Trip Date:', tripData.date)
+      
       const docRef = await firestoreService.addTrip(tripData)
       const addedTrip = { id: docRef.id, ...tripData }
       
+      console.log('✅ Trip created successfully with ID:', docRef.id)
+      
+      // Add notification for owner/manager only (driver notification is handled in AddTripForm)
+      if (addNotification) {
+        const tripTime = tripData.startTime && tripData.endTime 
+          ? `${tripData.startTime} - ${tripData.endTime}`
+          : tripData.time || 'Time TBD'
+        
+        addNotification({
+          type: NOTIFICATION_TYPES.TRIP_ASSIGNED,
+          title: '✅ Trip Created Successfully',
+          message: `Trip assigned to ${tripData.driverName} for ${tripData.client} on ${tripData.date}`,
+          priority: NOTIFICATION_PRIORITIES.MEDIUM,
+          data: {
+            tripId: docRef.id,
+            driverName: tripData.driverName,
+            client: tripData.client,
+            pickup: tripData.pickup,
+            destination: tripData.destination,
+            date: tripData.date,
+            time: tripTime,
+            vehicle: tripData.vehicleName,
+            passengers: tripData.passengers,
+            revenue: tripData.revenue
+          }
+        })
+      }
+      
       // Update local state
       setTrips(prevTrips => [addedTrip, ...prevTrips])
+      
+      // Show success message
+      alert(`Trip assigned successfully to ${tripData.driverName}!`)
+      
+      // Return the trip data including the Firestore ID
+      return {
+        success: true,
+        tripId: docRef.id,
+        trip: addedTrip
+      }
     } catch (error) {
-      console.error('Error adding trip:', error)
+      console.error('❌ Error adding trip:', error)
       alert('Failed to add trip. Please try again.')
     }
   }

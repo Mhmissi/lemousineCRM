@@ -38,6 +38,10 @@ import Company from './owner/Company'
 import Vehicles from './owner/Vehicles'
 import Trips from './owner/Trips'
 import SettingsPage from './owner/Settings'
+import InvoicePreview from './InvoicePreview'
+import FirebaseDataChecker from './FirebaseDataChecker'
+import QuickDataSetup from './QuickDataSetup'
+import CreditNotesTester from './CreditNotesTester'
 
 function OwnerDashboard() {
   const { user, logout } = useAuth()
@@ -50,6 +54,7 @@ function OwnerDashboard() {
     { id: 'plannings', label: t('plannings'), icon: Calendar },
     { id: 'reports', label: t('reports'), icon: BarChart3 },
     { id: 'facturations', label: t('facturations'), icon: FileText },
+    { id: 'invoice-preview', label: 'Invoice Preview', icon: FileEdit },
     { id: 'notesCredit', label: t('notesCredit'), icon: FileEdit },
     { id: 'devis', label: t('devis'), icon: FileEdit },
     { id: 'proforma', label: t('proforma'), icon: Grid3X3 },
@@ -57,6 +62,9 @@ function OwnerDashboard() {
     { id: 'clients', label: t('clients'), icon: User },
     { id: 'profils', label: t('profils'), icon: UserCheck },
     { id: 'compagnie', label: t('compagnie'), icon: Building },
+    { id: 'firebase-status', label: 'Firebase Status', icon: Settings },
+    { id: 'data-setup', label: 'Data Setup', icon: Plus },
+    { id: 'credit-notes-test', label: 'Credit Notes Test', icon: FileEdit },
   ]
 
   const renderContent = () => {
@@ -69,6 +77,8 @@ function OwnerDashboard() {
         return <Reports />
       case 'facturations':
         return <Invoicing />
+      case 'invoice-preview':
+        return <InvoicePreview />
       case 'notesCredit':
         return <CreditNotes />
       case 'devis':
@@ -89,6 +99,12 @@ function OwnerDashboard() {
         return <Trips />
       case 'settings':
         return <SettingsPage />
+      case 'firebase-status':
+        return <FirebaseDataChecker />
+      case 'data-setup':
+        return <QuickDataSetup />
+      case 'credit-notes-test':
+        return <CreditNotesTester />
       default:
         return <Dashboard onNavigate={setActiveTab} />
     }

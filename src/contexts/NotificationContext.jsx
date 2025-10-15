@@ -1,4 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { firestoreService } from '../services/firestoreService'
+import { useAuth } from './AuthContext'
+import { NOTIFICATION_ICONS, NOTIFICATION_COLORS } from '../constants/notificationTypes'
+import notificationService from '../services/notificationService'
 
 const NotificationContext = createContext()
 
@@ -11,104 +15,236 @@ export const useNotifications = () => {
 }
 
 export const NotificationProvider = ({ children }) => {
+  const { user } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false)
 
-  // Load notifications from localStorage on mount
+  // Load notifications from trips when user logs in
   useEffect(() => {
-    const savedNotifications = localStorage.getItem('limostar_notifications')
-    if (savedNotifications) {
-      const parsedNotifications = JSON.parse(savedNotifications)
-      setNotifications(parsedNotifications)
-      setUnreadCount(parsedNotifications.filter(n => !n.read).length)
-    } else {
-      // Initialize with some sample notifications
-      const initialNotifications = [
-        {
-          id: 1,
+    const loadNotifications = async () => {
+      if (!user?.id) {
+        console.log('No user logged in, skipping notification load')
+        return
+      }
+
+      try {
+        console.log('📥 Loading notifications from trips for user:', user.id)
+        
+        // Get dismissed notifications from localStorage
+        const dismissedNotifications = JSON.parse(localStorage.getItem(`dismissed_notifications_${user.id}`) || '[]')
+        console.log('🗑️ Dismissed notifications:', dismissedNotifications.length)
+        
+        // Get trips assigned to this driver
+        const trips = await firestoreService.getTrips()
+        console.log('📋 All trips loaded:', trips.length)
+        
+        // Filter trips for this driver
+        const driverTrips = trips.filter(trip => {
+          // Match by Firebase Auth ID, email, or name
+          const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
+          const matchesEmail = trip.driverEmail === user.email
+          const matchesName = trip.driverName && user.name && 
+            trip.driverName.toLowerCase().includes(user.name.toLowerCase())
+          
+          // Exclude dismissed notifications
+          const notificationId = `trip-${trip.id}`
+          const isDismissed = dismissedNotifications.includes(notificationId)
+          
+          return (matchesFirebaseId || matchesEmail || matchesName) && !isDismissed
+        })
+        
+        console.log('🚗 Trips for this driver (not dismissed):', driverTrips.length)
+        
+        // Convert trips to notifications
+        const notifications = driverTrips.map(trip => ({
+          id: `trip-${trip.id}`,
+          userId: user.id,
           type: 'trip',
-          title: 'New trip assigned',
-          message: 'You have been assigned a new trip from Downtown Hotel to Airport Terminal 1',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-          read: false,
+          title: `🚗 Trip for ${trip.client}`,
+          message: `${trip.pickup} → ${trip.destination} on ${trip.date}`,
           priority: 'high',
+          read: false, // You can add logic to mark as read based on trip status
+          timestamp: trip.createdAt || new Date(),
           data: {
-            tripId: 1,
-            client: 'John Smith',
-            pickup: 'Downtown Hotel',
-            destination: 'Airport Terminal 1'
+            tripId: trip.id,
+            client: trip.client,
+            pickup: trip.pickup,
+            destination: trip.destination,
+            date: trip.date,
+            time: trip.time || trip.startTime,
+            status: trip.status
           }
-        },
-        {
-          id: 2,
-          type: 'system',
-          title: 'System update',
-          message: 'The Limostar CRM has been updated with new features',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-          read: false,
-          priority: 'medium',
-          data: {}
-        },
-        {
-          id: 3,
-          type: 'maintenance',
-          title: 'Maintenance reminder',
-          message: 'Vehicle Limousine #5 is due for maintenance in 3 days',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          read: true,
-          priority: 'low',
-          data: {
-            vehicleId: 5,
-            vehicleName: 'Limousine #5'
-          }
-        }
-      ]
-      setNotifications(initialNotifications)
-      setUnreadCount(initialNotifications.filter(n => !n.read).length)
-      localStorage.setItem('limostar_notifications', JSON.stringify(initialNotifications))
+        }))
+        
+        // Sort by timestamp (newest first)
+        notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        
+        setNotifications(notifications)
+        setUnreadCount(notifications.filter(n => !n.read).length)
+        
+        console.log('✅ Notifications loaded from trips:', notifications.length)
+        console.log('🔔 Unread notifications:', notifications.filter(n => !n.read).length)
+      } catch (error) {
+        console.error('❌ Error loading notifications from trips:', error)
+        setNotifications([])
+        setUnreadCount(0)
+      }
     }
-  }, [])
+
+    // Load notifications only once when user changes
+    loadNotifications()
+  }, [user?.id])
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('limostar_notifications', JSON.stringify(notifications))
   }, [notifications])
 
-  const addNotification = (notification) => {
-    const newNotification = {
-      id: Date.now(),
-      timestamp: new Date(),
-      read: false,
-      priority: 'medium',
-      ...notification
-    }
+  const refreshNotifications = async () => {
+    if (!user?.id) return
     
-    setNotifications(prev => [newNotification, ...prev])
-    setUnreadCount(prev => prev + 1)
-    
-    // Show browser notification if permission is granted
-    if (Notification.permission === 'granted') {
-      new Notification(newNotification.title, {
-        body: newNotification.message,
-        icon: '/logo.png',
-        badge: '/logo.png'
+    try {
+      console.log('🔄 Refreshing notifications from trips for user:', user.id)
+      
+      // Get dismissed notifications from localStorage
+      const dismissedNotifications = JSON.parse(localStorage.getItem(`dismissed_notifications_${user.id}`) || '[]')
+      
+      // Get trips assigned to this driver
+      const trips = await firestoreService.getTrips()
+      
+      // Filter trips for this driver and exclude dismissed notifications
+      const driverTrips = trips.filter(trip => {
+        const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
+        const matchesEmail = trip.driverEmail === user.email
+        const matchesName = trip.driverName && user.name && 
+          trip.driverName.toLowerCase().includes(user.name.toLowerCase())
+        
+        // Exclude dismissed notifications
+        const notificationId = `trip-${trip.id}`
+        const isDismissed = dismissedNotifications.includes(notificationId)
+        
+        return (matchesFirebaseId || matchesEmail || matchesName) && !isDismissed
       })
+      
+      // Convert trips to notifications
+      const notifications = driverTrips.map(trip => ({
+        id: `trip-${trip.id}`,
+        userId: user.id,
+        type: 'trip',
+        title: `🚗 Trip for ${trip.client}`,
+        message: `${trip.pickup} → ${trip.destination} on ${trip.date}`,
+        priority: 'high',
+        read: false,
+        timestamp: trip.createdAt || new Date(),
+        data: {
+          tripId: trip.id,
+          client: trip.client,
+          pickup: trip.pickup,
+          destination: trip.destination,
+          date: trip.date,
+          time: trip.time || trip.startTime,
+          status: trip.status
+        }
+      }))
+      
+      // Sort by timestamp (newest first)
+      notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      
+      setNotifications(notifications)
+      setUnreadCount(notifications.filter(n => !n.read).length)
+      
+      console.log('🔄 Notifications refreshed from trips:', notifications.length)
+    } catch (error) {
+      console.error('❌ Error refreshing notifications:', error)
     }
   }
 
-  const markAsRead = (notificationId) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true }
-          : notification
+  const addNotification = async (notification) => {
+    try {
+      // Create in Firestore first to get proper ID
+      const docRef = await firestoreService.addNotification({
+        ...notification,
+        userId: user.id
+      })
+      
+      // Then add to local state with Firestore ID
+      const newNotification = {
+        id: docRef.id, // Use Firestore document ID
+        timestamp: new Date(),
+        read: false,
+        priority: 'medium',
+        ...notification
+      }
+      
+      setNotifications(prev => [newNotification, ...prev])
+      setUnreadCount(prev => prev + 1)
+      
+      // Show browser notification if permission is granted
+      if (Notification.permission === 'granted') {
+        new Notification(newNotification.title, {
+          body: newNotification.message,
+          icon: '/logo.png',
+          badge: '/logo.png'
+        })
+      }
+      
+      console.log('✅ Notification created successfully:', newNotification.id)
+    } catch (error) {
+      console.error('❌ Failed to create notification:', error)
+      
+      // Fallback: create local notification only
+      const fallbackNotification = {
+        id: `local_${Date.now()}`,
+        timestamp: new Date(),
+        read: false,
+        priority: 'medium',
+        ...notification
+      }
+      
+      setNotifications(prev => [fallbackNotification, ...prev])
+      setUnreadCount(prev => prev + 1)
+    }
+  }
+
+  const markAsRead = async (notificationId) => {
+    try {
+      // Mark trip-based notifications as read in localStorage
+      if (notificationId.startsWith('trip-')) {
+        notificationService.markTripNotificationAsRead(notificationId)
+      }
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true }
+            : notification
+        )
       )
-    )
-    setUnreadCount(prev => Math.max(0, prev - 1))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    } catch (error) {
+      console.error('Error marking notification as read:', error)
+      // Still update local state even if marking fails
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true }
+            : notification
+        )
+      )
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    }
   }
 
   const markAllAsRead = () => {
+    // Mark all trip-based notifications as read
+    notifications.forEach(notification => {
+      if (notification.id.startsWith('trip-')) {
+        notificationService.markTripNotificationAsRead(notification.id)
+      }
+    })
+    
     setNotifications(prev => 
       prev.map(notification => ({ ...notification, read: true }))
     )
@@ -116,6 +252,17 @@ export const NotificationProvider = ({ children }) => {
   }
 
   const removeNotification = (notificationId) => {
+    console.log('🗑️ Dismissing notification forever:', notificationId)
+    
+    // Save to dismissed notifications in localStorage
+    const dismissedNotifications = JSON.parse(localStorage.getItem(`dismissed_notifications_${user.id}`) || '[]')
+    if (!dismissedNotifications.includes(notificationId)) {
+      dismissedNotifications.push(notificationId)
+      localStorage.setItem(`dismissed_notifications_${user.id}`, JSON.stringify(dismissedNotifications))
+      console.log('✅ Notification dismissed and saved to localStorage')
+    }
+    
+    // Remove from current view
     const notification = notifications.find(n => n.id === notificationId)
     setNotifications(prev => prev.filter(n => n.id !== notificationId))
     if (notification && !notification.read) {
@@ -154,33 +301,11 @@ export const NotificationProvider = ({ children }) => {
   }
 
   const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'trip':
-        return '🚗'
-      case 'system':
-        return '⚙️'
-      case 'maintenance':
-        return '🔧'
-      case 'payment':
-        return '💰'
-      case 'alert':
-        return '⚠️'
-      default:
-        return '📢'
-    }
+    return NOTIFICATION_ICONS[type] || NOTIFICATION_ICONS.default
   }
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'border-red-500 bg-red-50'
-      case 'medium':
-        return 'border-yellow-500 bg-yellow-50'
-      case 'low':
-        return 'border-blue-500 bg-blue-50'
-      default:
-        return 'border-gray-500 bg-gray-50'
-    }
+    return NOTIFICATION_COLORS[priority] || NOTIFICATION_COLORS.default
   }
 
   const value = {
@@ -196,7 +321,8 @@ export const NotificationProvider = ({ children }) => {
     requestNotificationPermission,
     formatTimeAgo,
     getNotificationIcon,
-    getPriorityColor
+    getPriorityColor,
+    refreshNotifications // Add manual refresh function
   }
 
   return (

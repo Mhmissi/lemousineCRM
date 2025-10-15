@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useNotifications } from '../../contexts/NotificationContext'
 import { X, MapPin, Clock, Car, Users, DollarSign, User, Calendar } from 'lucide-react'
 import { firestoreService } from '../../services/firestoreService'
+import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../../constants/notificationTypes'
 
 function AddTripForm({ onClose, onTripAdded }) {
   const { t } = useLanguage()
+  const { addNotification } = useNotifications()
   const [formData, setFormData] = useState({
     driver: '',
     vehicle: '',
@@ -24,30 +27,97 @@ function AddTripForm({ onClose, onTripAdded }) {
   const [drivers, setDrivers] = useState([])
   const [vehicles, setVehicles] = useState([])
   const [loadingData, setLoadingData] = useState(true)
+  const isMountedRef = useRef(true)
 
-  // Load drivers and vehicles data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoadingData(true)
-        const [driversData, vehiclesData] = await Promise.all([
-          firestoreService.getDrivers(),
-          firestoreService.getVehicles()
-        ])
-        setDrivers(driversData)
+  // Load drivers and vehicles data with proper cleanup
+  const loadData = useCallback(async () => {
+    try {
+      setLoadingData(true)
+      const [driversData, profilesData, vehiclesData] = await Promise.all([
+        firestoreService.getDrivers(),
+        firestoreService.getProfiles(),
+        firestoreService.getVehicles()
+      ])
+      
+      console.log('📋 Loading drivers for trip assignment...')
+      console.log('   - Drivers collection:', driversData.length)
+      console.log('   - Profiles collection:', profilesData.length)
+      
+      // Get real drivers from drivers collection (with Firebase Auth)
+      const realDriversFromDriversCollection = driversData
+        .filter(driver => driver.firebaseAuthId)
+        .map(driver => ({
+          id: driver.id,
+          name: driver.name || driver.fullName || driver.displayName || 'Unknown Driver',
+          email: driver.email || driver.emailAddress || '',
+          firebaseAuthId: driver.firebaseAuthId,
+          source: 'drivers',
+          ...driver
+        }))
+      
+      // Get real drivers from profiles collection (classe === 'driver' with Firebase Auth)
+      const realDriversFromProfiles = profilesData
+        .filter(profile => profile.classe === 'driver' && profile.firebaseAuthId)
+        .map(profile => ({
+          id: profile.id,
+          name: profile.name || profile.displayName || profile.fullName || 'Unknown Driver',
+          email: profile.email || profile.username || '',
+          firebaseAuthId: profile.firebaseAuthId,
+          source: 'profiles',
+          ...profile
+        }))
+      
+      // Combine and deduplicate based on email AND Firebase Auth ID
+      const allRealDrivers = [...realDriversFromDriversCollection, ...realDriversFromProfiles]
+      const uniqueDrivers = allRealDrivers.reduce((acc, driver) => {
+        const existingDriver = acc.find(d => 
+          d.email === driver.email || 
+          d.firebaseAuthId === driver.firebaseAuthId
+        )
+        if (!existingDriver) {
+          acc.push(driver)
+        } else if (driver.source === 'drivers' && existingDriver.source === 'profiles') {
+          // Prefer drivers collection over profiles collection
+          const index = acc.findIndex(d => d.email === driver.email || d.firebaseAuthId === driver.firebaseAuthId)
+          acc[index] = driver
+        }
+        return acc
+      }, [])
+      
+      console.log('✅ Real drivers with Firebase Auth:', uniqueDrivers.length)
+      console.log('   - From drivers collection:', realDriversFromDriversCollection.length)
+      console.log('   - From profiles collection:', realDriversFromProfiles.length)
+      console.log('   - Unique drivers:', uniqueDrivers.map(d => `${d.name} (${d.email})`))
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setDrivers(uniqueDrivers) // Only show real drivers
         setVehicles(vehiclesData)
-      } catch (error) {
-        console.error('Error loading form data:', error)
+      }
+    } catch (error) {
+      console.error('Error loading form data:', error)
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
         // Fallback to empty arrays
         setDrivers([])
         setVehicles([])
-      } finally {
+      }
+    } finally {
+      // Only update loading state if component is still mounted
+      if (isMountedRef.current) {
         setLoadingData(false)
       }
     }
-
-    loadData()
   }, [])
+
+  useEffect(() => {
+    loadData()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadData])
 
   // Set default date to today
   useEffect(() => {
@@ -105,26 +175,67 @@ function AddTripForm({ onClose, onTripAdded }) {
       const selectedDriver = drivers.find(d => d.id === formData.driver)
       const selectedVehicle = vehicles.find(v => v.id === formData.vehicle)
 
+      console.log('🚗 ===== CREATING TRIP =====')
+      console.log('📋 Selected Driver:', selectedDriver)
+      console.log('🔑 Driver Firebase Auth ID:', selectedDriver?.firebaseAuthId)
+      console.log('📧 Driver Email:', selectedDriver?.email)
+      console.log('👤 Driver Name:', selectedDriver?.name)
+
       const newTrip = {
-        driverId: formData.driver,
+        driverId: formData.driver, // Firestore driver document ID
+        driverFirebaseAuthId: selectedDriver?.firebaseAuthId || '', // Firebase Auth UID for matching in driver dashboard
         driverName: selectedDriver?.name || '',
+        driverEmail: selectedDriver?.email || '',
         vehicleId: formData.vehicle,
         vehicleName: selectedVehicle?.name || '',
         pickup: formData.pickup,
         destination: formData.destination,
         date: formData.date,
         time: `${formData.startTime} - ${formData.endTime}`,
+        startTime: formData.startTime, // Add individual time fields
+        endTime: formData.endTime,
         status: 'assigned',
         passengers: parseInt(formData.passengers),
         revenue: parseFloat(formData.revenue),
         client: formData.client,
-        notes: formData.notes
+        notes: formData.notes,
+        createdAt: new Date(), // Add timestamp fields
+        updatedAt: new Date()
       }
 
       // Call the callback to add the trip
       if (onTripAdded) {
-        onTripAdded(newTrip)
+        console.log('💾 Saving trip to Firestore...')
+        console.log('💾 Trip data:', {
+          driverFirebaseAuthId: newTrip.driverFirebaseAuthId,
+          client: newTrip.client,
+          date: newTrip.date,
+          status: newTrip.status
+        })
+        
+        const result = await onTripAdded(newTrip)
+        
+        console.log('✅ Trip saved successfully!')
+        console.log('🆔 Trip ID:', result?.tripId)
+        console.log('🔑 Driver Firebase Auth ID in trip:', newTrip.driverFirebaseAuthId)
+        console.log('📧 Driver Email:', newTrip.driverEmail)
+        
+        // Show success message
+        alert(`Trip created successfully for ${selectedDriver?.name}! The driver will see it in their notifications.`)
       }
+
+      // Add notification for owner/manager
+      addNotification({
+        type: NOTIFICATION_TYPES.TRIP_ASSIGNED,
+        title: 'Trip Created Successfully',
+        message: `Trip assigned to ${selectedDriver?.name || 'Unknown Driver'} for ${formData.client}`,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        data: {
+          tripId: newTrip.id || 'pending',
+          driverName: selectedDriver?.name || '',
+          client: formData.client
+        }
+      })
 
       // Reset form
       setFormData({

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
 import { Calendar, Clock, MapPin, Users, Phone, Navigation, CheckCircle, Play, X, RotateCcw, Plus } from 'lucide-react'
 import { firestoreService } from '../services/firestoreService'
 
 function DriverCalendar() {
   const { t } = useLanguage()
+  const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -13,13 +15,31 @@ function DriverCalendar() {
 
   useEffect(() => {
     const loadTrips = async () => {
+      if (!user?.id) return
+      
       try {
         setLoading(true)
-        const tripsData = await firestoreService.getTrips()
+        console.log('📅 Loading trips for calendar for driver:', user.id)
+        
+        const allTrips = await firestoreService.getTrips()
+        console.log('📅 All trips loaded:', allTrips.length)
+        
+        // Filter trips for current driver using the same logic as DriverDashboard
+        const driverTrips = allTrips.filter(trip => {
+          const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
+          const matchesEmail = trip.driverEmail === user.email
+          const matchesDriverId = trip.driverId === user.id
+          const matchesName = trip.driverName && user.name && 
+            trip.driverName.toLowerCase().includes(user.name.toLowerCase())
+          
+          return matchesFirebaseId || matchesEmail || matchesDriverId || matchesName
+        })
+        
+        console.log('📅 Filtered trips for driver:', driverTrips.length)
         
         // Transform trips data to match the calendar format
-        const formattedTrips = tripsData.map(trip => {
-          const [startTime, endTime] = trip.time.split(' - ')
+        const formattedTrips = driverTrips.map(trip => {
+          const [startTime, endTime] = trip.time?.split(' - ') || ['09:00', '11:00']
           return {
             id: trip.id,
             date: trip.date,
@@ -38,8 +58,9 @@ function DriverCalendar() {
         })
         
         setTrips(formattedTrips)
+        console.log('📅 Formatted trips for calendar:', formattedTrips.length)
       } catch (error) {
-        console.error('Error loading trips:', error)
+        console.error('❌ Error loading trips for calendar:', error)
         setTrips([])
       } finally {
         setLoading(false)
@@ -47,7 +68,7 @@ function DriverCalendar() {
     }
 
     loadTrips()
-  }, [])
+  }, [user?.id])
 
   const getDaysInWeek = (date) => {
     const start = new Date(date)

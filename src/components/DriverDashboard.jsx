@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useNotifications } from '../contexts/NotificationContext'
@@ -6,12 +6,15 @@ import { firestoreService } from '../services/firestoreService'
 import { Car, Clock, MapPin, LogOut, Bell, Home, DollarSign, User, Settings, Navigation, Phone, Mail, Calendar, Search, Plus, Edit, Trash2, Grid3X3, Printer } from 'lucide-react'
 import DriverCalendar from './DriverCalendar'
 import NotificationBell from './NotificationBell'
+import NotificationCenter from './NotificationCenter'
 import LanguageSwitcher from './LanguageSwitcher'
+import NotificationDebugger from './NotificationDebugger'
+import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notificationTypes'
 
 function DriverDashboard() {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
-  const { addNotification } = useNotifications()
+  const { addNotification, notifications, toggleNotificationCenter } = useNotifications()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('trips')
@@ -25,6 +28,7 @@ function DriverDashboard() {
     rating: 4.8,
     thisWeekEarnings: 0
   })
+  const isMountedRef = useRef(true)
 
   // Navigation tabs for driver interface
   const tabs = [
@@ -34,39 +38,123 @@ function DriverDashboard() {
     { id: 'profile', label: t('profile'), icon: User }
   ]
 
-  useEffect(() => {
-    // Load trips from Firebase for this driver
-    const loadDriverTrips = async () => {
-      try {
-        setLoading(true)
-        const allTrips = await firestoreService.getTrips()
-        // Filter trips for current driver (assuming user.id is the driver ID)
-        const driverTrips = allTrips.filter(trip => trip.driverId === user?.id)
-        setTrips(driverTrips)
+  // Load trips from Firebase for this driver
+  const loadDriverTrips = useCallback(async () => {
+    if (!user?.id) return
+    
+    try {
+      setLoading(true)
+      console.log('Loading trips for driver:', user.id)
+      
+      const allTrips = await firestoreService.getTrips()
+      console.log('Loaded trips:', allTrips)
+      console.log('Current driver Firebase Auth UID:', user.id)
+      console.log('Current driver email:', user.email)
+      
+      // Filter trips for current driver using multiple matching strategies
+      let driverTrips = allTrips.filter(trip => {
+        const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
+        const matchesEmail = trip.driverEmail === user.email
+        const matchesDriverId = trip.driverId === user.id
+        const matchesName = trip.driverName && user.name && 
+          trip.driverName.toLowerCase().includes(user.name.toLowerCase())
         
-        // Calculate driver stats
-        const completedTrips = driverTrips.filter(trip => trip.status === 'completed')
-        const totalEarnings = completedTrips.reduce((sum, trip) => sum + (trip.revenue || 0), 0)
-        
-        setDriverStats({
-          totalTrips: driverTrips.length,
-          completedTrips: completedTrips.length,
-          totalEarnings: totalEarnings,
-          rating: 4.8, // This could be calculated from trip ratings
-          thisWeekEarnings: totalEarnings * 0.3 // Simplified calculation
-        })
-      } catch (error) {
-        console.error('Error loading driver trips:', error)
-        setTrips([])
-      } finally {
-        setLoading(false)
-      }
+        return matchesFirebaseId || matchesEmail || matchesDriverId || matchesName
+      })
+      console.log('Filtered driver trips:', driverTrips)
+      console.log('Total trips for this driver:', driverTrips.length)
+      
+      // Remove demo data - show real trips only
+      /* If no trips found, create some sample trips for demo
+      if (driverTrips.length === 0) {
+        console.log('No trips found, creating sample data for demo')
+        driverTrips = [
+          {
+            id: 'demo-trip-1',
+            driverId: user.id,
+            client: 'John Smith',
+            pickup: 'Downtown Hotel',
+            destination: 'Airport Terminal 1',
+            date: '2024-01-15',
+            time: '14:30',
+            vehicle: 'Luxury Sedan',
+            status: 'assigned',
+            passengerCount: 2,
+            revenue: 150,
+            clientPhone: '+1-555-0123'
+          },
+          {
+            id: 'demo-trip-2',
+            driverId: user.id,
+            client: 'Sarah Johnson',
+            pickup: 'Business District',
+            destination: 'Conference Center',
+            date: '2024-01-15',
+            time: '16:00',
+            vehicle: 'Executive SUV',
+            status: 'ontheway',
+            passengerCount: 4,
+            revenue: 200,
+            clientPhone: '+1-555-0456'
+          },
+          {
+            id: 'demo-trip-3',
+            driverId: user.id,
+            client: 'Mike Davis',
+            pickup: 'Residential Area',
+            destination: 'Shopping Mall',
+            date: '2024-01-14',
+            time: '10:00',
+            vehicle: 'Standard Sedan',
+            status: 'completed',
+            passengerCount: 1,
+            revenue: 75,
+            clientPhone: '+1-555-0789'
+          }
+        ]
+      } */
+      
+      setTrips(driverTrips)
+      
+      // Calculate driver stats
+      const completedTrips = driverTrips.filter(trip => trip.status === 'completed')
+      const totalEarnings = completedTrips.reduce((sum, trip) => {
+        const tripEarnings = trip.revenue || trip.price || trip.total || trip.amount || trip.cost || trip.earnings || 0
+        return sum + tripEarnings
+      }, 0)
+      
+      setDriverStats({
+        totalTrips: driverTrips.length,
+        completedTrips: completedTrips.length,
+        totalEarnings: totalEarnings,
+        rating: 4.8,
+        thisWeekEarnings: totalEarnings * 0.3
+      })
+    } catch (error) {
+      console.error('Error loading driver trips:', error)
+      setTrips([])
+      setDriverStats({
+        totalTrips: 0,
+        completedTrips: 0,
+        totalEarnings: 0,
+        rating: 4.8,
+        thisWeekEarnings: 0
+      })
+    } finally {
+      console.log('Setting loading to false')
+      setLoading(false)
     }
+  }, [user?.id])
 
+  useEffect(() => {
     if (user) {
       loadDriverTrips()
     }
-  }, [user])
+    
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [user?.id, loadDriverTrips])
 
   // Filter trips based on search term
   const filteredTrips = trips.filter(trip =>
@@ -91,25 +179,58 @@ function DriverDashboard() {
     setCurrentPage(page)
   }
 
-  const updateTripStatus = (tripId, newStatus) => {
+  const updateTripStatus = async (tripId, newStatus) => {
     const trip = trips.find(t => t.id === tripId)
-    setTrips(trips.map(trip => 
-      trip.id === tripId ? { ...trip, status: newStatus } : trip
-    ))
     
-    // Add notification for status change
-    if (trip) {
+    if (!trip) return
+    
+    // Update in Firestore
+    try {
+      await firestoreService.updateTrip(tripId, { 
+        status: newStatus,
+        updatedAt: new Date()
+      })
+      
+      // Update local state
+      setTrips(trips.map(t => 
+        t.id === tripId ? { ...t, status: newStatus, updatedAt: new Date() } : t
+      ))
+      
+      // Determine status message
+      const statusMessages = {
+        ontheway: '🚗 Trip Started',
+        completed: '✅ Trip Completed',
+        cancelled: '❌ Trip Cancelled'
+      }
+      
+      const statusDescriptions = {
+        ontheway: 'You have started the trip',
+        completed: 'You have completed the trip',
+        cancelled: 'The trip has been cancelled'
+      }
+      
+      // Add notification for status change
       addNotification({
-        type: 'trip',
-        title: t('tripStatusChanged'),
-        message: `${trip.client} - ${trip.pickup} to ${trip.destination}`,
-        priority: 'medium',
+        type: NOTIFICATION_TYPES.TRIP_STATUS_CHANGED,
+        title: statusMessages[newStatus] || 'Trip Status Updated',
+        message: `${statusDescriptions[newStatus] || 'Status updated'} for ${trip.client}`,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
         data: {
           tripId: trip.id,
           status: newStatus,
-          client: trip.client
+          client: trip.client,
+          pickup: trip.pickup,
+          destination: trip.destination,
+          date: trip.date,
+          time: trip.time || trip.startTime,
+          vehicle: trip.vehicleName || trip.vehicle
         }
       })
+      
+      console.log(`✅ Trip ${tripId} status updated to: ${newStatus}`)
+    } catch (error) {
+      console.error('Error updating trip status:', error)
+      alert('Failed to update trip status. Please try again.')
     }
   }
 
@@ -168,6 +289,17 @@ function DriverDashboard() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">{t('loading')}</p>
+          <p className="text-sm text-gray-500 mt-2">Loading driver data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600">No user authenticated</p>
         </div>
       </div>
     )
@@ -186,6 +318,51 @@ function DriverDashboard() {
           <span className="sm:hidden">Home / {t('myTrips')}</span>
         </div>
       </div>
+
+      {/* Recent Trip Notifications */}
+      {notifications.filter(n => n.type === NOTIFICATION_TYPES.TRIP_ASSIGNED && !n.read).length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-3 mb-3">
+            <Bell className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-blue-900">New Trip Assignments</h3>
+          </div>
+          <div className="space-y-2">
+          {notifications
+            .filter(n => n.type === NOTIFICATION_TYPES.TRIP_ASSIGNED && !n.read)
+            .slice(0, 3)
+            .map((notification) => (
+                <div key={notification.id} className="bg-white rounded-lg p-3 border border-blue-100">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                      {notification.data && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          <span className="font-medium">Client:</span> {notification.data.client} | 
+                          <span className="font-medium ml-2">Date:</span> {notification.data.date} | 
+                          <span className="font-medium ml-2">Time:</span> {notification.data.startTime} - {notification.data.endTime}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 ml-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+          {notifications.filter(n => n.type === NOTIFICATION_TYPES.TRIP_ASSIGNED && !n.read).length > 3 && (
+            <div className="mt-3 text-center">
+              <button 
+                onClick={toggleNotificationCenter}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                View all {notifications.filter(n => n.type === NOTIFICATION_TYPES.TRIP_ASSIGNED && !n.read).length} notifications
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Trips Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -764,6 +941,9 @@ function DriverDashboard() {
 
         {/* Content Area */}
         <main className="flex-1 p-6 pb-20 lg:pb-6">
+          {/* Notification Debug Component - Remove after fixing */}
+          <NotificationDebugger />
+          
           {activeTab === 'trips' && renderTripsTab()}
           {activeTab === 'calendar' && <DriverCalendar />}
           {activeTab === 'earnings' && renderEarningsTab()}
@@ -796,6 +976,9 @@ function DriverDashboard() {
           CRM powered by Rankiwisy
         </div>
       </div>
+
+      {/* Notification Center */}
+      <NotificationCenter />
     </div>
   )
 }

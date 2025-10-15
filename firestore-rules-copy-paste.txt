@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Trips - authenticated users can read/write
+    match /trips/{tripId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Drivers - authenticated users can read/write
+    match /drivers/{driverId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Vehicles - authenticated users can read/write
+    match /vehicles/{vehicleId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Clients - authenticated users can read/write
+    match /clients/{clientId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Companies - authenticated users can read/write
+    match /companies/{companyId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Brands - authenticated users can read/write
+    match /brands/{brandId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Invoices - authenticated users can read/write
+    match /invoices/{invoiceId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Credit Notes - authenticated users can read/write
+    match /creditNotes/{creditNoteId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Quotes - authenticated users can read/write
+    match /quotes/{quoteId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Profiles - authenticated users can read/write
+    match /profiles/{profileId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Notifications - users can read their own, anyone authenticated can create
+    match /notifications/{notificationId} {
+      // Allow reading own notifications
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      // Allow any authenticated user to create notifications (for owner assigning trips)
+      allow create: if request.auth != null;
+      // Allow updating/deleting own notifications
+      allow update, delete: if request.auth != null && 
+                               resource.data.userId == request.auth.uid;
+    }
+  }
+}
+

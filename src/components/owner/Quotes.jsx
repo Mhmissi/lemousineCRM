@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { FileEdit, Plus, Search, Eye, Edit, FileDown, Copy, Filter, Printer, Calendar, User, DollarSign, Receipt } from 'lucide-react'
+import { generateDevisPDF, downloadDevis } from '../../utils/invoiceGenerator'
+import { firestoreService } from '../../services/firestoreService'
+import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { db } from '../../config/firebase'
 import jsPDF from 'jspdf'
 
 const Quotes = () => {
@@ -12,6 +16,8 @@ const Quotes = () => {
   const [quotes, setQuotes] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const isMountedRef = useRef(true)
   const [formData, setFormData] = useState({
     clientType: 'existing',
     clientName: '',
@@ -164,9 +170,115 @@ const Quotes = () => {
     }
   ]
 
-  useEffect(() => {
-    setQuotes(mockQuotes)
+  // Load quotes from Firebase
+  const loadQuotes = useCallback(async () => {
+    console.log('🚀 loadQuotes called, isMounted:', isMountedRef.current)
+    
+    try {
+      setLoading(true)
+      setError('')
+      console.log('🔄 Loading quotes from Firebase...')
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout after 10 seconds')), 10000)
+      )
+      
+      // Try service first, then fallback to direct Firebase call
+      let quotesData
+      try {
+        console.log('📞 Calling firestoreService.getQuotes()...')
+        quotesData = await Promise.race([
+          firestoreService.getQuotes(),
+          timeoutPromise
+        ])
+        console.log('📋 Raw quotes data from Firebase (via service):', quotesData)
+        console.log('📋 Data type:', typeof quotesData, 'Array?', Array.isArray(quotesData))
+      } catch (serviceError) {
+        console.log('⚠️ Service failed, trying direct Firebase call:', serviceError.message)
+        console.log('⚠️ Service error details:', serviceError)
+        
+        // Fallback: Direct Firebase call
+        console.log('🔄 Attempting direct Firebase query...')
+        const quotesRef = collection(db, 'quotes')
+        const q = query(quotesRef, orderBy('createdAt', 'desc'))
+        const querySnapshot = await getDocs(q)
+        quotesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        console.log('📋 Raw quotes data from Firebase (direct):', quotesData)
+        console.log('📋 Direct data type:', typeof quotesData, 'Array?', Array.isArray(quotesData))
+      }
+      
+      // Ensure we have an array
+      if (!Array.isArray(quotesData)) {
+        console.warn('⚠️ quotesData is not an array:', quotesData)
+        quotesData = []
+      }
+      
+      // Map quote data to ensure consistent field names
+      const mappedQuotes = quotesData.map(quote => ({
+        id: quote.id,
+        number: quote.number || quote.quoteNumber || '',
+        date: quote.date || quote.quoteDate || new Date().toISOString().split('T')[0],
+        dueDate: quote.dueDate || quote.dueDate || '',
+        client: quote.client || quote.clientName || quote.customer || 'Unknown Client',
+        payment: quote.payment || quote.paymentMethod || 'Virement',
+        remark: quote.remark || quote.description || quote.notes || '',
+        totalExclVAT: quote.totalExclVAT || quote.amount || quote.total || 0,
+        vat: quote.vat || quote.vatAmount || 0,
+        totalInclVAT: quote.totalInclVAT || quote.total || 0,
+        deposit: quote.deposit || 0,
+        status: quote.status || quote.quoteStatus || 'not-validated',
+        ...quote // Include any other fields
+      }))
+      
+      console.log('📝 Mapped quotes:', mappedQuotes)
+      console.log('📝 Mapped data length:', mappedQuotes.length)
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        console.log('✅ Component still mounted, updating state...')
+        setQuotes(mappedQuotes)
+        setError('')
+        console.log('✅ Quotes state updated with', mappedQuotes.length, 'items')
+      } else {
+        console.log('⚠️ Component unmounted, skipping state update')
+      }
+    } catch (error) {
+      console.error('❌ Error loading quotes:', error)
+      console.error('❌ Error stack:', error.stack)
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        if (error.message.includes('timeout')) {
+          setError('Connection timeout. Please check your internet connection and try again.')
+        } else {
+          setError(`Failed to load quotes: ${error.message}`)
+        }
+        setQuotes([])
+        console.log('❌ Error state set, quotes cleared')
+      }
+    } finally {
+      // Only update loading state if component is still mounted
+      if (isMountedRef.current) {
+        setLoading(false)
+        console.log('🏁 Loading completed, loading set to false')
+      } else {
+        console.log('⚠️ Component unmounted, skipping loading state update')
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    loadQuotes()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, []) // Remove loadQuotes dependency to prevent infinite loop
 
   const handleShowQuotes = () => {
     setLoading(true)
@@ -225,60 +337,81 @@ const Quotes = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!validateForm()) {
       return
     }
 
-    // Generate quote number
-    const currentYear = new Date().getFullYear()
-    const nextNumber = Math.max(...quotes.map(q => {
-      const year = parseInt(q.number.substring(0, 4))
-      if (year === currentYear) {
-        return parseInt(q.number.substring(4))
+    try {
+      setLoading(true)
+      
+      // Generate quote number
+      const currentYear = new Date().getFullYear()
+      const nextNumber = Math.max(...quotes.map(q => {
+        const year = parseInt(q.number.substring(0, 4))
+        if (year === currentYear) {
+          return parseInt(q.number.substring(4))
+        }
+        return 0
+      })) + 1
+      const quoteNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
+
+      // Create new quote data for Firebase
+      const quoteData = {
+        number: quoteNumber,
+        date: formData.date,
+        dueDate: formData.dueDate,
+        client: formData.clientName,
+        clientAddress: formData.clientAddress,
+        postalCode: formData.postalCode,
+        city: formData.city,
+        clientVAT: formData.clientVAT,
+        company: formData.company,
+        payment: paymentMethods.find(pm => pm.value === formData.paymentMethod)?.label || 'Virement',
+        paymentMethod: formData.paymentMethod,
+        remark: formData.remark,
+        totalExclVAT: 0, // Will be calculated when items are added
+        vat: 0,
+        totalInclVAT: 0,
+        deposit: formData.deposit || 0,
+        status: 'not-validated'
       }
-      return 0
-    })) + 1
-    const quoteNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
 
-    // Create new quote
-    const newQuote = {
-      id: Math.max(...quotes.map(q => q.id)) + 1,
-      number: quoteNumber,
-      date: formData.date,
-      dueDate: formData.dueDate,
-      client: formData.clientName,
-      payment: paymentMethods.find(pm => pm.value === formData.paymentMethod)?.label || 'Virement',
-      remark: formData.remark,
-      totalExclVAT: 0, // Will be calculated when items are added
-      vat: 0,
-      totalInclVAT: 0,
-      deposit: formData.deposit || 0,
-      status: 'not-validated'
+      console.log('💾 Saving quote to Firebase:', quoteData)
+      
+      // Save to Firebase
+      const quoteId = await firestoreService.addQuote(quoteData)
+      console.log('✅ Quote saved with ID:', quoteId)
+      
+      // Reload quotes from Firebase
+      await loadQuotes()
+      
+      // Reset form
+      setFormData({
+        clientType: 'existing',
+        clientName: '',
+        clientAddress: '',
+        postalCode: '',
+        city: '',
+        clientVAT: '',
+        company: '',
+        date: new Date().toISOString().split('T')[0],
+        paymentMethod: 'virement',
+        dueDate: '',
+        deposit: 0,
+        remark: ''
+      })
+      setErrors({})
+      setShowCreateModal(false)
+      
+    } catch (error) {
+      console.error('❌ Error saving quote:', error)
+      setError(`Failed to save quote: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
-
-    // Add to quotes list
-    setQuotes(prev => [newQuote, ...prev])
-    
-    // Reset form
-    setFormData({
-      clientType: 'existing',
-      clientName: '',
-      clientAddress: '',
-      postalCode: '',
-      city: '',
-      clientVAT: '',
-      company: '',
-      date: new Date().toISOString().split('T')[0],
-      paymentMethod: 'virement',
-      dueDate: '',
-      deposit: 0,
-      remark: ''
-    })
-    setErrors({})
-    setShowCreateModal(false)
   }
 
   const handleCloseModal = () => {
@@ -376,145 +509,50 @@ const Quotes = () => {
   }
 
   const handleGeneratePDF = async (quoteId) => {
-    const quote = quotes.find(q => q.id === quoteId)
-    if (!quote) return
-
-    const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.width
-    const pageHeight = doc.internal.pageSize.height
-    let yPosition = 30
-
-    // Professional color scheme
-    const primaryColor = [218, 165, 32] // Goldenrod
-    const secondaryColor = [52, 73, 94] // Dark gray
-    const accentColor = [230, 126, 34] // Orange
-
-    // Header with professional styling
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-    doc.rect(0, 0, pageWidth, 50, 'F')
-    
     try {
-      // Add the actual logo
-      const logoResponse = await fetch('/logo.png')
-      const logoBlob = await logoResponse.blob()
-      const logoBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(logoBlob)
-      })
+      const quote = quotes.find(q => q.id === quoteId)
+      if (!quote) {
+        alert('Quote not found!')
+        return
+      }
+
+      // Convert the existing quote data to our new devis format
+      const devisData = {
+        devisNumber: quote.number || 'DV-0000',
+        date: quote.date || new Date().toISOString().split('T')[0],
+        dueDate: quote.dueDate || new Date().toISOString().split('T')[0],
+        clientCode: 'CL1595', // Default client code
+        clientName: quote.client || 'Client non spécifié',
+        clientAddress: [quote.client || 'Adresse non spécifiée'], // Convert to array format for our generator
+        paymentMethod: quote.payment || 'Virement',
+        services: [
+          {
+            description: 'Service de transport limousine',
+            priceExclVat: parseFloat(quote.totalExclVAT) || 0,
+            vatRate: 21, // Default VAT rate
+            vatAmount: parseFloat(quote.vat) || 0,
+            priceInclVat: parseFloat(quote.totalInclVAT) || 0
+          }
+        ],
+        totals: {
+          priceExclVat: parseFloat(quote.totalExclVAT) || 0,
+          vatAmount: parseFloat(quote.vat) || 0,
+          priceInclVat: parseFloat(quote.totalInclVAT) || 0,
+          deposit: parseFloat(quote.deposit) || 0
+        },
+        remark: quote.remark || 'www.locationautocar.be by Limostar',
+        page: '1'
+      }
+
+      console.log('Devis data being passed to generator:', devisData)
+
+      // Use our new devis generator
+      downloadDevis(devisData)
       
-      // Add logo to PDF (30x30 pixels)
-      doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
     } catch (error) {
-      console.log('Logo not found, using text fallback')
-      // Fallback to text if logo not found
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text('LIMOSTAR', 20, 25)
+      console.error('Error generating PDF:', error)
+      alert('Error generating PDF. Please try again.')
     }
-    
-    // Company name
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('LIMOSTAR', 55, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Just luxury cars', 55, 28)
-    
-    // Quote title
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text(`DEVIS ${quote.number}`, pageWidth - 60, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Date: ${quote.date}`, pageWidth - 60, 28)
-    doc.text(`Échéance: ${quote.dueDate}`, pageWidth - 60, 34)
-    
-    yPosition = 70
-
-    // Client information
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text('Devis pour:', 20, yPosition)
-    
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(quote.client, 20, yPosition + 8)
-    doc.text('Méthode de paiement: ' + quote.payment, 20, yPosition + 16)
-    
-    yPosition += 35
-
-    // Quote details
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Détails du devis:', 20, yPosition)
-    yPosition += 15
-
-    // Table header
-    doc.setFillColor(240, 248, 255)
-    doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
-    
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Description', 25, yPosition + 8)
-    doc.text('Total HTVA', pageWidth - 80, yPosition + 8)
-    doc.text('TVA', pageWidth - 50, yPosition + 8)
-    doc.text('Total TVAC', pageWidth - 25, yPosition + 8)
-    yPosition += 15
-
-    // Quote line
-    doc.setFont('helvetica', 'normal')
-    doc.text('Service de transport limousine', 25, yPosition + 8)
-    doc.text(`${quote.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition + 8)
-    doc.text(`${quote.vat.toFixed(2)}€`, pageWidth - 50, yPosition + 8)
-    doc.text(`${quote.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition + 8)
-    yPosition += 20
-
-    // Totals
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Total HTVA: ${quote.totalExclVAT.toFixed(2)}€`, pageWidth - 80, yPosition)
-    doc.text(`TVA: ${quote.vat.toFixed(2)}€`, pageWidth - 50, yPosition)
-    doc.text(`Total TVAC: ${quote.totalInclVAT.toFixed(2)}€`, pageWidth - 25, yPosition)
-    
-    if (quote.deposit > 0) {
-      yPosition += 10
-      doc.text(`Acompte: ${quote.deposit.toFixed(2)}€`, pageWidth - 80, yPosition)
-      doc.text(`Solde: ${(quote.totalInclVAT - quote.deposit).toFixed(2)}€`, pageWidth - 25, yPosition)
-    }
-
-    // Remark
-    if (quote.remark) {
-      yPosition += 20
-      doc.setFont('helvetica', 'bold')
-      doc.text('Remarque:', 20, yPosition)
-      doc.setFont('helvetica', 'normal')
-      doc.text(quote.remark, 20, yPosition + 8)
-    }
-
-    // Footer
-    const footerY = pageHeight - 20
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.rect(0, footerY, pageWidth, 20, 'F')
-    
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
-    doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
-    
-    const currentDate = new Date().toLocaleDateString('fr-FR')
-    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
-
-    // Save the PDF
-    const fileName = `devis-${quote.number}-${quote.date}.pdf`
-    doc.save(fileName)
   }
 
   const handleCopyQuote = (quoteId) => {
@@ -538,7 +576,115 @@ const Quotes = () => {
   }
 
   const handlePrint = () => {
-    window.print()
+    if (quotes.length === 0) {
+      alert('No quotes to print')
+      return
+    }
+
+    try {
+      // Create new PDF document
+      const pdf = new jsPDF()
+      
+      // Set up PDF styling
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 20
+      const contentWidth = pageWidth - (margin * 2)
+      
+      let yPosition = margin
+      
+      // Add title
+      pdf.setFontSize(20)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Quotes Report', margin, yPosition)
+      yPosition += 15
+      
+      // Add date
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition)
+      yPosition += 20
+      
+      // Add table headers
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'bold')
+      const headers = ['Number', 'Date', 'Client', 'Payment', 'Total', 'Status']
+      const colWidths = [25, 25, 60, 25, 25, 20]
+      let xPosition = margin
+      
+      // Draw header row
+      headers.forEach((header, index) => {
+        pdf.text(header, xPosition, yPosition)
+        xPosition += colWidths[index]
+      })
+      
+      yPosition += 10
+      
+      // Draw line under headers
+      pdf.setLineWidth(0.5)
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 5
+      
+      // Add quotes data
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'normal')
+      
+      getFilteredQuotes().forEach((quote, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage()
+          yPosition = margin
+        }
+        
+        xPosition = margin
+        
+        // Add row data
+        const rowData = [
+          quote.number || '',
+          quote.date || '',
+          quote.client || '',
+          quote.payment || '',
+          `€${quote.totalInclVAT || 0}`,
+          quote.status || ''
+        ]
+        
+        rowData.forEach((data, colIndex) => {
+          // Truncate long text
+          let displayText = data
+          if (colIndex === 2 && data.length > 30) { // Client column
+            displayText = data.substring(0, 27) + '...'
+          }
+          
+          pdf.text(displayText, xPosition, yPosition)
+          xPosition += colWidths[colIndex]
+        })
+        
+        yPosition += 8
+        
+        // Add separator line every 5 rows
+        if ((index + 1) % 5 === 0 && index < getFilteredQuotes().length - 1) {
+          pdf.setLineWidth(0.2)
+          pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+          yPosition += 5
+        }
+      })
+      
+      // Add summary at the end
+      yPosition += 15
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(`Total Quotes: ${getFilteredQuotes().length}`, margin, yPosition)
+      yPosition += 8
+      pdf.text(`Total Amount: €${getFilteredQuotes().reduce((sum, q) => sum + q.totalInclVAT, 0).toFixed(2)}`, margin, yPosition)
+      
+      // Save the PDF
+      const fileName = `quotes-report-${new Date().toISOString().split('T')[0]}.pdf`
+      pdf.save(fileName)
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Error generating PDF. Please try again.')
+    }
   }
 
   const getFilteredQuotes = () => {
@@ -604,6 +750,23 @@ const Quotes = () => {
           <span className="text-gray-900 font-medium">{t('quotesTitle')}</span>
         </nav>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-red-800">
+              <strong>Error:</strong> {error}
+            </div>
+            <button
+              onClick={loadQuotes}
+              className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quotes Management Section */}
       <div className="mb-8">
@@ -738,8 +901,93 @@ const Quotes = () => {
             </div>
           </div>
 
+          {/* Debug Info */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-blue-800">
+                <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
+                Quotes: {quotes.length} | 
+                Filtered: {getFilteredQuotes().length} | 
+                Search: "{searchTerm}" | 
+                Display Count: {displayCount} |
+                Mounted: {isMountedRef.current ? 'Yes' : 'No'}
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={async () => {
+                    console.log('🧪 Testing direct Firebase connection...')
+                    try {
+                      const quotesRef = collection(db, 'quotes')
+                      const q = query(quotesRef, orderBy('createdAt', 'desc'))
+                      const querySnapshot = await getDocs(q)
+                      const directData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                      }))
+                      console.log('🧪 Direct Firebase test result:', directData)
+                      alert(`Direct Firebase test: Found ${directData.length} quotes`)
+                    } catch (error) {
+                      console.error('🧪 Direct Firebase test failed:', error)
+                      alert(`Direct Firebase test failed: ${error.message}`)
+                    }
+                  }}
+                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                >
+                  Test Firebase
+                </button>
+                <button
+                  onClick={loadQuotes}
+                  disabled={loading}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {loading ? 'Loading...' : 'Refresh'}
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('🔍 Current state debug:')
+                    console.log('  - loading:', loading)
+                    console.log('  - quotes:', quotes)
+                    console.log('  - quotes.length:', quotes.length)
+                    console.log('  - isMounted:', isMountedRef.current)
+                    console.log('  - getFilteredQuotes():', getFilteredQuotes())
+                  }}
+                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+                >
+                  Debug State
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Quotes Table */}
           <div className="overflow-x-auto">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DAA520]"></div>
+                <span className="ml-4 text-gray-600">Loading quotes...</span>
+              </div>
+            ) : getFilteredQuotes().length === 0 ? (
+              <div className="text-center py-12">
+                <Receipt className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No quotes found</h3>
+                <p className="text-gray-600 mb-4">
+                  {quotes.length === 0 
+                    ? "Get started by creating your first quote."
+                    : "No quotes match your search criteria."
+                  }
+                </p>
+                {quotes.length === 0 && (
+                  <button
+                    onClick={handleCreateQuote}
+                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl text-sm lg:text-base mx-auto"
+                    style={{ backgroundColor: '#DAA520' }}
+                  >
+                    <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+                    <span>Create Quote</span>
+                  </button>
+                )}
+              </div>
+            ) : (
             <table className="w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -847,6 +1095,7 @@ const Quotes = () => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
 
           {/* Summary */}

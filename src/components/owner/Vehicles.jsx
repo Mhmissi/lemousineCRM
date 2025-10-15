@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { Car, Plus, MapPin, Users, Fuel, Settings, CheckCircle, XCircle } from 'lucide-react'
 import { firestoreService } from '../../services/firestoreService'
@@ -7,24 +7,57 @@ function Vehicles() {
   const { t } = useLanguage()
   const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
+  const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    const loadVehicles = async () => {
-      try {
-        setLoading(true)
-        const vehiclesData = await firestoreService.getVehicles()
-        setVehicles(vehiclesData)
-      } catch (error) {
-        console.error('Error loading vehicles:', error)
+  // Load vehicles from Firestore with proper cleanup
+  const loadVehicles = useCallback(async () => {
+    try {
+      setLoading(true)
+      const vehiclesData = await firestoreService.getVehicles()
+      
+      // Map vehicle data to ensure consistent field names
+      const mappedVehicles = vehiclesData.map(vehicle => ({
+        id: vehicle.id,
+        make: vehicle.make || vehicle.brand || vehicle.manufacturer || 'Unknown',
+        model: vehicle.model || vehicle.modelName || 'Unknown Model',
+        year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
+        licensePlate: vehicle.licensePlate || vehicle.plateNumber || vehicle.registration || '',
+        status: vehicle.status || vehicle.vehicleStatus || vehicle.active ? 'active' : 'inactive',
+        capacity: vehicle.capacity || vehicle.seats || vehicle.passengerCapacity || 4,
+        fuelLevel: vehicle.fuelLevel || vehicle.fuel || vehicle.gasLevel || 100,
+        mileage: vehicle.mileage || vehicle.odometer || vehicle.kilometers || 0,
+        color: vehicle.color || vehicle.vehicleColor || 'Unknown',
+        type: vehicle.type || vehicle.vehicleType || vehicle.category || 'sedan',
+        ...vehicle // Include any other fields
+      }))
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setVehicles(mappedVehicles)
+      }
+    } catch (error) {
+      console.error('Error loading vehicles:', error)
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
         // Fallback to empty array if Firestore fails
         setVehicles([])
-      } finally {
+      }
+    } finally {
+      // Only update loading state if component is still mounted
+      if (isMountedRef.current) {
         setLoading(false)
       }
     }
-
-    loadVehicles()
   }, [])
+
+  useEffect(() => {
+    loadVehicles()
+    
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadVehicles])
 
   const getStatusColor = (status) => {
     switch (status) {
