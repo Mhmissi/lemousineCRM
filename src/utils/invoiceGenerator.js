@@ -122,20 +122,6 @@ export async function generateInvoicePDF(invoiceData) {
       doc.setTextColor(0, 0, 0);
       doc.text(COMPANY_INFO.name, margin, headerY);
     }
-    
-    // Company address details (left side)
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 22;
-    doc.text('65, Avenue Louise', margin, companyInfoY);
-    doc.text('1050 Brussels', margin, companyInfoY + 4);
-    doc.text('Belgium', margin, companyInfoY + 8);
-    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
-    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
-    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
-    
-    yPosition = companyInfoY + 25;
 
     // Invoice details box (right side) - Grey background box
     const invoiceBoxWidth = 80;
@@ -164,14 +150,31 @@ export async function generateInvoicePDF(invoiceData) {
     doc.text(`DATE ${invoiceData.date}`, invoiceBoxX + 4, headerY + 13);
     doc.text(`CLIENT ${invoiceData.clientCode || 'CL1595'}`, invoiceBoxX + 4, headerY + 17);
 
-    yPosition = Math.max(yPosition, headerY + invoiceBoxHeight + 3);
-
-    // ===== CLIENT INFORMATION SECTION (Right side) =====
-    // Client information (right side) - positioned to the right of company info
+    // Dividing line after logo and invoice number section
+    const dividerY = headerY + invoiceBoxHeight;
+    drawLine(margin, dividerY, pageWidth - rightMargin, dividerY, { width: 1 });
+    
+    // ===== COMPANY INFO AND CLIENT INFO ON SAME LINE =====
+    const infoSectionY = dividerY + 8;
+    
+    // Company information (left side)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    let companyInfoY = infoSectionY;
+    doc.text('65, Avenue Louise', margin, companyInfoY);
+    doc.text('1050 Brussels', margin, companyInfoY + 4);
+    doc.text('Belgium', margin, companyInfoY + 8);
+    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
+    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
+    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
+    
+    // Client information (right side) - on the same horizontal line as company info
     const clientX = pageWidth / 2 + 20;
     const clientMaxWidth = pageWidth - rightMargin - clientX;
     
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     
@@ -179,29 +182,34 @@ export async function generateInvoicePDF(invoiceData) {
     const clientName = invoiceData.clientName || 'Client non spécifié';
     const clientNameLines = doc.splitTextToSize(clientName, clientMaxWidth);
     
-    let clientY = headerY + 6; // Align with company info
+    let clientY = infoSectionY;
     clientNameLines.forEach((line, index) => {
       doc.text(line, clientX, clientY);
-      clientY += 5;
+      clientY += 4;
     });
     
     // Client address (if provided)
     if (invoiceData.clientAddress) {
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      clientY += 3;
+      clientY += 2;
       
       if (Array.isArray(invoiceData.clientAddress)) {
         invoiceData.clientAddress.forEach((line) => {
-          clientY = addText(line, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
-          clientY += 3;
+          doc.text(line, clientX, clientY);
+          clientY += 4;
         });
       } else {
-        clientY = addText(invoiceData.clientAddress, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
+        const addressLines = doc.splitTextToSize(invoiceData.clientAddress, clientMaxWidth);
+        addressLines.forEach((line) => {
+          doc.text(line, clientX, clientY);
+          clientY += 4;
+        });
       }
     }
 
-    yPosition = Math.max(yPosition, clientY) + 10;
+    yPosition = Math.max(companyInfoY + 24, clientY) + 8;
 
     // ===== PAYMENT TERMS SECTION - Three boxes as in model =====
     yPosition += 3;
@@ -680,20 +688,6 @@ export async function generateDevisPDF(devisData) {
       doc.setTextColor(0, 0, 0);
       doc.text(COMPANY_INFO.name, margin, headerY);
     }
-    
-    // Company address details (left side)
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 22;
-    doc.text('65, Avenue Louise', margin, companyInfoY);
-    doc.text('1050 Brussels', margin, companyInfoY + 4);
-    doc.text('Belgium', margin, companyInfoY + 8);
-    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
-    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
-    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
-    
-    yPosition = companyInfoY + 25;
 
     // Devis details box (right side) - Grey background box
     const devisBoxWidth = 80;
@@ -722,13 +716,31 @@ export async function generateDevisPDF(devisData) {
     doc.text(`DATE ${devisData.date}`, devisBoxX + 4, headerY + 13);
     doc.text(`CLIENT ${devisData.clientCode || 'CL1595'}`, devisBoxX + 4, headerY + 17);
 
-    yPosition = Math.max(yPosition, headerY + devisBoxHeight + 3);
-
-    // ===== CLIENT INFORMATION SECTION (Right side) =====
+    // Dividing line after logo and devis number section
+    const dividerY = headerY + devisBoxHeight;
+    drawLine(margin, dividerY, pageWidth - rightMargin, dividerY, { width: 1 });
+    
+    // ===== COMPANY INFO AND CLIENT INFO ON SAME LINE =====
+    const infoSectionY = dividerY + 8;
+    
+    // Company information (left side)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    let companyInfoY = infoSectionY;
+    doc.text('65, Avenue Louise', margin, companyInfoY);
+    doc.text('1050 Brussels', margin, companyInfoY + 4);
+    doc.text('Belgium', margin, companyInfoY + 8);
+    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
+    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
+    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
+    
+    // Client information (right side) - on the same horizontal line as company info
     const clientX = pageWidth / 2 + 20;
     const clientMaxWidth = pageWidth - rightMargin - clientX;
     
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     
@@ -736,29 +748,34 @@ export async function generateDevisPDF(devisData) {
     const clientName = devisData.clientName || 'Client non spécifié';
     const clientNameLines = doc.splitTextToSize(clientName, clientMaxWidth);
     
-    let clientY = headerY + 6; // Align with company info
+    let clientY = infoSectionY;
     clientNameLines.forEach((line, index) => {
       doc.text(line, clientX, clientY);
-      clientY += 5;
+      clientY += 4;
     });
     
     // Client address (if provided)
     if (devisData.clientAddress) {
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      clientY += 3;
+      clientY += 2;
       
       if (Array.isArray(devisData.clientAddress)) {
         devisData.clientAddress.forEach((line) => {
-          clientY = addText(line, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
-          clientY += 3;
+          doc.text(line, clientX, clientY);
+          clientY += 4;
         });
       } else {
-        clientY = addText(devisData.clientAddress, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
+        const addressLines = doc.splitTextToSize(devisData.clientAddress, clientMaxWidth);
+        addressLines.forEach((line) => {
+          doc.text(line, clientX, clientY);
+          clientY += 4;
+        });
       }
     }
 
-    yPosition = Math.max(yPosition, clientY) + 10;
+    yPosition = Math.max(companyInfoY + 24, clientY) + 8;
 
     // ===== PAYMENT TERMS SECTION - Three boxes as in model =====
     yPosition += 3;
@@ -1167,20 +1184,6 @@ export async function generateProformaPDF(proformaData) {
       doc.setTextColor(0, 0, 0);
       doc.text(COMPANY_INFO.name, margin, headerY);
     }
-    
-    // Company address details (left side)
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 22;
-    doc.text('65, Avenue Louise', margin, companyInfoY);
-    doc.text('1050 Brussels', margin, companyInfoY + 4);
-    doc.text('Belgium', margin, companyInfoY + 8);
-    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
-    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
-    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
-    
-    yPosition = companyInfoY + 25;
 
     // Proforma details box (right side) - Grey background box
     const proformaBoxWidth = 80;
@@ -1209,13 +1212,31 @@ export async function generateProformaPDF(proformaData) {
     doc.text(`DATE ${proformaData.date}`, proformaBoxX + 4, headerY + 13);
     doc.text(`CLIENT ${proformaData.clientCode || 'CL1595'}`, proformaBoxX + 4, headerY + 17);
 
-    yPosition = Math.max(yPosition, headerY + proformaBoxHeight + 3);
-
-    // ===== CLIENT INFORMATION SECTION (Right side) =====
+    // Dividing line after logo and proforma number section
+    const dividerY = headerY + proformaBoxHeight;
+    drawLine(margin, dividerY, pageWidth - rightMargin, dividerY, { width: 1 });
+    
+    // ===== COMPANY INFO AND CLIENT INFO ON SAME LINE =====
+    const infoSectionY = dividerY + 8;
+    
+    // Company information (left side)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    let companyInfoY = infoSectionY;
+    doc.text('65, Avenue Louise', margin, companyInfoY);
+    doc.text('1050 Brussels', margin, companyInfoY + 4);
+    doc.text('Belgium', margin, companyInfoY + 8);
+    doc.text(`TVA: ${COMPANY_INFO.vat}`, margin, companyInfoY + 12);
+    doc.text(`IBAN: ${COMPANY_INFO.iban}`, margin, companyInfoY + 16);
+    doc.text(`BIC: ${COMPANY_INFO.bic}`, margin, companyInfoY + 20);
+    
+    // Client information (right side) - on the same horizontal line as company info
     const clientX = pageWidth / 2 + 20;
     const clientMaxWidth = pageWidth - rightMargin - clientX;
     
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     
@@ -1223,29 +1244,34 @@ export async function generateProformaPDF(proformaData) {
     const clientName = proformaData.clientName || 'Client non spécifié';
     const clientNameLines = doc.splitTextToSize(clientName, clientMaxWidth);
     
-    let clientY = headerY + 6; // Align with company info
+    let clientY = infoSectionY;
     clientNameLines.forEach((line, index) => {
       doc.text(line, clientX, clientY);
-      clientY += 5;
+      clientY += 4;
     });
     
     // Client address (if provided)
     if (proformaData.clientAddress) {
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      clientY += 3;
+      clientY += 2;
       
       if (Array.isArray(proformaData.clientAddress)) {
         proformaData.clientAddress.forEach((line) => {
-          clientY = addText(line, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
-          clientY += 3;
+          doc.text(line, clientX, clientY);
+          clientY += 4;
         });
       } else {
-        clientY = addText(proformaData.clientAddress, clientX, clientY, { fontSize: 10, maxWidth: clientMaxWidth });
+        const addressLines = doc.splitTextToSize(proformaData.clientAddress, clientMaxWidth);
+        addressLines.forEach((line) => {
+          doc.text(line, clientX, clientY);
+          clientY += 4;
+        });
       }
     }
 
-    yPosition = Math.max(yPosition, clientY) + 10;
+    yPosition = Math.max(companyInfoY + 24, clientY) + 8;
 
     // ===== PAYMENT TERMS SECTION - Three boxes as in model =====
     yPosition += 3;
