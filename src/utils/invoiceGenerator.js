@@ -13,6 +13,23 @@ const COMPANY_INFO = {
   website: 'www.limostar.be'
 };
 
+// Helper function to load image as base64
+const loadImageAsBase64 = async (imagePath) => {
+  try {
+    const response = await fetch(imagePath);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return null;
+  }
+};
+
 // Legal terms
 const LEGAL_TERMS = [
   'Toutes nos factures sont payables au grand comptant.',
@@ -23,7 +40,7 @@ const LEGAL_TERMS = [
   'En cas de contestation persistante, les tribunaux de Bruxelles sont compétents.'
 ];
 
-export function generateInvoicePDF(invoiceData) {
+export async function generateInvoicePDF(invoiceData) {
   try {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -31,6 +48,9 @@ export function generateInvoicePDF(invoiceData) {
     const margin = 20;
     const rightMargin = 30;
     let yPosition = margin;
+
+    // Load logo
+    const logoBase64 = await loadImageAsBase64('/logo.png');
 
     // Helper function to add text with formatting
     const addText = (text, x, y, options = {}) => {
@@ -79,23 +99,35 @@ export function generateInvoicePDF(invoiceData) {
     // Top border line
     drawLine(margin, yPosition - 5, pageWidth - rightMargin, yPosition - 5, { width: 1 });
     
-    // Company logo and name (left side)
+    // Company logo (left side)
     const headerY = yPosition + 5;
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(COMPANY_INFO.name, margin, headerY);
     
-    // Golden crown-like logo
-    doc.setFontSize(16);
-    doc.setTextColor(255, 215, 0); // Gold color
-    doc.text('♔', margin + 70, headerY - 1);
+    // Add logo image if loaded successfully
+    if (logoBase64) {
+      try {
+        // Add logo - adjust size as needed (width, height)
+        doc.addImage(logoBase64, 'PNG', margin, headerY - 5, 40, 20);
+      } catch (error) {
+        console.error('Error adding logo to PDF:', error);
+        // Fallback to text if image fails
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(COMPANY_INFO.name, margin, headerY);
+      }
+    } else {
+      // Fallback to text if logo not loaded
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(COMPANY_INFO.name, margin, headerY);
+    }
     
     // Company address details (left side)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 6;
+    let companyInfoY = headerY + 22;
     doc.text('65, Avenue Louise', margin, companyInfoY);
     doc.text('1050 Brussels', margin, companyInfoY + 4);
     doc.text('Belgium', margin, companyInfoY + 8);
@@ -532,9 +564,9 @@ export function createInvoiceFromTrip(trip, client, invoiceNumber) {
 }
 
 // Helper function to generate and download invoice
-export function downloadInvoice(invoiceData) {
+export async function downloadInvoice(invoiceData) {
   try {
-    const doc = generateInvoicePDF(invoiceData);
+    const doc = await generateInvoicePDF(invoiceData);
     const fileName = `Facture_${invoiceData.invoiceNumber}_${invoiceData.date}.pdf`;
     
     // Try the standard save method
@@ -566,7 +598,7 @@ export function generateInvoiceNumber() {
 }
 
 // Generate Devis (Quote) PDF - Similar to invoice but with "DEVIS" label
-export function generateDevisPDF(devisData) {
+export async function generateDevisPDF(devisData) {
   try {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -574,6 +606,9 @@ export function generateDevisPDF(devisData) {
     const margin = 20;
     const rightMargin = 30;
     let yPosition = margin;
+
+    // Load logo
+    const logoBase64 = await loadImageAsBase64('/logo.png');
 
     // Helper function to add text with formatting
     const addText = (text, x, y, options = {}) => {
@@ -622,23 +657,35 @@ export function generateDevisPDF(devisData) {
     // Top border line
     drawLine(margin, yPosition - 5, pageWidth - rightMargin, yPosition - 5, { width: 1 });
     
-    // Company logo and name (left side)
+    // Company logo (left side)
     const headerY = yPosition + 5;
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(COMPANY_INFO.name, margin, headerY);
     
-    // Golden crown-like logo
-    doc.setFontSize(16);
-    doc.setTextColor(255, 215, 0); // Gold color
-    doc.text('♔', margin + 70, headerY - 1);
+    // Add logo image if loaded successfully
+    if (logoBase64) {
+      try {
+        // Add logo - adjust size as needed (width, height)
+        doc.addImage(logoBase64, 'PNG', margin, headerY - 5, 40, 20);
+      } catch (error) {
+        console.error('Error adding logo to PDF:', error);
+        // Fallback to text if image fails
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(COMPANY_INFO.name, margin, headerY);
+      }
+    } else {
+      // Fallback to text if logo not loaded
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(COMPANY_INFO.name, margin, headerY);
+    }
     
     // Company address details (left side)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 6;
+    let companyInfoY = headerY + 22;
     doc.text('65, Avenue Louise', margin, companyInfoY);
     doc.text('1050 Brussels', margin, companyInfoY + 4);
     doc.text('Belgium', margin, companyInfoY + 8);
@@ -1014,9 +1061,9 @@ export function generateDevisPDF(devisData) {
 }
 
 // Helper function to generate and download devis
-export function downloadDevis(devisData) {
+export async function downloadDevis(devisData) {
   try {
-    const doc = generateDevisPDF(devisData);
+    const doc = await generateDevisPDF(devisData);
     const fileName = `Devis_${devisData.devisNumber || devisData.number}_${devisData.date}.pdf`;
     
     // Try the standard save method
@@ -1038,7 +1085,7 @@ export function downloadDevis(devisData) {
 }
 
 // Generate Proforma Invoice PDF - Similar to invoice but with "PROFORMA" label
-export function generateProformaPDF(proformaData) {
+export async function generateProformaPDF(proformaData) {
   try {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -1046,6 +1093,9 @@ export function generateProformaPDF(proformaData) {
     const margin = 20;
     const rightMargin = 30;
     let yPosition = margin;
+
+    // Load logo
+    const logoBase64 = await loadImageAsBase64('/logo.png');
 
     // Helper function to add text with formatting
     const addText = (text, x, y, options = {}) => {
@@ -1094,23 +1144,35 @@ export function generateProformaPDF(proformaData) {
     // Top border line
     drawLine(margin, yPosition - 5, pageWidth - rightMargin, yPosition - 5, { width: 1 });
     
-    // Company logo and name (left side)
+    // Company logo (left side)
     const headerY = yPosition + 5;
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(COMPANY_INFO.name, margin, headerY);
     
-    // Golden crown-like logo
-    doc.setFontSize(16);
-    doc.setTextColor(255, 215, 0); // Gold color
-    doc.text('♔', margin + 70, headerY - 1);
+    // Add logo image if loaded successfully
+    if (logoBase64) {
+      try {
+        // Add logo - adjust size as needed (width, height)
+        doc.addImage(logoBase64, 'PNG', margin, headerY - 5, 40, 20);
+      } catch (error) {
+        console.error('Error adding logo to PDF:', error);
+        // Fallback to text if image fails
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(COMPANY_INFO.name, margin, headerY);
+      }
+    } else {
+      // Fallback to text if logo not loaded
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(COMPANY_INFO.name, margin, headerY);
+    }
     
     // Company address details (left side)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    let companyInfoY = headerY + 6;
+    let companyInfoY = headerY + 22;
     doc.text('65, Avenue Louise', margin, companyInfoY);
     doc.text('1050 Brussels', margin, companyInfoY + 4);
     doc.text('Belgium', margin, companyInfoY + 8);
@@ -1486,9 +1548,9 @@ export function generateProformaPDF(proformaData) {
 }
 
 // Helper function to generate and download proforma
-export function downloadProforma(proformaData) {
+export async function downloadProforma(proformaData) {
   try {
-    const doc = generateProformaPDF(proformaData);
+    const doc = await generateProformaPDF(proformaData);
     const fileName = `Proforma_${proformaData.proformaNumber || proformaData.number}_${proformaData.date}.pdf`;
     
     // Try the standard save method
