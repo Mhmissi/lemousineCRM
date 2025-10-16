@@ -502,16 +502,26 @@ export async function generateInvoicePDF(invoiceData) {
     // ===== LEGAL TERMS SECTION =====
     yPosition += 15; // Increased spacing to match reference
     
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0); // Black text to match reference
     
+    const maxTermWidth = pageWidth - margin - rightMargin;
     LEGAL_TERMS.forEach((term, index) => {
-      const termY = yPosition + (index * 8);
-      doc.text(`${index + 1}. ${term}`, margin, termY);
+      // Split text to fit within page width
+      const termText = `${index + 1}. ${term}`;
+      const lines = doc.splitTextToSize(termText, maxTermWidth);
+      
+      // Add each line
+      lines.forEach((line, lineIndex) => {
+        doc.text(line, margin, yPosition);
+        yPosition += 4; // Line spacing
+      });
+      
+      yPosition += 2; // Extra spacing between terms
     });
 
-    yPosition += (LEGAL_TERMS.length * 8) + 10;
+    yPosition += 5;
 
     // ===== FOOTER SECTION =====
     const footerY = Math.max(yPosition + 3, pageHeight - 20);
@@ -1047,16 +1057,26 @@ export async function generateDevisPDF(devisData) {
     // ===== LEGAL TERMS SECTION =====
     yPosition += 15;
     
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     
+    const maxTermWidth = pageWidth - margin - rightMargin;
     LEGAL_TERMS.forEach((term, index) => {
-      const termY = yPosition + (index * 8);
-      doc.text(`${index + 1}. ${term}`, margin, termY);
+      // Split text to fit within page width
+      const termText = `${index + 1}. ${term}`;
+      const lines = doc.splitTextToSize(termText, maxTermWidth);
+      
+      // Add each line
+      lines.forEach((line, lineIndex) => {
+        doc.text(line, margin, yPosition);
+        yPosition += 4; // Line spacing
+      });
+      
+      yPosition += 2; // Extra spacing between terms
     });
 
-    yPosition += (LEGAL_TERMS.length * 8) + 10;
+    yPosition += 5;
 
     // ===== FOOTER SECTION =====
     const footerY = Math.max(yPosition + 3, pageHeight - 20);
@@ -1543,16 +1563,26 @@ export async function generateProformaPDF(proformaData) {
     // ===== LEGAL TERMS SECTION =====
     yPosition += 15;
     
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     
+    const maxTermWidth = pageWidth - margin - rightMargin;
     LEGAL_TERMS.forEach((term, index) => {
-      const termY = yPosition + (index * 8);
-      doc.text(`${index + 1}. ${term}`, margin, termY);
+      // Split text to fit within page width
+      const termText = `${index + 1}. ${term}`;
+      const lines = doc.splitTextToSize(termText, maxTermWidth);
+      
+      // Add each line
+      lines.forEach((line, lineIndex) => {
+        doc.text(line, margin, yPosition);
+        yPosition += 4; // Line spacing
+      });
+      
+      yPosition += 2; // Extra spacing between terms
     });
 
-    yPosition += (LEGAL_TERMS.length * 8) + 10;
+    yPosition += 5;
 
     // ===== FOOTER SECTION =====
     const footerY = Math.max(yPosition + 3, pageHeight - 20);
