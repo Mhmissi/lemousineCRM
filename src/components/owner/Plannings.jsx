@@ -128,16 +128,7 @@ function Plannings() {
         }
         return acc
       }, [])
-      
-      console.log('Firebase data loaded:', {
-        trips: tripsData.length,
-        allDrivers: driversData.length,
-        profileDrivers: realDriversFromProfiles.length,
-        realDrivers: realDrivers.length,
-        vehicles: vehiclesData.length
-      })
-      console.log('✅ Real drivers with Firebase Auth:', realDrivers)
-      
+
       // Transform trips data to match the schedule format
       const formattedSchedules = tripsData.map(trip => {
         const [startTime, endTime] = trip.time ? trip.time.split(' - ') : ['09:00', '11:00']
@@ -179,7 +170,7 @@ function Plannings() {
       setDrivers(realDrivers) // Only show real drivers
       setVehicles(vehiclesData)
     } catch (error) {
-      console.error('Error loading data:', error)
+
       setSchedules([])
       setDrivers([])
       setVehicles([])
@@ -418,7 +409,7 @@ function Plannings() {
         })
         
       } catch (error) {
-        console.error('Error adding course:', error)
+
         alert('Erreur lors de l\'ajout de la course. Veuillez réessayer.')
       }
     }
@@ -468,7 +459,7 @@ function Plannings() {
       setShowDeleteConfirm(null)
       alert('Course supprimée avec succès!')
     } catch (error) {
-      console.error('Error deleting schedule:', error)
+
       alert('Erreur lors de la suppression de la course. Veuillez réessayer.')
     }
   }, [loadData])
@@ -482,7 +473,7 @@ function Plannings() {
       await loadData() // Reload data after update
       alert('Course confirmée avec succès!')
     } catch (error) {
-      console.error('Error confirming schedule:', error)
+
       alert('Erreur lors de la confirmation de la course. Veuillez réessayer.')
     }
   }, [loadData])
@@ -569,7 +560,7 @@ function Plannings() {
       // Add logo to PDF (30x30 pixels)
       doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
     } catch (error) {
-      console.log('Logo not found, using text fallback')
+
       // Fallback to text if logo not found
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)

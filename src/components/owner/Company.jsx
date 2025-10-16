@@ -20,7 +20,6 @@ const Company = () => {
   const [selectedCompany, setSelectedCompany] = useState(null)
   const [selectedBrand, setSelectedBrand] = useState(null)
 
-
   const [formData, setFormData] = useState({
     logo: '',
     name: '',
@@ -53,7 +52,7 @@ const Company = () => {
         setCompanies(companiesData)
         setBrands(brandsData)
       } catch (error) {
-        console.error('Error loading company data:', error)
+
         setCompanies([])
         setBrands([])
       }
@@ -250,7 +249,7 @@ const Company = () => {
       setShowModifyModal(false)
       setSelectedCompany(null)
     } catch (error) {
-      console.error('Error saving company:', error)
+
       alert('Failed to save company. Please try again.')
     }
   }
@@ -295,7 +294,7 @@ const Company = () => {
       setShowBrandModifyModal(false)
       setSelectedBrand(null)
     } catch (error) {
-      console.error('Error saving brand:', error)
+
       alert('Failed to save brand. Please try again.')
     }
   }

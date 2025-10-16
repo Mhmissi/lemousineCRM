@@ -42,7 +42,7 @@ function AddExistingDriverForm() {
 
       // Create driver or profile record based on role
       if (formData.role === 'driver') {
-        console.log('📝 Creating driver record for existing Firebase Auth user:', formData)
+
         await firestoreService.addDriver({
           name: formData.name,
           email: formData.email,
@@ -59,7 +59,7 @@ function AddExistingDriverForm() {
         })
         setMessage(`✅ Driver ${formData.name} added successfully!`)
       } else {
-        console.log('📝 Creating admin/owner profile for existing Firebase Auth user:', formData)
+
         await firestoreService.addProfile({
           name: formData.name,
           username: formData.email.split('@')[0],
@@ -87,7 +87,7 @@ function AddExistingDriverForm() {
       }, 1500)
 
     } catch (error) {
-      console.error('❌ Error adding driver:', error)
+
       setMessage(`❌ Error: ${error.message}`)
     } finally {
       setSaving(false)

@@ -91,12 +91,10 @@ const Profiles = () => {
 
   // Load profiles from Firebase Authentication and Firestore
   const loadProfiles = useCallback(async () => {
-    console.log('🚀 loadProfiles called, isMounted:', isMountedRef.current)
     
     try {
       setLoading(true)
       setError('')
-      console.log('🔄 Loading profiles from Firebase Authentication and Firestore...')
       
       // Create a timeout promise
       const timeoutPromise = new Promise((_, reject) => {
@@ -107,26 +105,21 @@ const Profiles = () => {
       
       // 1. Get real Firebase Authentication users (drivers only)
       try {
-        console.log('📞 Fetching real Firebase Authentication drivers...')
         
         // Note: We can't directly list Firebase Auth users from client side
         // Instead, we'll get drivers from Firestore that have firebaseAuthId (real authenticated drivers)
         // This will be handled in the drivers section below
         allProfiles = []
-        console.log('📋 Will load real drivers with Firebase Auth from drivers collection')
         
       } catch (authError) {
-        console.log('⚠️ Error loading Firebase Auth users:', authError)
       }
       
       // 2. Get Firestore profiles collection (profiles with Firebase Auth accounts)
       try {
-        console.log('📞 Loading profiles from Firestore with Firebase Auth...')
         const firestoreProfiles = await Promise.race([
           firestoreService.getProfiles(),
           timeoutPromise
         ])
-        console.log('📋 Firestore profiles:', firestoreProfiles)
         
         // Add Firestore profiles that have Firebase Auth accounts
         if (Array.isArray(firestoreProfiles)) {
@@ -148,21 +141,17 @@ const Profiles = () => {
                   ...profile
                 }
               } catch (mapError) {
-                console.warn('⚠️ Error mapping profile:', profile, mapError)
                 return null
               }
             }).filter(Boolean) // Remove any null entries
           
           allProfiles = [...allProfiles, ...mappedFirestoreProfiles]
-          console.log('📋 Profiles with Firebase Auth created:', mappedFirestoreProfiles)
         }
         
       } catch (firestoreError) {
-        console.error('❌ Error loading Firestore profiles:', firestoreError)
         
         // Fallback: Try direct Firebase query
         try {
-          console.log('🔄 Attempting direct Firebase query for profiles...')
           const profilesQuery = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'))
           const profilesSnapshot = await getDocs(profilesQuery)
           const directProfiles = profilesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -186,27 +175,22 @@ const Profiles = () => {
                     ...profile
                   }
                 } catch (mapError) {
-                  console.warn('⚠️ Error mapping direct profile:', profile, mapError)
                   return null
                 }
               }).filter(Boolean)
             
             allProfiles = [...allProfiles, ...mappedDirectProfiles]
-            console.log('✅ Direct Firebase query successful for profiles with Firebase Auth')
           }
         } catch (directError) {
-          console.error('❌ Direct Firebase query also failed:', directError)
         }
       }
       
       // 3. Get drivers from Firestore (they have Firebase Auth accounts)
       try {
-        console.log('📞 Loading drivers from Firestore...')
         const driversData = await Promise.race([
           firestoreService.getDrivers(),
           timeoutPromise
         ])
-        console.log('📋 Drivers data:', driversData)
         
         // Convert drivers to profiles (only those with Firebase Auth accounts)
         if (Array.isArray(driversData)) {
@@ -233,22 +217,17 @@ const Profiles = () => {
                   ...driver
                 }
               } catch (mapError) {
-                console.warn('⚠️ Error mapping driver:', driver, mapError)
                 return null
               }
             }).filter(Boolean) // Remove any null entries
           
           allProfiles = [...allProfiles, ...driverProfiles]
-          console.log('📋 Real driver profiles with Firebase Auth created:', driverProfiles)
-          console.log('📋 Total real drivers:', driverProfiles.length)
         }
         
       } catch (driversError) {
-        console.error('❌ Error loading drivers:', driversError)
         
         // Fallback: Try direct Firebase query
         try {
-          console.log('🔄 Attempting direct Firebase query for drivers...')
           const driversQuery = query(collection(db, 'drivers'), orderBy('createdAt', 'desc'))
           const driversSnapshot = await getDocs(driversQuery)
           const directDrivers = driversSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -277,16 +256,13 @@ const Profiles = () => {
                     ...driver
                   }
                 } catch (mapError) {
-                  console.warn('⚠️ Error mapping direct driver:', driver, mapError)
                   return null
                 }
               }).filter(Boolean)
             
             allProfiles = [...allProfiles, ...mappedDirectDrivers]
-            console.log('✅ Direct Firebase query successful for real drivers with Firebase Auth')
           }
         } catch (directError) {
-          console.error('❌ Direct Firebase query also failed:', directError)
         }
       }
       
@@ -294,14 +270,12 @@ const Profiles = () => {
       const mergedProfiles = allProfiles.filter(profile => {
         try {
           if (!profile || !profile.source) {
-            console.warn('⚠️ Invalid profile found:', profile)
             return false
           }
           
           // Keep both drivers and profiles with Firebase Auth accounts
           return (profile.source === 'driver' || profile.source === 'profile') && profile.firebaseAuthId
         } catch (filterError) {
-          console.warn('⚠️ Error filtering profile:', profile, filterError)
           return false
         }
       })
@@ -310,7 +284,6 @@ const Profiles = () => {
       const uniqueProfiles = mergedProfiles.filter((profile, index, self) => {
         try {
           if (!profile || !profile.username) {
-            console.warn('⚠️ Profile missing username:', profile)
             return true
           }
 
@@ -321,39 +294,28 @@ const Profiles = () => {
           
           return !existingProfile // Keep only unique profiles
         } catch (dedupError) {
-          console.warn('⚠️ Error in deduplication:', profile, dedupError)
           return true
         }
       })
       
-      console.log('📝 Final combined profiles:', uniqueProfiles)
-      console.log('📝 Total profiles:', uniqueProfiles.length)
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
-        console.log('✅ Component still mounted, updating state...')
         setProfiles(uniqueProfiles)
         setError('')
-        console.log('✅ Profiles state updated with', uniqueProfiles.length, 'items')
       } else {
-        console.log('⚠️ Component unmounted, skipping state update')
       }
     } catch (error) {
-      console.error('❌ Error loading profiles:', error)
-      console.error('❌ Error stack:', error.stack)
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         setError(`Failed to load profiles: ${error.message}`)
         setProfiles([])
-        console.log('❌ Error state set, profiles cleared')
       }
     } finally {
       // Only update loading state if component is still mounted
       if (isMountedRef.current) {
         setLoading(false)
-        console.log('🏁 Loading completed, loading set to false')
       } else {
-        console.log('⚠️ Component unmounted, skipping loading state update')
       }
     }
   }, [])
@@ -414,16 +376,13 @@ const Profiles = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce profil ?')) {
       try {
         setLoading(true)
-        console.log('🗑️ Deleting profile:', profileId)
         
         // Delete the profile record
         const profile = profiles.find(p => p.id === profileId)
         if (profile && profile.source === 'driver' && profile.driverId) {
           await firestoreService.deleteDriver(profile.driverId)
-          console.log('✅ Driver deleted successfully')
         } else if (profile && profile.source === 'profile' && profile.profileId) {
           await firestoreService.deleteProfile(profile.profileId)
-          console.log('✅ Profile deleted successfully')
         } else {
           throw new Error('Profile ID not found')
         }
@@ -432,7 +391,6 @@ const Profiles = () => {
         await loadProfiles()
         
       } catch (error) {
-        console.error('❌ Error deleting profile:', error)
         setError(`Failed to delete profile: ${error.message}`)
       } finally {
         setLoading(false)
@@ -489,18 +447,14 @@ const Profiles = () => {
 
     if (showAddModal) {
       // Create Firebase Authentication account first
-      console.log('🔐 Creating Firebase Authentication account...')
       const userCredential = await createUserWithEmailAndPassword(auth, formData.username, formData.password)
       const firebaseUser = userCredential.user
       
-      console.log('✅ Firebase Auth account created:', firebaseUser.uid)
       
       // Send email verification
       try {
         await sendEmailVerification(firebaseUser)
-        console.log('📧 Email verification sent')
       } catch (emailError) {
-        console.warn('⚠️ Could not send email verification:', emailError)
       }
       
       // Add profile to Firestore with Firebase Auth link
@@ -514,10 +468,8 @@ const Profiles = () => {
         email: formData.username // Store email for reference
       }
       
-      console.log('💾 Saving new profile to Firestore:', profileData)
       
       const profileId = await firestoreService.addProfile(profileData)
-      console.log('✅ Profile saved with ID:', profileId)
       
       // Show success message
       alert(`Profile created successfully!\nFirebase Auth ID: ${firebaseUser.uid}\nEmail verification sent to ${formData.username}`)
@@ -531,7 +483,6 @@ const Profiles = () => {
           classe: formData.classe
         }
         
-        console.log('💾 Updating profile in Firebase:', selectedProfile.id, profileData)
         
         // Update the profile record in Firestore
         if (selectedProfile.source === 'driver') {
@@ -545,7 +496,6 @@ const Profiles = () => {
           }
           
           await firestoreService.updateDriver(selectedProfile.driverId, driverData)
-          console.log('✅ Driver profile updated in Firestore')
         } else {
           // Update profile record
           const updateData = {
@@ -556,7 +506,6 @@ const Profiles = () => {
           }
           
           await firestoreService.updateProfile(selectedProfile.profileId, updateData)
-          console.log('✅ Profile updated in Firestore')
         }
       }
 
@@ -576,7 +525,6 @@ const Profiles = () => {
     setSelectedProfile(null)
       
     } catch (error) {
-      console.error('❌ Error saving profile:', error)
       setError(`Failed to save profile: ${error.message}`)
     } finally {
       setLoading(false)
@@ -701,7 +649,6 @@ const Profiles = () => {
       pdf.save(fileName)
       
     } catch (error) {
-      console.error('Error generating PDF:', error)
       alert('Error generating PDF. Please try again.')
     }
   }
@@ -851,7 +798,6 @@ const Profiles = () => {
             <div className="flex space-x-2 mt-2">
                 <button
                   onClick={async () => {
-                    console.log('🧪 Testing direct Firebase connection...')
                     try {
                       const profilesRef = collection(db, 'profiles')
                       const q = query(profilesRef, orderBy('createdAt', 'desc'))
@@ -860,10 +806,8 @@ const Profiles = () => {
                         id: doc.id,
                         ...doc.data()
                       }))
-                      console.log('🧪 Direct Firebase test result:', directData)
                       alert(`Direct Firebase test: Found ${directData.length} profiles`)
                     } catch (error) {
-                      console.error('🧪 Direct Firebase test failed:', error)
                       alert(`Direct Firebase test failed: ${error.message}`)
                     }
                   }}
@@ -880,12 +824,6 @@ const Profiles = () => {
                 </button>
                 <button
                   onClick={() => {
-                    console.log('🔍 Current state debug:')
-                    console.log('  - loading:', loading)
-                    console.log('  - profiles:', profiles)
-                    console.log('  - profiles.length:', profiles.length)
-                    console.log('  - isMounted:', isMountedRef.current)
-                    console.log('  - filteredProfiles:', filteredProfiles)
                   }}
                   className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
                 >
@@ -893,21 +831,10 @@ const Profiles = () => {
                 </button>
                 <button
                   onClick={async () => {
-                    console.log('🔍 Checking ALL drivers in database (including those without Firebase Auth)...')
                     try {
                       const allDrivers = await firestoreService.getDrivers()
-                      console.log('📋 Total drivers in database:', allDrivers.length)
-                      console.log('✅ Drivers with Firebase Auth:', allDrivers.filter(d => d.firebaseAuthId).length)
-                      console.log('❌ Drivers WITHOUT Firebase Auth:', allDrivers.filter(d => !d.firebaseAuthId).length)
-                      console.log('Full driver list:', allDrivers.map(d => ({
-                        name: d.name,
-                        email: d.email,
-                        hasFirebaseAuth: !!d.firebaseAuthId,
-                        firebaseAuthId: d.firebaseAuthId || 'NONE'
-                      })))
                       alert(`Total drivers in DB: ${allDrivers.length}\nWith Firebase Auth: ${allDrivers.filter(d => d.firebaseAuthId).length}\nWithout Firebase Auth: ${allDrivers.filter(d => !d.firebaseAuthId).length}\n\nYou need to use "Add Existing Firebase Auth User" button to link drivers without Firebase Auth.\n\nCheck console for full details.`)
                     } catch (error) {
-                      console.error('Error checking drivers:', error)
                       alert('Error checking drivers. See console.')
                     }
                   }}

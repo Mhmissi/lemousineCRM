@@ -39,9 +39,6 @@ function AddTripForm({ onClose, onTripAdded }) {
         firestoreService.getVehicles()
       ])
       
-      console.log('📋 Loading drivers for trip assignment...')
-      console.log('   - Drivers collection:', driversData.length)
-      console.log('   - Profiles collection:', profilesData.length)
       
       // Get real drivers from drivers collection (with Firebase Auth)
       const realDriversFromDriversCollection = driversData
@@ -84,10 +81,6 @@ function AddTripForm({ onClose, onTripAdded }) {
         return acc
       }, [])
       
-      console.log('✅ Real drivers with Firebase Auth:', uniqueDrivers.length)
-      console.log('   - From drivers collection:', realDriversFromDriversCollection.length)
-      console.log('   - From profiles collection:', realDriversFromProfiles.length)
-      console.log('   - Unique drivers:', uniqueDrivers.map(d => `${d.name} (${d.email})`))
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
@@ -95,7 +88,6 @@ function AddTripForm({ onClose, onTripAdded }) {
         setVehicles(vehiclesData)
       }
     } catch (error) {
-      console.error('Error loading form data:', error)
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         // Fallback to empty arrays
@@ -175,11 +167,6 @@ function AddTripForm({ onClose, onTripAdded }) {
       const selectedDriver = drivers.find(d => d.id === formData.driver)
       const selectedVehicle = vehicles.find(v => v.id === formData.vehicle)
 
-      console.log('🚗 ===== CREATING TRIP =====')
-      console.log('📋 Selected Driver:', selectedDriver)
-      console.log('🔑 Driver Firebase Auth ID:', selectedDriver?.firebaseAuthId)
-      console.log('📧 Driver Email:', selectedDriver?.email)
-      console.log('👤 Driver Name:', selectedDriver?.name)
 
       const newTrip = {
         driverId: formData.driver, // Firestore driver document ID
@@ -205,20 +192,9 @@ function AddTripForm({ onClose, onTripAdded }) {
 
       // Call the callback to add the trip
       if (onTripAdded) {
-        console.log('💾 Saving trip to Firestore...')
-        console.log('💾 Trip data:', {
-          driverFirebaseAuthId: newTrip.driverFirebaseAuthId,
-          client: newTrip.client,
-          date: newTrip.date,
-          status: newTrip.status
-        })
         
         const result = await onTripAdded(newTrip)
         
-        console.log('✅ Trip saved successfully!')
-        console.log('🆔 Trip ID:', result?.tripId)
-        console.log('🔑 Driver Firebase Auth ID in trip:', newTrip.driverFirebaseAuthId)
-        console.log('📧 Driver Email:', newTrip.driverEmail)
         
         // Show success message
         alert(`Trip created successfully for ${selectedDriver?.name}! The driver will see it in their notifications.`)
@@ -255,7 +231,6 @@ function AddTripForm({ onClose, onTripAdded }) {
       // Close the form
       onClose()
     } catch (error) {
-      console.error('Error creating trip:', error)
       setErrors({ submit: 'Failed to create trip. Please try again.' })
     } finally {
       setIsSubmitting(false)

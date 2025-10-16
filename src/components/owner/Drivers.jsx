@@ -31,12 +31,10 @@ const Drivers = () => {
   const [errors, setErrors] = useState({})
 
   const loadDrivers = useCallback(async () => {
-    console.log('🚀 loadDrivers called, isMounted:', isMountedRef.current)
     
     try {
       setLoading(true)
       setError('')
-      console.log('🔄 Loading REAL drivers (those with Firebase Auth accounts)...')
       
       // Fetch from both collections in parallel
       const [driversData, profilesData] = await Promise.all([
@@ -44,8 +42,6 @@ const Drivers = () => {
         firestoreService.getProfiles()
       ])
       
-      console.log('📋 Raw drivers data from drivers collection:', driversData)
-      console.log('📋 Raw profiles data from profiles collection:', profilesData)
       
       // ONLY get drivers that have Firebase Auth IDs (real authenticated drivers)
       const realDriversFromDriversCollection = driversData
@@ -81,8 +77,6 @@ const Drivers = () => {
           ...profile
         }))
       
-      console.log('✅ Real drivers from drivers collection (with Firebase Auth):', realDriversFromDriversCollection.length)
-      console.log('✅ Real drivers from profiles collection (with Firebase Auth):', realDriversFromProfiles.length)
       
       // Combine and remove duplicates based on email
       const allRealDrivers = [...realDriversFromDriversCollection, ...realDriversFromProfiles]
@@ -100,19 +94,13 @@ const Drivers = () => {
         return acc
       }, [])
       
-      console.log('✅ Final list of REAL drivers (deduplicated):', uniqueDrivers)
-      console.log('📧 Emails:', uniqueDrivers.map(d => d.email))
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         setDrivers(uniqueDrivers)
         setError('')
-        console.log('✅ Drivers state updated with', uniqueDrivers.length, 'REAL drivers')
-        console.log(`   - With Firebase Auth from drivers collection: ${realDriversFromDriversCollection.length}`)
-        console.log(`   - With Firebase Auth from profiles collection: ${realDriversFromProfiles.length}`)
       }
     } catch (error) {
-      console.error('❌ Error loading drivers:', error)
       if (isMountedRef.current) {
         setError(`Failed to load drivers: ${error.message}`)
         setDrivers([])
@@ -120,7 +108,6 @@ const Drivers = () => {
     } finally {
       if (isMountedRef.current) {
         setLoading(false)
-        console.log('🏁 Loading completed')
       }
     }
   }, [])
@@ -239,18 +226,14 @@ const Drivers = () => {
 
       if (showAddModal) {
         // Create Firebase Authentication user first
-        console.log('🔐 Creating Firebase Authentication user...')
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
         const firebaseUser = userCredential.user
         
-        console.log('✅ Firebase Auth user created:', firebaseUser.uid)
         
         // Send email verification
         try {
           await sendEmailVerification(firebaseUser)
-          console.log('📧 Email verification sent')
         } catch (emailError) {
-          console.warn('⚠️ Could not send email verification:', emailError)
           // Don't fail the whole process if email verification fails
         }
         
@@ -265,12 +248,10 @@ const Drivers = () => {
           updatedAt: new Date()
         }
         
-        console.log('💾 Saving new driver to Firestore:', newDriver)
         
         const docRef = await firestoreService.addDriver(newDriver)
         const addedDriver = { id: docRef.id, ...newDriver }
         
-        console.log('✅ Driver saved with ID:', docRef.id)
         
         // Show success message
         alert(`Driver created successfully! Firebase Auth ID: ${firebaseUser.uid}\nEmail verification sent to ${formData.email}`)
@@ -308,7 +289,6 @@ const Drivers = () => {
       setShowModifyModal(false)
       setSelectedDriver(null)
     } catch (error) {
-      console.error('❌ Error saving driver:', error)
       
       // Handle specific Firebase Auth errors
       let errorMessage = error.message
@@ -364,40 +344,6 @@ const Drivers = () => {
 
       {/* Add Existing Driver Form */}
       <AddExistingDriverForm />
-
-      {/* Debug Panel */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-blue-800">
-            <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
-            Real Drivers (with Firebase Auth): {drivers.length} |
-            From Drivers Collection: {drivers.filter(d => d.source === 'drivers').length} |
-            From Profiles Collection: {drivers.filter(d => d.source === 'profiles').length} |
-            Filtered: {filteredDrivers.length} | 
-            Search: "{searchTerm}" | 
-            Display Count: {displayCount} |
-            Mounted: {isMountedRef.current ? 'Yes' : 'No'}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={loadDrivers}
-              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-            >
-              Refresh
-            </button>
-            <button
-              onClick={() => {
-                console.log('Current drivers state:', drivers)
-                console.log('Filtered drivers:', filteredDrivers)
-                console.log('Form data:', formData)
-              }}
-              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-            >
-              Debug State
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Header */}
       <div className="mb-6">

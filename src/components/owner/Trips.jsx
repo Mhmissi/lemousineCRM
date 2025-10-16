@@ -45,7 +45,7 @@ function Trips() {
         setTrips(mappedTrips)
       }
     } catch (error) {
-      console.error('Error loading trips:', error)
+
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         // Fallback to empty array if Firestore fails
@@ -89,17 +89,10 @@ function Trips() {
         createdAt: new Date(),
         updatedAt: new Date()
       }
-      
-      console.log('🚗 Creating new trip:', tripData)
-      console.log('📧 Driver Firebase Auth ID:', tripData.driverFirebaseAuthId)
-      console.log('👤 Driver Name:', tripData.driverName)
-      console.log('📅 Trip Date:', tripData.date)
-      
+
       const docRef = await firestoreService.addTrip(tripData)
       const addedTrip = { id: docRef.id, ...tripData }
-      
-      console.log('✅ Trip created successfully with ID:', docRef.id)
-      
+
       // Add notification for owner/manager only (driver notification is handled in AddTripForm)
       if (addNotification) {
         const tripTime = tripData.startTime && tripData.endTime 
@@ -139,7 +132,7 @@ function Trips() {
         trip: addedTrip
       }
     } catch (error) {
-      console.error('❌ Error adding trip:', error)
+
       alert('Failed to add trip. Please try again.')
     }
   }

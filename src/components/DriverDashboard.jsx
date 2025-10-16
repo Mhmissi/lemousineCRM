@@ -8,7 +8,6 @@ import DriverCalendar from './DriverCalendar'
 import NotificationBell from './NotificationBell'
 import NotificationCenter from './NotificationCenter'
 import LanguageSwitcher from './LanguageSwitcher'
-import NotificationDebugger from './NotificationDebugger'
 import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notificationTypes'
 
 function DriverDashboard() {
@@ -44,13 +43,9 @@ function DriverDashboard() {
     
     try {
       setLoading(true)
-      console.log('Loading trips for driver:', user.id)
-      
+
       const allTrips = await firestoreService.getTrips()
-      console.log('Loaded trips:', allTrips)
-      console.log('Current driver Firebase Auth UID:', user.id)
-      console.log('Current driver email:', user.email)
-      
+
       // Filter trips for current driver using multiple matching strategies
       let driverTrips = allTrips.filter(trip => {
         const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
@@ -61,13 +56,11 @@ function DriverDashboard() {
         
         return matchesFirebaseId || matchesEmail || matchesDriverId || matchesName
       })
-      console.log('Filtered driver trips:', driverTrips)
-      console.log('Total trips for this driver:', driverTrips.length)
-      
+
       // Remove demo data - show real trips only
       /* If no trips found, create some sample trips for demo
       if (driverTrips.length === 0) {
-        console.log('No trips found, creating sample data for demo')
+
         driverTrips = [
           {
             id: 'demo-trip-1',
@@ -131,7 +124,7 @@ function DriverDashboard() {
         thisWeekEarnings: totalEarnings * 0.3
       })
     } catch (error) {
-      console.error('Error loading driver trips:', error)
+
       setTrips([])
       setDriverStats({
         totalTrips: 0,
@@ -141,7 +134,7 @@ function DriverDashboard() {
         thisWeekEarnings: 0
       })
     } finally {
-      console.log('Setting loading to false')
+
       setLoading(false)
     }
   }, [user?.id])
@@ -226,10 +219,9 @@ function DriverDashboard() {
           vehicle: trip.vehicleName || trip.vehicle
         }
       })
-      
-      console.log(`✅ Trip ${tripId} status updated to: ${newStatus}`)
+
     } catch (error) {
-      console.error('Error updating trip status:', error)
+
       alert('Failed to update trip status. Please try again.')
     }
   }
@@ -941,9 +933,6 @@ function DriverDashboard() {
 
         {/* Content Area */}
         <main className="flex-1 p-6 pb-20 lg:pb-6">
-          {/* Notification Debug Component - Remove after fixing */}
-          <NotificationDebugger />
-          
           {activeTab === 'trips' && renderTripsTab()}
           {activeTab === 'calendar' && <DriverCalendar />}
           {activeTab === 'earnings' && renderEarningsTab()}

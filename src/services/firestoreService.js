@@ -43,7 +43,7 @@ export const tripsService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting trips:', error);
+
       throw error;
     }
   },
@@ -58,7 +58,7 @@ export const tripsService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting trip:', error);
+
       throw error;
     }
   },
@@ -85,7 +85,7 @@ export const tripsService = {
       const docRef = await addDoc(tripsRef, tripDataToAdd);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating trip:', error);
+
       throw error;
     }
   },
@@ -99,7 +99,7 @@ export const tripsService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating trip:', error);
+
       throw error;
     }
   },
@@ -110,7 +110,7 @@ export const tripsService = {
       const tripRef = doc(db, COLLECTIONS.TRIPS, tripId);
       await deleteDoc(tripRef);
     } catch (error) {
-      console.error('Error deleting trip:', error);
+
       throw error;
     }
   },
@@ -126,7 +126,7 @@ export const tripsService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting trips by status:', error);
+
       throw error;
     }
   },
@@ -142,7 +142,7 @@ export const tripsService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting trips by driver:', error);
+
       throw error;
     }
   },
@@ -174,7 +174,7 @@ export const driversService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting drivers:', error);
+
       throw error;
     }
   },
@@ -189,7 +189,7 @@ export const driversService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting driver:', error);
+
       throw error;
     }
   },
@@ -216,7 +216,7 @@ export const driversService = {
       const docRef = await addDoc(driversRef, driverDataToAdd);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating driver:', error);
+
       throw error;
     }
   },
@@ -230,7 +230,7 @@ export const driversService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating driver:', error);
+
       throw error;
     }
   },
@@ -241,7 +241,7 @@ export const driversService = {
       const driverRef = doc(db, COLLECTIONS.DRIVERS, driverId);
       await deleteDoc(driverRef);
     } catch (error) {
-      console.error('Error deleting driver:', error);
+
       throw error;
     }
   },
@@ -257,7 +257,7 @@ export const driversService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting active drivers:', error);
+
       throw error;
     }
   }
@@ -276,7 +276,7 @@ export const vehiclesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting vehicles:', error);
+
       throw error;
     }
   },
@@ -291,7 +291,7 @@ export const vehiclesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting vehicle:', error);
+
       throw error;
     }
   },
@@ -307,7 +307,7 @@ export const vehiclesService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating vehicle:', error);
+
       throw error;
     }
   },
@@ -321,7 +321,7 @@ export const vehiclesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating vehicle:', error);
+
       throw error;
     }
   },
@@ -332,7 +332,7 @@ export const vehiclesService = {
       const vehicleRef = doc(db, COLLECTIONS.VEHICLES, vehicleId);
       await deleteDoc(vehicleRef);
     } catch (error) {
-      console.error('Error deleting vehicle:', error);
+
       throw error;
     }
   },
@@ -348,7 +348,7 @@ export const vehiclesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting active vehicles:', error);
+
       throw error;
     }
   }
@@ -367,7 +367,7 @@ export const clientsService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting clients:', error);
+
       throw error;
     }
   },
@@ -382,7 +382,7 @@ export const clientsService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting client:', error);
+
       throw error;
     }
   },
@@ -398,7 +398,7 @@ export const clientsService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating client:', error);
+
       throw error;
     }
   },
@@ -412,7 +412,7 @@ export const clientsService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating client:', error);
+
       throw error;
     }
   },
@@ -423,7 +423,7 @@ export const clientsService = {
       const clientRef = doc(db, COLLECTIONS.CLIENTS, clientId);
       await deleteDoc(clientRef);
     } catch (error) {
-      console.error('Error deleting client:', error);
+
       throw error;
     }
   }
@@ -442,7 +442,7 @@ export const companiesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting companies:', error);
+
       throw error;
     }
   },
@@ -457,7 +457,7 @@ export const companiesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting company:', error);
+
       throw error;
     }
   },
@@ -473,7 +473,7 @@ export const companiesService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating company:', error);
+
       throw error;
     }
   },
@@ -487,7 +487,7 @@ export const companiesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating company:', error);
+
       throw error;
     }
   },
@@ -498,7 +498,7 @@ export const companiesService = {
       const companyRef = doc(db, COLLECTIONS.COMPANIES, companyId);
       await deleteDoc(companyRef);
     } catch (error) {
-      console.error('Error deleting company:', error);
+
       throw error;
     }
   }
@@ -517,7 +517,7 @@ export const brandsService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting brands:', error);
+
       throw error;
     }
   },
@@ -532,7 +532,7 @@ export const brandsService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting brand:', error);
+
       throw error;
     }
   },
@@ -548,7 +548,7 @@ export const brandsService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating brand:', error);
+
       throw error;
     }
   },
@@ -562,7 +562,7 @@ export const brandsService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating brand:', error);
+
       throw error;
     }
   },
@@ -573,7 +573,7 @@ export const brandsService = {
       const brandRef = doc(db, COLLECTIONS.BRANDS, brandId);
       await deleteDoc(brandRef);
     } catch (error) {
-      console.error('Error deleting brand:', error);
+
       throw error;
     }
   }
@@ -592,7 +592,7 @@ export const usersService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting users:', error);
+
       throw error;
     }
   },
@@ -607,7 +607,7 @@ export const usersService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting user:', error);
+
       throw error;
     }
   },
@@ -623,7 +623,7 @@ export const usersService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating user:', error);
+
       throw error;
     }
   },
@@ -637,7 +637,7 @@ export const usersService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating user:', error);
+
       throw error;
     }
   }
@@ -656,7 +656,7 @@ export const invoicesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting invoices:', error);
+
       throw error;
     }
   },
@@ -671,7 +671,7 @@ export const invoicesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting invoice:', error);
+
       throw error;
     }
   },
@@ -698,7 +698,7 @@ export const invoicesService = {
       const docRef = await addDoc(invoicesRef, invoiceDataToAdd);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating invoice:', error);
+
       throw error;
     }
   },
@@ -712,7 +712,7 @@ export const invoicesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating invoice:', error);
+
       throw error;
     }
   },
@@ -723,7 +723,7 @@ export const invoicesService = {
       const invoiceRef = doc(db, COLLECTIONS.INVOICES, invoiceId);
       await deleteDoc(invoiceRef);
     } catch (error) {
-      console.error('Error deleting invoice:', error);
+
       throw error;
     }
   }
@@ -742,7 +742,7 @@ export const creditNotesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting credit notes:', error);
+
       throw error;
     }
   },
@@ -757,7 +757,7 @@ export const creditNotesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting credit note:', error);
+
       throw error;
     }
   },
@@ -784,7 +784,7 @@ export const creditNotesService = {
       const docRef = await addDoc(creditNotesRef, creditNoteDataToAdd);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating credit note:', error);
+
       throw error;
     }
   },
@@ -798,7 +798,7 @@ export const creditNotesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating credit note:', error);
+
       throw error;
     }
   },
@@ -809,7 +809,7 @@ export const creditNotesService = {
       const creditNoteRef = doc(db, COLLECTIONS.CREDIT_NOTES, creditNoteId);
       await deleteDoc(creditNoteRef);
     } catch (error) {
-      console.error('Error deleting credit note:', error);
+
       throw error;
     }
   }
@@ -828,7 +828,7 @@ export const profilesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting profiles:', error);
+
       throw error;
     }
   },
@@ -843,7 +843,7 @@ export const profilesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting profile:', error);
+
       throw error;
     }
   },
@@ -859,7 +859,7 @@ export const profilesService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating profile:', error);
+
       throw error;
     }
   },
@@ -873,7 +873,7 @@ export const profilesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+
       throw error;
     }
   },
@@ -884,7 +884,7 @@ export const profilesService = {
       const profileRef = doc(db, COLLECTIONS.PROFILES, profileId);
       await deleteDoc(profileRef);
     } catch (error) {
-      console.error('Error deleting profile:', error);
+
       throw error;
     }
   }
@@ -903,7 +903,7 @@ export const quotesService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error('Error getting quotes:', error);
+
       throw error;
     }
   },
@@ -918,7 +918,7 @@ export const quotesService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting quote:', error);
+
       throw error;
     }
   },
@@ -934,7 +934,7 @@ export const quotesService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating quote:', error);
+
       throw error;
     }
   },
@@ -948,7 +948,7 @@ export const quotesService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating quote:', error);
+
       throw error;
     }
   },
@@ -959,7 +959,7 @@ export const quotesService = {
       const quoteRef = doc(db, COLLECTIONS.QUOTES, quoteId);
       await deleteDoc(quoteRef);
     } catch (error) {
-      console.error('Error deleting quote:', error);
+
       throw error;
     }
   }
@@ -993,7 +993,7 @@ export const notificationsService = {
       
       return notifications;
     } catch (error) {
-      console.error('Error getting notifications:', error);
+
       throw error;
     }
   },
@@ -1001,32 +1001,20 @@ export const notificationsService = {
   // Create a new notification
   createNotification: async (notificationData) => {
     try {
-      console.log('🔵 ===== FIRESTORE SERVICE: Creating notification =====')
-      console.log('🔵 Collection name:', COLLECTIONS.NOTIFICATIONS)
-      console.log('🔵 Notification data received:', notificationData)
-      
+
       const notificationsRef = collection(db, COLLECTIONS.NOTIFICATIONS);
-      console.log('🔵 Collection reference created for:', COLLECTIONS.NOTIFICATIONS)
-      
+
       const notificationToSave = {
         ...notificationData,
         createdAt: serverTimestamp(),
         read: false
       };
-      console.log('🔵 Data to save to Firestore:', notificationToSave)
-      
-      console.log('🔵 About to call addDoc...')
+
       const docRef = await addDoc(notificationsRef, notificationToSave);
-      console.log('✅ Notification saved to Firestore with ID:', docRef.id)
-      console.log('✅ Document reference:', docRef)
-      
+
       return docRef;
     } catch (error) {
-      console.error('❌ ERROR creating notification in Firestore:', error);
-      console.error('❌ Error code:', error.code);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error details:', JSON.stringify(error, null, 2));
-      console.error('❌ Full error stack:', error.stack);
+
       throw error;
     }
   },
@@ -1040,7 +1028,7 @@ export const notificationsService = {
         readAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+
       throw error;
     }
   },
@@ -1051,7 +1039,7 @@ export const notificationsService = {
       const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId);
       await deleteDoc(notificationRef);
     } catch (error) {
-      console.error('Error deleting notification:', error);
+
       throw error;
     }
   }

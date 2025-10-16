@@ -168,38 +168,19 @@ const Invoicing = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('🔄 Loading invoicing data...')
-      
+
       // Load invoices from Firebase
       const invoicesData = await firestoreService.getInvoices()
-      console.log('📊 Firebase invoices loaded:', invoicesData?.length || 0, 'invoices')
-      console.log('📋 First invoice structure:', invoicesData?.[0])
-      console.log('💰 Monetary fields in first invoice:', {
-        totalExclVAT: invoicesData?.[0]?.totalExclVAT,
-        totalExclVat: invoicesData?.[0]?.totalExclVat,
-        subtotal: invoicesData?.[0]?.subtotal,
-        vat: invoicesData?.[0]?.vat,
-        vatAmount: invoicesData?.[0]?.vatAmount,
-        totalVat: invoicesData?.[0]?.totalVat,
-        totalInclVAT: invoicesData?.[0]?.totalInclVAT,
-        totalInclVat: invoicesData?.[0]?.totalInclVat,
-        total: invoicesData?.[0]?.total,
-        deposit: invoicesData?.[0]?.deposit,
-        paidAmount: invoicesData?.[0]?.paidAmount,
-        totals: invoicesData?.[0]?.totals
-      })
-      
+
       // Always set the invoices - either from Firebase or mock data
       if (invoicesData && invoicesData.length > 0) {
-        console.log('✅ Setting Firebase invoices to state')
-        
+
         // Map Firebase data to expected format
         const mappedInvoices = mapInvoiceData(invoicesData)
-        
-        console.log('🔄 Mapped invoices:', mappedInvoices)
+
         setInvoices(mappedInvoices)
       } else {
-        console.log('📋 Setting mock invoices to state')
+
         setInvoices(mockInvoices)
       }
       
@@ -213,14 +194,13 @@ const Invoicing = () => {
       setClients(clientsData || [])
       
     } catch (error) {
-      console.error('❌ Error loading invoicing data:', error)
-      console.log('📋 Using mock data as fallback')
+
       setInvoices(mockInvoices)
       setTrips([])
       setClients([])
     } finally {
       setLoading(false)
-      console.log('✅ Loading completed')
+
     }
   }, [])
 
@@ -229,13 +209,8 @@ const Invoicing = () => {
     loadData()
   }, [loadData])
 
-  // Debug effect to monitor invoices state
   useEffect(() => {
-    console.log('📊 Invoices state changed:', {
-      count: invoices.length,
-      invoices: invoices,
-      loading: loading
-    })
+
   }, [invoices, loading])
 
   // Mock data for dropdowns
@@ -286,7 +261,7 @@ const Invoicing = () => {
   ]
 
   const handleShowMonth = () => {
-    console.log('📅 Show month clicked - reloading data')
+
     loadData()
   }
 
@@ -450,9 +425,9 @@ const Invoicing = () => {
           totals: invoiceData.totals,
           status: 'draft'
         })
-        console.log('Invoice saved successfully:', invoiceId)
+
       } catch (firebaseError) {
-        console.error('Error saving to Firebase:', firebaseError)
+
         // Continue with PDF generation even if Firebase save fails
       }
 
@@ -461,16 +436,16 @@ const Invoicing = () => {
 
       // Refresh invoices list with error handling
       try {
-        console.log('🔄 Refreshing invoices after submission...')
+
         const updatedInvoices = await firestoreService.getInvoices()
         
         // Apply the same mapping logic as in loadData
         const mappedInvoices = mapInvoiceData(updatedInvoices)
         
         setInvoices(mappedInvoices)
-        console.log('✅ Invoices refreshed and mapped:', mappedInvoices.length)
+
       } catch (refreshError) {
-        console.error('Error refreshing invoices:', refreshError)
+
         // Keep existing invoices if refresh fails
       }
       
@@ -501,7 +476,7 @@ const Invoicing = () => {
       setShowCreateModal(false)
       
     } catch (error) {
-      console.error('Error creating invoice:', error)
+
       setErrors({ general: 'Failed to create invoice. Please try again.' })
     } finally {
       setLoading(false)
@@ -659,24 +634,22 @@ const Invoicing = () => {
         page: '1'
       }
 
-      console.log('Invoice data being passed to generator:', invoiceData)
-
       // Use our new invoice generator with error handling
       try {
         downloadInvoice(invoiceData)
       } catch (pdfError) {
-        console.error('Error generating PDF:', pdfError)
+
         alert('Error generating PDF. Please try again.')
       }
       
     } catch (error) {
-      console.error('Error in handleGeneratePDF:', error)
+
       alert('Error generating PDF. Please try again.')
     }
   }
 
   const handleCheckInvoice = (invoiceId) => {
-    console.log('Check invoice:', invoiceId)
+
     // Implement check/approve functionality
   }
 
@@ -696,25 +669,14 @@ const Invoicing = () => {
           inv.id === invoiceId ? { ...inv, status: newStatus } : inv
         )
       )
-      
-      console.log(`Invoice ${invoiceId} status changed to ${newStatus}`)
+
     } catch (error) {
-      console.error('Error toggling invoice payment status:', error)
+
     }
   }
 
   const getFilteredInvoices = () => {
-    console.log('🔍 Filtering invoices:', {
-      totalInvoices: invoices.length,
-      invoices: invoices,
-      filterStatus,
-      groupByClient,
-      searchTerm,
-      displayCount,
-      showPaidOnly,
-      showUnpaidOnly
-    })
-    
+
     let filtered = invoices
 
     if (filterStatus !== 'all') {
@@ -742,7 +704,7 @@ const Invoicing = () => {
     }
 
     const result = filtered.slice(0, displayCount)
-    console.log('📋 Filtered result:', result.length, 'invoices', result)
+
     return result
   }
 
@@ -788,22 +750,6 @@ const Invoicing = () => {
           <span>/</span>
           <span className="text-gray-900 font-medium">{t('invoicingTitle')}</span>
         </nav>
-      </div>
-
-      {/* DEBUG: Show invoice count */}
-      <div style={{ background: '#f0f0f0', padding: '10px', margin: '10px', border: '1px solid #ccc' }}>
-        <strong>DEBUG:</strong> Invoices loaded: {invoices.length} | Loading: {loading.toString()} | 
-        {invoices.length > 0 && <span style={{ color: 'green' }}>✅ INVOICES AVAILABLE</span>}
-        {invoices.length === 0 && !loading && <span style={{ color: 'red' }}>❌ NO INVOICES</span>}
-        {invoices.length > 0 && (
-          <div style={{ marginTop: '5px', fontSize: '12px' }}>
-            First invoice: {invoices[0]?.number || 'No number'} | 
-            Client: {invoices[0]?.client || 'No client'} | 
-            Payment: {invoices[0]?.payment || 'No payment'} | 
-            Total: {invoices[0]?.totalInclVAT || 0}€ | 
-            VAT: {invoices[0]?.vat || 0}€
-          </div>
-        )}
       </div>
 
       {/* Invoice Management Section */}

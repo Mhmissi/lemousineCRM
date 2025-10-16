@@ -36,7 +36,7 @@ function Vehicles() {
         setVehicles(mappedVehicles)
       }
     } catch (error) {
-      console.error('Error loading vehicles:', error)
+
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         // Fallback to empty array if Firestore fails

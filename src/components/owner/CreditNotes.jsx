@@ -172,12 +172,10 @@ const CreditNotes = () => {
 
   // Load credit notes from Firebase with proper cleanup
   const loadCreditNotes = useCallback(async () => {
-    console.log('🚀 loadCreditNotes called, isMounted:', isMountedRef.current)
     
     try {
       setLoading(true)
       setError('')
-      console.log('🔄 Loading credit notes from Firebase...')
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
@@ -187,19 +185,13 @@ const CreditNotes = () => {
       // Try service first, then fallback to direct Firebase call
       let creditNotesData
       try {
-        console.log('📞 Calling firestoreService.getCreditNotes()...')
         creditNotesData = await Promise.race([
           firestoreService.getCreditNotes(),
           timeoutPromise
         ])
-        console.log('📋 Raw credit notes data from Firebase (via service):', creditNotesData)
-        console.log('📋 Data type:', typeof creditNotesData, 'Array?', Array.isArray(creditNotesData))
       } catch (serviceError) {
-        console.log('⚠️ Service failed, trying direct Firebase call:', serviceError.message)
-        console.log('⚠️ Service error details:', serviceError)
         
         // Fallback: Direct Firebase call
-        console.log('🔄 Attempting direct Firebase query...')
         const creditNotesRef = collection(db, 'creditNotes')
         const q = query(creditNotesRef, orderBy('createdAt', 'desc'))
         const querySnapshot = await getDocs(q)
@@ -207,13 +199,10 @@ const CreditNotes = () => {
           id: doc.id,
           ...doc.data()
         }))
-        console.log('📋 Raw credit notes data from Firebase (direct):', creditNotesData)
-        console.log('📋 Direct data type:', typeof creditNotesData, 'Array?', Array.isArray(creditNotesData))
       }
       
       // Ensure we have an array
       if (!Array.isArray(creditNotesData)) {
-        console.warn('⚠️ creditNotesData is not an array:', creditNotesData)
         creditNotesData = []
       }
       
@@ -229,21 +218,14 @@ const CreditNotes = () => {
         ...creditNote // Include any other fields
       }))
       
-      console.log('📝 Mapped credit notes:', mappedCreditNotes)
-      console.log('📝 Mapped data length:', mappedCreditNotes.length)
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
-        console.log('✅ Component still mounted, updating state...')
         setCreditNotes(mappedCreditNotes)
         setError('')
-        console.log('✅ Credit notes state updated with', mappedCreditNotes.length, 'items')
       } else {
-        console.log('⚠️ Component unmounted, skipping state update')
       }
     } catch (error) {
-      console.error('❌ Error loading credit notes:', error)
-      console.error('❌ Error stack:', error.stack)
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         if (error.message.includes('timeout')) {
@@ -252,15 +234,12 @@ const CreditNotes = () => {
           setError(`Failed to load credit notes: ${error.message}`)
         }
         setCreditNotes([])
-        console.log('❌ Error state set, credit notes cleared')
       }
     } finally {
       // Only update loading state if component is still mounted
       if (isMountedRef.current) {
         setLoading(false)
-        console.log('🏁 Loading completed, loading set to false')
       } else {
-        console.log('⚠️ Component unmounted, skipping loading state update')
       }
     }
   }, [])
@@ -395,7 +374,6 @@ const CreditNotes = () => {
 
       // Save to Firebase
       const docRef = await firestoreService.addCreditNote(creditNoteData)
-      console.log('Credit note created with ID:', docRef)
 
       // Reload credit notes from Firebase
       await loadCreditNotes()
@@ -418,7 +396,6 @@ const CreditNotes = () => {
       setShowCreateModal(false)
       
     } catch (error) {
-      console.error('Error creating credit note:', error)
       setErrors({ submit: 'Failed to create credit note. Please try again.' })
     } finally {
       setLoading(false)
@@ -563,7 +540,6 @@ const CreditNotes = () => {
       // Add logo to PDF (30x30 pixels)
       doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
     } catch (error) {
-      console.log('Logo not found, using text fallback')
       // Fallback to text if logo not found
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)
@@ -791,14 +767,11 @@ Your Limousine Service Team
       pdf.save(fileName)
       
     } catch (error) {
-      console.error('Error generating PDF:', error)
       alert('Error generating PDF. Please try again.')
     }
   }
 
   const getFilteredCreditNotes = () => {
-    console.log('🔍 Filtering credit notes. Total:', creditNotes.length, 'Search term:', searchTerm, 'Display count:', displayCount)
-    console.log('🔍 Credit notes array:', creditNotes)
     let filtered = creditNotes
 
     if (searchTerm) {
@@ -807,12 +780,9 @@ Your Limousine Service Team
         creditNote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
         creditNote.remark.toLowerCase().includes(searchTerm.toLowerCase())
       )
-      console.log('🔍 After search filter:', filtered.length, 'items')
     }
 
     const result = filtered.slice(0, displayCount)
-    console.log('🔍 Final filtered result:', result.length, 'items')
-    console.log('🔍 Final result array:', result)
     return result
   }
 
@@ -927,64 +897,6 @@ Your Limousine Service Team
 
         {/* Credit Notes Table */}
         <div className="overflow-x-auto">
-          {/* Debug Info */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-blue-800">
-                <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
-                Credit Notes: {creditNotes.length} | 
-                Filtered: {getFilteredCreditNotes().length} | 
-                Search: "{searchTerm}" | 
-                Display Count: {displayCount} |
-                Mounted: {isMountedRef.current ? 'Yes' : 'No'}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={async () => {
-                    console.log('🧪 Testing direct Firebase connection...')
-                    try {
-                      const creditNotesRef = collection(db, 'creditNotes')
-                      const q = query(creditNotesRef, orderBy('createdAt', 'desc'))
-                      const querySnapshot = await getDocs(q)
-                      const directData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                      }))
-                      console.log('🧪 Direct Firebase test result:', directData)
-                      alert(`Direct Firebase test: Found ${directData.length} credit notes`)
-                    } catch (error) {
-                      console.error('🧪 Direct Firebase test failed:', error)
-                      alert(`Direct Firebase test failed: ${error.message}`)
-                    }
-                  }}
-                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                >
-                  Test Firebase
-                </button>
-                <button
-                  onClick={loadCreditNotes}
-                  disabled={loading}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? 'Loading...' : 'Refresh'}
-                </button>
-                <button
-                  onClick={() => {
-                    console.log('🔍 Current state debug:')
-                    console.log('  - loading:', loading)
-                    console.log('  - creditNotes:', creditNotes)
-                    console.log('  - creditNotes.length:', creditNotes.length)
-                    console.log('  - isMounted:', isMountedRef.current)
-                    console.log('  - getFilteredCreditNotes():', getFilteredCreditNotes())
-                  }}
-                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
-                >
-                  Debug State
-                </button>
-              </div>
-            </div>
-          </div>
-          
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DAA520]"></div>

@@ -208,14 +208,14 @@ const Proforma = () => {
             status: proforma.status || 'pending'
           }))
           setProformas(mappedProformas)
-          console.log('✅ Proformas loaded from Firebase:', mappedProformas.length)
+
         } else {
           // Use mock data as fallback
           setProformas(mockProformas)
-          console.log('📋 Using mock proformas data')
+
         }
       } catch (error) {
-        console.error('❌ Error loading proformas from Firebase:', error)
+
         // Use mock data as fallback
         setProformas(mockProformas)
       } finally {
@@ -396,7 +396,6 @@ const Proforma = () => {
       // Save to Firebase
       try {
         const proformaId = await firestoreService.addQuote(proformaData)
-        console.log('✅ Proforma saved to Firebase with ID:', proformaId)
 
         // Create local proforma object
         const newProforma = {
@@ -417,7 +416,7 @@ const Proforma = () => {
         // Add to proformas list
         setProformas(prev => [newProforma, ...prev])
       } catch (firebaseError) {
-        console.error('❌ Error saving proforma to Firebase:', firebaseError)
+
         alert('Erreur lors de la sauvegarde du proforma. Veuillez réessayer.')
       }
       
@@ -447,7 +446,7 @@ const Proforma = () => {
       setErrors({})
       setShowCreateModal(false)
     } catch (error) {
-      console.error('❌ Error creating proforma:', error)
+
       setErrors({ general: 'Failed to create proforma. Please try again.' })
     } finally {
       setLoading(false)
@@ -575,8 +574,7 @@ const Proforma = () => {
     if (!proforma) return
 
     try {
-      console.log('Generating proforma PDF for:', proforma)
-      
+
       // Map proforma data to our PDF generator format
       const proformaData = {
         proformaNumber: proforma.number || 'PF-0000',
@@ -609,18 +607,18 @@ const Proforma = () => {
       downloadProforma(proformaData)
       
     } catch (error) {
-      console.error('Error generating proforma PDF:', error)
+
       alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     }
   }
 
   const handleSendProforma = (proformaId) => {
-    console.log('Send proforma:', proformaId)
+
     // Implement send functionality
   }
 
   const handleCheckProforma = (proformaId) => {
-    console.log('Check proforma:', proformaId)
+
     // Implement check/approve functionality
   }
 
@@ -640,10 +638,9 @@ const Proforma = () => {
           p.id === proformaId ? { ...p, status: newStatus } : p
         )
       )
-      
-      console.log(`Proforma ${proformaId} status changed to ${newStatus}`)
+
     } catch (error) {
-      console.error('Error toggling proforma payment status:', error)
+
     }
   }
 

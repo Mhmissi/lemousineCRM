@@ -10,7 +10,6 @@ import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notifi
  */
 export const generateNotificationsFromTrips = async (driverFirebaseAuthId) => {
   try {
-    console.log('📥 Generating notifications from trips for driver:', driverFirebaseAuthId)
     
     const notifications = []
     
@@ -22,24 +21,17 @@ export const generateNotificationsFromTrips = async (driverFirebaseAuthId) => {
       where('driverFirebaseAuthId', '==', driverFirebaseAuthId)
     )
     
-    console.log('🔍 Executing Firestore query...')
     const tripsSnapshot = await getDocs(tripsQuery)
-    console.log('📋 Found trips for driver:', tripsSnapshot.docs.length)
     
     if (tripsSnapshot.docs.length === 0) {
-      console.log('⚠️ No trips found for this driver. Check:')
-      console.log('   - Driver Firebase Auth ID:', driverFirebaseAuthId)
-      console.log('   - Are trips saved with this driverFirebaseAuthId?')
     }
     
     tripsSnapshot.docs.forEach(doc => {
       const trip = { id: doc.id, ...doc.data() }
-      console.log('🔍 Processing trip:', trip.id, 'for client:', trip.client, 'status:', trip.status)
       
       // Generate notification for this trip
       const notification = createNotificationFromTrip(trip, driverFirebaseAuthId)
       if (notification) {
-        console.log('✅ Created notification:', notification.title)
         notifications.push(notification)
       }
     })
@@ -51,13 +43,9 @@ export const generateNotificationsFromTrips = async (driverFirebaseAuthId) => {
       return timeB - timeA
     })
     
-    console.log('✅ Generated notifications:', notifications.length)
     return notifications
     
   } catch (error) {
-    console.error('❌ Error generating notifications from trips:', error)
-    console.error('❌ Error details:', error.message)
-    console.error('❌ Error code:', error.code)
     return []
   }
 }
@@ -69,7 +57,6 @@ const createNotificationFromTrip = (trip, driverFirebaseAuthId) => {
   try {
     // Only create notifications for trips assigned to this driver
     if (trip.driverFirebaseAuthId !== driverFirebaseAuthId) {
-      console.log(`⏭️ Skipping trip ${trip.id} - different driver`)
       return null
     }
     
@@ -89,11 +76,9 @@ const createNotificationFromTrip = (trip, driverFirebaseAuthId) => {
     const now = new Date()
     const daysSinceCreation = Math.floor((now - tripDate) / (1000 * 60 * 60 * 24))
     
-    console.log(`📅 Trip ${trip.id} created ${daysSinceCreation} days ago`)
     
     // Show notifications for trips created in the last 30 days (generous for testing)
     if (daysSinceCreation > 30) {
-      console.log(`⏭️ Skipping trip ${trip.id} - too old (${daysSinceCreation} days)`)
       return null
     }
     
@@ -102,7 +87,6 @@ const createNotificationFromTrip = (trip, driverFirebaseAuthId) => {
     const hoursSinceCreation = (now - tripDate) / (1000 * 60 * 60)
     const isUnread = hoursSinceCreation < 48 && trip.status === 'assigned'
     
-    console.log(`📊 Trip ${trip.id}: ${hoursSinceCreation.toFixed(1)}h old, status: ${trip.status}, unread: ${isUnread}`)
     
     // Generate notification based on trip status
     let title, message, type, priority
@@ -173,7 +157,6 @@ const createNotificationFromTrip = (trip, driverFirebaseAuthId) => {
       }
     }
   } catch (error) {
-    console.error('❌ Error creating notification from trip:', error)
     return null
   }
 }
@@ -189,7 +172,6 @@ export const markTripNotificationAsRead = (notificationId) => {
       localStorage.setItem('read_trip_notifications', JSON.stringify(readNotifications))
     }
   } catch (error) {
-    console.error('Error marking trip notification as read:', error)
   }
 }
 
@@ -201,7 +183,6 @@ export const isTripNotificationRead = (notificationId) => {
     const readNotifications = JSON.parse(localStorage.getItem('read_trip_notifications') || '[]')
     return readNotifications.includes(notificationId)
   } catch (error) {
-    console.error('Error checking if trip notification is read:', error)
     return false
   }
 }

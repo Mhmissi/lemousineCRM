@@ -30,9 +30,9 @@ function NotificationBell() {
     setIsRefreshing(true)
     try {
       await refreshNotifications()
-      console.log('🔄 Notifications refreshed manually')
+
     } catch (error) {
-      console.error('❌ Error refreshing notifications:', error)
+
     } finally {
       setTimeout(() => setIsRefreshing(false), 500)
     }

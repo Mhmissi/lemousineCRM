@@ -25,7 +25,6 @@ export const useFirebaseData = (dataLoader, dependencies = []) => {
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         setError(err)
-        console.error('Error loading Firebase data:', err)
       }
     } finally {
       // Only update loading state if component is still mounted
@@ -76,7 +75,6 @@ export const useMultipleFirebaseData = (dataLoaders, dependencies = []) => {
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         setError(err)
-        console.error('Error loading multiple Firebase data:', err)
       }
     } finally {
       // Only update loading state if component is still mounted

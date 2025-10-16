@@ -14,7 +14,6 @@ const Clients = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [loading, setLoading] = useState(false)
 
-
   const [formData, setFormData] = useState({
     company: '',
     address: '',
@@ -36,7 +35,7 @@ const Clients = () => {
         const clientsData = await firestoreService.getClients()
         setClients(clientsData)
       } catch (error) {
-        console.error('Error loading clients:', error)
+
         // Fallback to empty array if Firestore fails
         setClients([])
       } finally {
@@ -192,7 +191,7 @@ const Clients = () => {
       setShowModifyModal(false)
       setSelectedClient(null)
     } catch (error) {
-      console.error('Error saving client:', error)
+
       alert('Failed to save client. Please try again.')
     } finally {
       setLoading(false)

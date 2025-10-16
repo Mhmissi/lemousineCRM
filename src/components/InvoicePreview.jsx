@@ -37,7 +37,7 @@ function InvoicePreview() {
     try {
       downloadInvoice(sampleInvoiceData);
     } catch (error) {
-      console.error('Error generating invoice:', error);
+
     } finally {
       setGenerating(false);
     }
@@ -125,6 +125,4 @@ function InvoicePreview() {
 }
 
 export default InvoicePreview;
-
-
 

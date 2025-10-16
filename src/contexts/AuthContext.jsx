@@ -20,8 +20,7 @@ export function AuthProvider({ children }) {
   // Function to fetch user role from Firestore
   const fetchUserRole = async (firebaseUser) => {
     try {
-      console.log('🔍 Fetching user role for:', firebaseUser.email, 'UID:', firebaseUser.uid)
-      
+
       // Check in drivers collection first
       const driversQuery = query(
         collection(db, 'drivers'),
@@ -31,7 +30,7 @@ export function AuthProvider({ children }) {
       
       if (!driversSnapshot.empty) {
         const driverData = driversSnapshot.docs[0].data()
-        console.log('✅ Found user in drivers collection:', driverData)
+
         return 'driver'
       }
       
@@ -44,11 +43,11 @@ export function AuthProvider({ children }) {
       
       if (!profilesSnapshot.empty) {
         const profileData = profilesSnapshot.docs[0].data()
-        console.log('✅ Found user in profiles collection:', profileData)
+
         // Normalize the classe field: if it's admin/owner/manager, return 'owner', otherwise 'driver'
         const classe = profileData.classe || 'driver'
         if (classe === 'admin' || classe === 'owner' || classe === 'manager') {
-          console.log('👑 User is owner/admin/manager, setting role to: owner')
+
           return 'owner'
         }
         return 'driver'
@@ -56,16 +55,16 @@ export function AuthProvider({ children }) {
       
       // Default: if email contains 'owner' or 'admin', treat as owner
       if (firebaseUser.email.includes('owner') || firebaseUser.email.includes('admin')) {
-        console.log('⚠️ No Firestore record found, using email-based detection: owner')
+
         return 'owner'
       }
       
       // Default to driver if nothing else matches
-      console.log('⚠️ No Firestore record found, defaulting to: driver')
+
       return 'driver'
       
     } catch (error) {
-      console.error('❌ Error fetching user role:', error)
+
       // Fallback to email-based detection
       if (firebaseUser.email.includes('owner') || firebaseUser.email.includes('admin')) {
         return 'owner'
@@ -88,8 +87,7 @@ export function AuthProvider({ children }) {
           name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
           role: role
         }
-        
-        console.log('👤 User authenticated:', appUser)
+
         setUser(appUser)
       } else {
         setUser(null)
@@ -114,12 +112,10 @@ export function AuthProvider({ children }) {
         name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
         role: role
       }
-      
-      console.log('✅ Login successful:', appUser)
+
       return { success: true, user: appUser }
     } catch (error) {
-      console.error('❌ Login error:', error)
-      
+
       // If user doesn't exist, provide helpful error message
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         return { success: false, error: 'Invalid email or password. Please create an account first.' }
@@ -134,7 +130,7 @@ export function AuthProvider({ children }) {
       await signOut(auth)
       setUser(null)
     } catch (error) {
-      console.error('Logout error:', error)
+
     }
   }
 

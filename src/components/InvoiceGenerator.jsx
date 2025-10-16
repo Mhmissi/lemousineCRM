@@ -21,7 +21,6 @@ function InvoiceGenerator() {
         setTrips(tripsData);
         setClients(clientsData);
       } catch (error) {
-        console.error('Error loading data:', error);
         setStatus('❌ Failed to load data');
       } finally {
         setLoading(false);
@@ -76,7 +75,6 @@ function InvoiceGenerator() {
       setStatus('✅ Invoice generated and downloaded successfully!');
       
     } catch (error) {
-      console.error('Error generating invoice:', error);
       setStatus('❌ Failed to generate invoice');
     } finally {
       setLoading(false);
@@ -213,7 +211,7 @@ function InvoiceGenerator() {
             <li><strong>Select a trip</strong> from the dropdown above</li>
             <li><strong>Optionally select a client</strong> (will auto-select from trip if not specified)</li>
             <li><strong>Click "Generate Invoice"</strong> to create and download the PDF</li>
-            <li><strong>Or click "Sample Invoice"</strong> to test with sample data</li>
+            <li><strong>Or click "Sample Invoice"</strong> to generate with sample data</li>
           </ol>
         </div>
 
@@ -236,12 +234,4 @@ function InvoiceGenerator() {
 }
 
 export default InvoiceGenerator;
-
-
-
-
-
-
-
-
 

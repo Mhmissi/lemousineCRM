@@ -69,9 +69,7 @@ function Dashboard({ onNavigate }) {
     const currentDate = new Date()
     const months = []
     const tripsToUse = tripsData || []
-    
-    console.log('📊 Dashboard: Calculating revenue for', tripsToUse.length, 'trips')
-    
+
     // Show last 4 months + current month (5 months total)
     for (let i = 4; i >= 0; i--) {
       const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
@@ -116,8 +114,7 @@ function Dashboard({ onNavigate }) {
 
   const loadDashboardData = useCallback(async (tripsData) => {
     try {
-      console.log('📊 Dashboard: Loading dashboard data...')
-      
+
       // Calculate revenue data
       const revenueMonths = calculateRevenueData(tripsData)
       
@@ -140,12 +137,9 @@ function Dashboard({ onNavigate }) {
       // Update state
       setStats(calculatedStats)
       setRevenueData(revenueMonths)
-      
-      console.log('📊 Dashboard: Stats calculated:', calculatedStats)
-      console.log('📊 Dashboard: Revenue data updated successfully')
-      
+
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
+
       setStats({ totalTripsToday: 0, completedTripsToday: 0, pendingTripsToday: 0 })
       setRevenueData([])
     }
@@ -189,30 +183,26 @@ function Dashboard({ onNavigate }) {
   const loadTrips = useCallback(async () => {
     try {
       setLoadingTrips(true)
-      console.log('📊 Dashboard: Loading trips from Firestore...')
-      
+
       // Fetch trips data
       let tripsData = await tripsService.getAllTrips()
-      console.log('📊 Dashboard: Fetched', tripsData.length, 'trips')
-      
+
       // Fallback to direct Firestore query if no trips found
       if (tripsData.length === 0) {
-        console.log('📊 Dashboard: No trips found, trying direct query...')
+
         const tripsRef = collection(db, 'trips')
         const tripsQuery = query(tripsRef, orderBy('createdAt', 'desc'))
         const querySnapshot = await getDocs(tripsQuery)
         tripsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        console.log('📊 Dashboard: Direct query found', tripsData.length, 'trips')
+
       }
       
       // Normalize and map trip data
       const mappedTrips = tripsData.map(normalizeTripData)
       setTrips(mappedTrips)
-      
-      console.log('📊 Dashboard: Successfully loaded', mappedTrips.length, 'trips')
-      
+
     } catch (error) {
-      console.error('❌ Error loading trips:', error)
+
       setTrips([])
     } finally {
       setLoadingTrips(false)
@@ -232,11 +222,10 @@ function Dashboard({ onNavigate }) {
   // Recalculate revenue data when trips change
   useEffect(() => {
     if (trips.length > 0) {
-      console.log('📊 Dashboard: Recalculating revenue data with', trips.length, 'trips')
+
       loadDashboardData(trips)
     } else {
-      // Add some sample data for testing when no trips exist
-      console.log('📊 Dashboard: No trips found, using sample data for testing')
+      // Add sample data for visualization when no trips exist
       const currentDate = new Date()
       const sampleTrips = [
         {
@@ -285,12 +274,12 @@ function Dashboard({ onNavigate }) {
   }
 
   const handleRefreshTrips = () => {
-    console.log('📊 Dashboard: Manual trips refresh triggered')
+
     loadTrips()
   }
 
   const handleRefreshRevenue = () => {
-    console.log('📊 Dashboard: Manual revenue refresh triggered')
+
     loadDashboardData(trips)
   }
 
@@ -513,13 +502,6 @@ function Dashboard({ onNavigate }) {
               >
                 {showAllTrips ? 'Show Today' : 'Show All'}
               </button>
-              <button
-                onClick={handleRefreshTrips}
-                className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-                title="Debug trips loading"
-              >
-                Debug
-              </button>
               <button 
                 onClick={handleRefreshTrips}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -678,8 +660,7 @@ function Dashboard({ onNavigate }) {
             <div className="flex items-center space-x-2">
               <button 
                 onClick={() => {
-                  console.log('📊 Dashboard: Manual revenue chart refresh triggered')
-                  console.log('📊 Dashboard: Current trips count:', trips.length)
+
                   loadDashboardData(trips)
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

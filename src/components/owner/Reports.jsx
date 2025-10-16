@@ -149,7 +149,7 @@ const Reports = () => {
       // Add logo to PDF (30x30 pixels)
       doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
     } catch (error) {
-      console.log('Logo not found, using text fallback')
+
       // Fallback to text if logo not found
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)

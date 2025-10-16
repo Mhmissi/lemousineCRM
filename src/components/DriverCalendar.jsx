@@ -19,11 +19,9 @@ function DriverCalendar() {
       
       try {
         setLoading(true)
-        console.log('📅 Loading trips for calendar for driver:', user.id)
-        
+
         const allTrips = await firestoreService.getTrips()
-        console.log('📅 All trips loaded:', allTrips.length)
-        
+
         // Filter trips for current driver using the same logic as DriverDashboard
         const driverTrips = allTrips.filter(trip => {
           const matchesFirebaseId = trip.driverFirebaseAuthId === user.id
@@ -34,9 +32,7 @@ function DriverCalendar() {
           
           return matchesFirebaseId || matchesEmail || matchesDriverId || matchesName
         })
-        
-        console.log('📅 Filtered trips for driver:', driverTrips.length)
-        
+
         // Transform trips data to match the calendar format
         const formattedTrips = driverTrips.map(trip => {
           const [startTime, endTime] = trip.time?.split(' - ') || ['09:00', '11:00']
@@ -58,9 +54,9 @@ function DriverCalendar() {
         })
         
         setTrips(formattedTrips)
-        console.log('📅 Formatted trips for calendar:', formattedTrips.length)
+
       } catch (error) {
-        console.error('❌ Error loading trips for calendar:', error)
+
         setTrips([])
       } finally {
         setLoading(false)
@@ -109,7 +105,11 @@ function DriverCalendar() {
   }
 
   const getTripsForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0]
+    // Use local timezone-safe date formatting to avoid timezone offset issues
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
     return trips.filter(trip => trip.date === dateStr)
   }
 
@@ -163,6 +163,25 @@ function DriverCalendar() {
     const today = new Date()
     setCurrentDate(today)
     setSelectedDate(today)
+  }
+
+  const updateTripStatus = async (tripId, newStatus) => {
+    try {
+      // Update in Firestore
+      await firestoreService.updateTrip(tripId, { 
+        status: newStatus,
+        updatedAt: new Date()
+      })
+      
+      // Update local state
+      setTrips(trips.map(trip => 
+        trip.id === tripId ? { ...trip, status: newStatus, updatedAt: new Date() } : trip
+      ))
+
+    } catch (error) {
+
+      alert('Failed to update trip status. Please try again.')
+    }
   }
 
   const getMonthName = (date) => {
@@ -257,7 +276,9 @@ function DriverCalendar() {
                   <div key={index} className="p-4 text-center border-r border-gray-200 last:border-r-0">
                     <div className="text-sm font-medium text-gray-600">{getDayName(day)}</div>
                     <div className={`text-lg font-semibold mt-1 ${
-                      day.toDateString() === new Date().toDateString() 
+                      day.getDate() === new Date().getDate() && 
+                      day.getMonth() === new Date().getMonth() && 
+                      day.getFullYear() === new Date().getFullYear()
                         ? 'text-primary-600 bg-primary-100 rounded-full w-8 h-8 flex items-center justify-center mx-auto'
                         : 'text-gray-900'
                     }`}>
@@ -339,7 +360,9 @@ function DriverCalendar() {
                   return (
                     <div key={index} className="p-2 border-r border-gray-200 last:border-r-0 min-h-24">
                       <div className={`text-sm font-medium mb-1 ${
-                        day.toDateString() === new Date().toDateString() 
+                        day.getDate() === new Date().getDate() && 
+                        day.getMonth() === new Date().getMonth() && 
+                        day.getFullYear() === new Date().getFullYear()
                           ? 'text-primary-600 bg-primary-100 rounded-full w-6 h-6 flex items-center justify-center'
                           : 'text-gray-900'
                       }`}>
@@ -379,7 +402,7 @@ function DriverCalendar() {
       {selectedDate && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {t('tripDetails')} - {selectedDate.toLocaleDateString()}
+            {t('tripDetails')} - {selectedDate.getMonth() + 1}/{selectedDate.getDate()}/{selectedDate.getFullYear()}
           </h3>
           <div className="space-y-4">
             {getTripsForDate(selectedDate).map((trip) => (
@@ -441,18 +464,27 @@ function DriverCalendar() {
                   </div>
                   
                   <div className="flex flex-col space-y-2 ml-4">
-                    <button className="btn-primary text-sm flex items-center">
+                    <button 
+                      onClick={() => alert(`Opening map for trip: ${trip.pickup} to ${trip.destination}`)}
+                      className="btn-primary text-sm flex items-center"
+                    >
                       <Navigation className="w-4 h-4 mr-2" />
                       {t('viewOnMap')}
                     </button>
                     {trip.status === 'assigned' && (
-                      <button className="btn-secondary text-sm flex items-center">
+                      <button 
+                        onClick={() => updateTripStatus(trip.id, 'ontheway')}
+                        className="btn-secondary text-sm flex items-center"
+                      >
                         <Play className="w-4 h-4 mr-2" />
                         {t('markAsStarted')}
                       </button>
                     )}
                     {trip.status === 'active' && (
-                      <button className="btn-primary text-sm flex items-center">
+                      <button 
+                        onClick={() => updateTripStatus(trip.id, 'completed')}
+                        className="btn-primary text-sm flex items-center"
+                      >
                         <CheckCircle className="w-4 h-4 mr-2" />
                         {t('markAsCompleted')}
                       </button>

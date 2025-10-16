@@ -172,12 +172,10 @@ const Quotes = () => {
 
   // Load quotes from Firebase
   const loadQuotes = useCallback(async () => {
-    console.log('🚀 loadQuotes called, isMounted:', isMountedRef.current)
     
     try {
       setLoading(true)
       setError('')
-      console.log('🔄 Loading quotes from Firebase...')
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
@@ -187,19 +185,13 @@ const Quotes = () => {
       // Try service first, then fallback to direct Firebase call
       let quotesData
       try {
-        console.log('📞 Calling firestoreService.getQuotes()...')
         quotesData = await Promise.race([
           firestoreService.getQuotes(),
           timeoutPromise
         ])
-        console.log('📋 Raw quotes data from Firebase (via service):', quotesData)
-        console.log('📋 Data type:', typeof quotesData, 'Array?', Array.isArray(quotesData))
       } catch (serviceError) {
-        console.log('⚠️ Service failed, trying direct Firebase call:', serviceError.message)
-        console.log('⚠️ Service error details:', serviceError)
         
         // Fallback: Direct Firebase call
-        console.log('🔄 Attempting direct Firebase query...')
         const quotesRef = collection(db, 'quotes')
         const q = query(quotesRef, orderBy('createdAt', 'desc'))
         const querySnapshot = await getDocs(q)
@@ -207,13 +199,10 @@ const Quotes = () => {
           id: doc.id,
           ...doc.data()
         }))
-        console.log('📋 Raw quotes data from Firebase (direct):', quotesData)
-        console.log('📋 Direct data type:', typeof quotesData, 'Array?', Array.isArray(quotesData))
       }
       
       // Ensure we have an array
       if (!Array.isArray(quotesData)) {
-        console.warn('⚠️ quotesData is not an array:', quotesData)
         quotesData = []
       }
       
@@ -234,21 +223,14 @@ const Quotes = () => {
         ...quote // Include any other fields
       }))
       
-      console.log('📝 Mapped quotes:', mappedQuotes)
-      console.log('📝 Mapped data length:', mappedQuotes.length)
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
-        console.log('✅ Component still mounted, updating state...')
         setQuotes(mappedQuotes)
         setError('')
-        console.log('✅ Quotes state updated with', mappedQuotes.length, 'items')
       } else {
-        console.log('⚠️ Component unmounted, skipping state update')
       }
     } catch (error) {
-      console.error('❌ Error loading quotes:', error)
-      console.error('❌ Error stack:', error.stack)
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         if (error.message.includes('timeout')) {
@@ -257,15 +239,12 @@ const Quotes = () => {
           setError(`Failed to load quotes: ${error.message}`)
         }
         setQuotes([])
-        console.log('❌ Error state set, quotes cleared')
       }
     } finally {
       // Only update loading state if component is still mounted
       if (isMountedRef.current) {
         setLoading(false)
-        console.log('🏁 Loading completed, loading set to false')
       } else {
-        console.log('⚠️ Component unmounted, skipping loading state update')
       }
     }
   }, [])
@@ -379,11 +358,9 @@ const Quotes = () => {
         status: 'not-validated'
       }
 
-      console.log('💾 Saving quote to Firebase:', quoteData)
       
       // Save to Firebase
       const quoteId = await firestoreService.addQuote(quoteData)
-      console.log('✅ Quote saved with ID:', quoteId)
       
       // Reload quotes from Firebase
       await loadQuotes()
@@ -407,7 +384,6 @@ const Quotes = () => {
       setShowCreateModal(false)
       
     } catch (error) {
-      console.error('❌ Error saving quote:', error)
       setError(`Failed to save quote: ${error.message}`)
     } finally {
       setLoading(false)
@@ -429,7 +405,6 @@ const Quotes = () => {
       }
       
       // Update the client options (in a real app, this would be saved to backend)
-      console.log('New company added:', newCompany)
       
       // Show success message
       alert(`Company "${newCompany}" added successfully!`)
@@ -544,13 +519,11 @@ const Quotes = () => {
         page: '1'
       }
 
-      console.log('Devis data being passed to generator:', devisData)
 
       // Use our new devis generator
       downloadDevis(devisData)
       
     } catch (error) {
-      console.error('Error generating PDF:', error)
       alert('Error generating PDF. Please try again.')
     }
   }
@@ -682,7 +655,6 @@ const Quotes = () => {
       pdf.save(fileName)
       
     } catch (error) {
-      console.error('Error generating PDF:', error)
       alert('Error generating PDF. Please try again.')
     }
   }
@@ -897,64 +869,6 @@ const Quotes = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Debug Info */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-blue-800">
-                <strong>Debug Info:</strong> Loading: {loading ? 'Yes' : 'No'} | 
-                Quotes: {quotes.length} | 
-                Filtered: {getFilteredQuotes().length} | 
-                Search: "{searchTerm}" | 
-                Display Count: {displayCount} |
-                Mounted: {isMountedRef.current ? 'Yes' : 'No'}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={async () => {
-                    console.log('🧪 Testing direct Firebase connection...')
-                    try {
-                      const quotesRef = collection(db, 'quotes')
-                      const q = query(quotesRef, orderBy('createdAt', 'desc'))
-                      const querySnapshot = await getDocs(q)
-                      const directData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                      }))
-                      console.log('🧪 Direct Firebase test result:', directData)
-                      alert(`Direct Firebase test: Found ${directData.length} quotes`)
-                    } catch (error) {
-                      console.error('🧪 Direct Firebase test failed:', error)
-                      alert(`Direct Firebase test failed: ${error.message}`)
-                    }
-                  }}
-                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                >
-                  Test Firebase
-                </button>
-                <button
-                  onClick={loadQuotes}
-                  disabled={loading}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? 'Loading...' : 'Refresh'}
-                </button>
-                <button
-                  onClick={() => {
-                    console.log('🔍 Current state debug:')
-                    console.log('  - loading:', loading)
-                    console.log('  - quotes:', quotes)
-                    console.log('  - quotes.length:', quotes.length)
-                    console.log('  - isMounted:', isMountedRef.current)
-                    console.log('  - getFilteredQuotes():', getFilteredQuotes())
-                  }}
-                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
-                >
-                  Debug State
-                </button>
               </div>
             </div>
           </div>
