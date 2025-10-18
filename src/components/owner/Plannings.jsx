@@ -240,9 +240,20 @@ function Plannings() {
   }
 
   const getSchedulesForDate = (date) => {
-    return schedules.filter(schedule => 
-      schedule.date.toDateString() === date.toDateString()
-    )
+    return schedules.filter(schedule => {
+      // Use the helper function for consistent date comparison
+      const scheduleDateStr = normalizeDate(schedule.date)
+      const filterDateStr = normalizeDate(date)
+      
+      const matchesDate = scheduleDateStr === filterDateStr
+      const matchesDriver = filterDriver === 'all' || schedule.driver === filterDriver
+      const matchesSearch = searchTerm === '' || 
+        schedule.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        schedule.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        schedule.driver.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      return matchesDate && matchesDriver && matchesSearch
+    })
   }
 
   const isToday = (date) => {
@@ -762,15 +773,21 @@ function Plannings() {
                 
                 {/* Schedule indicators */}
                 <div className="space-y-1">
-                  {daySchedules.map((schedule, idx) => (
+                  {daySchedules.length === 1 ? (
                     <div
-                      key={idx}
-                      className={`text-xs px-2 py-1 rounded-full text-white truncate ${getScheduleColor(schedule.color)}`}
-                      title={schedule.title}
+                      className={`text-xs px-2 py-1 rounded-full text-white truncate ${getScheduleColor(daySchedules[0].color)}`}
+                      title={daySchedules[0].title}
                     >
-                      {schedule.time} {schedule.title}
+                      {daySchedules[0].time} {daySchedules[0].title}
                     </div>
-                  ))}
+                  ) : daySchedules.length > 1 ? (
+                    <div
+                      className="text-xs px-2 py-1 rounded-full text-white truncate bg-orange-500"
+                      title={`${daySchedules.length} trips scheduled`}
+                    >
+                      {daySchedules.length} trips
+                    </div>
+                  ) : null}
                 </div>
               </div>
             )
@@ -883,20 +900,21 @@ function Plannings() {
                 
                 {/* Schedule indicators */}
                 <div className="space-y-1">
-                  {daySchedules.slice(0, 2).map((schedule, idx) => (
+                  {daySchedules.length === 1 ? (
                     <div
-                      key={idx}
-                      className={`text-xs px-2 py-1 rounded-full text-white truncate ${getScheduleColor(schedule.color)}`}
-                      title={schedule.title}
+                      className={`text-xs px-2 py-1 rounded-full text-white truncate ${getScheduleColor(daySchedules[0].color)}`}
+                      title={daySchedules[0].title}
                     >
-                      {schedule.time} {schedule.title}
+                      {daySchedules[0].time} {daySchedules[0].title}
                     </div>
-                  ))}
-                  {daySchedules.length > 2 && (
-                    <div className="text-xs text-gray-500">
-                      +{daySchedules.length - 2} autres
+                  ) : daySchedules.length > 1 ? (
+                    <div
+                      className="text-xs px-2 py-1 rounded-full text-white truncate bg-orange-500"
+                      title={`${daySchedules.length} trips scheduled`}
+                    >
+                      {daySchedules.length} trips
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             )
