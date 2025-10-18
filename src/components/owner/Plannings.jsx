@@ -1672,17 +1672,17 @@ function Plannings() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                  className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors w-full sm:w-auto order-2 sm:order-1"
                 >
                   Retour
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  className="px-6 py-3 text-white font-medium rounded-lg transition-colors w-full sm:w-auto order-1 sm:order-2"
                   style={{ backgroundColor: '#DAA520' }}
                 >
                   {editingSchedule ? 'Modifier' : 'Enregistrer'}

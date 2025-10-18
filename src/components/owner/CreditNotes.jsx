@@ -1083,17 +1083,17 @@ Your Limousine Service Team
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  className="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-full sm:w-auto order-2 sm:order-1"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="px-6 py-3 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 w-full sm:w-auto order-1 sm:order-2"
                   style={{ backgroundColor: '#DAA520' }}
                 >
                   Enregistrer

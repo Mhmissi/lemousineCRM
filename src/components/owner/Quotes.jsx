@@ -1176,27 +1176,6 @@ const Quotes = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                     />
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-4 pt-4">
-                    <button
-                      type="submit"
-                      className="px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-                      style={{ backgroundColor: '#DAA520' }}
-                    >
-                      Enregistrer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCloseModal}
-                      className="flex items-center space-x-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                      </svg>
-                      <span>Retour</span>
-                    </button>
-                  </div>
                 </div>
 
                 {/* Right Section - Quote Details */}
@@ -1307,6 +1286,27 @@ const Quotes = () => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Action Buttons - Bottom of form */}
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 mt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex items-center justify-center space-x-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-full sm:w-auto order-2 sm:order-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span>Retour</span>
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 w-full sm:w-auto order-1 sm:order-2"
+                  style={{ backgroundColor: '#DAA520' }}
+                >
+                  Enregistrer
+                </button>
               </div>
             </form>
           </div>
