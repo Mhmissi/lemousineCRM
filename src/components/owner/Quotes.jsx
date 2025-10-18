@@ -207,21 +207,32 @@ const Quotes = () => {
       }
       
       // Map quote data to ensure consistent field names
-      const mappedQuotes = quotesData.map(quote => ({
-        id: quote.id,
-        number: quote.number || quote.quoteNumber || '',
-        date: quote.date || quote.quoteDate || new Date().toISOString().split('T')[0],
-        dueDate: quote.dueDate || quote.dueDate || '',
-        client: quote.client || quote.clientName || quote.customer || 'Unknown Client',
-        payment: quote.payment || quote.paymentMethod || 'Virement',
-        remark: quote.remark || quote.description || quote.notes || '',
-        totalExclVAT: quote.totalExclVAT || quote.amount || quote.total || 0,
-        vat: quote.vat || quote.vatAmount || 0,
-        totalInclVAT: quote.totalInclVAT || quote.total || 0,
-        deposit: quote.deposit || 0,
-        status: quote.status || quote.quoteStatus || 'not-validated',
-        ...quote // Include any other fields
-      }))
+      const mappedQuotes = quotesData.map(quote => {
+        // Safely generate quote number
+        let quoteNumber = quote.number || quote.quoteNumber || `Q-${quote.id}`
+        
+        // If the number is invalid, generate a new one
+        if (!quoteNumber || quoteNumber.includes('NaN') || quoteNumber.includes('Infinity')) {
+          const currentYear = new Date().getFullYear()
+          quoteNumber = `${currentYear}0001`
+        }
+        
+        return {
+          id: quote.id,
+          number: quoteNumber,
+          date: quote.date || quote.quoteDate || new Date().toISOString().split('T')[0],
+          dueDate: quote.dueDate || quote.dueDate || '',
+          client: quote.client || quote.clientName || quote.customer || 'Unknown Client',
+          payment: quote.payment || quote.paymentMethod || 'Virement',
+          remark: quote.remark || quote.description || quote.notes || '',
+          totalExclVAT: parseFloat(quote.totalExclVAT || quote.amount || quote.total || 0),
+          vat: parseFloat(quote.vat || quote.vatAmount || 0),
+          totalInclVAT: parseFloat(quote.totalInclVAT || quote.total || 0),
+          deposit: parseFloat(quote.deposit || 0),
+          status: quote.status || quote.quoteStatus || 'not-validated',
+          ...quote // Include any other fields
+        }
+      })
       
       
       // Only update state if component is still mounted
@@ -326,14 +337,29 @@ const Quotes = () => {
     try {
       setLoading(true)
       
-      // Generate quote number
+      // Generate quote number with validation
       const currentYear = new Date().getFullYear()
-      const nextNumber = Math.max(...quotes.map(q => {
-        const year = parseInt(q.number.substring(0, 4))
-        if (year === currentYear) {
-          return parseInt(q.number.substring(4))
+      const nextNumber = Math.max(0, ...quotes.map(q => {
+        // Validate quote number format
+        if (!q.number || typeof q.number !== 'string' || q.number.length < 5) {
+          return 0
         }
-        return 0
+        
+        const year = parseInt(q.number.substring(0, 4))
+        
+        // Validate year
+        if (isNaN(year) || year !== currentYear) {
+          return 0
+        }
+        
+        const num = parseInt(q.number.substring(4))
+        
+        // Validate number
+        if (isNaN(num)) {
+          return 0
+        }
+        
+        return num
       })) + 1
       const quoteNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
 
