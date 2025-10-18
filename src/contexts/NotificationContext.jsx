@@ -46,7 +46,7 @@ export const NotificationProvider = ({ children }) => {
         setNotifications(notificationsWithReadStatus)
         setUnreadCount(notificationsWithReadStatus.filter(n => !n.read).length)
       } catch (error) {
-        console.error('Error loading notifications:', error)
+        // Silent error handling
       }
     }
 
@@ -104,7 +104,7 @@ export const NotificationProvider = ({ children }) => {
         return notification && !notification.read ? Math.max(0, prev - 1) : prev
       })
     } catch (error) {
-      console.error('Error dismissing notification:', error)
+      // Silent error handling
     }
   }
 

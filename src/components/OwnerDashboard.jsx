@@ -38,7 +38,6 @@ import Company from './owner/Company'
 import Vehicles from './owner/Vehicles'
 import Trips from './owner/Trips'
 import SettingsPage from './owner/Settings'
-import InvoicePreview from './InvoicePreview'
 
 function OwnerDashboard() {
   const { user, logout } = useAuth()
@@ -51,7 +50,6 @@ function OwnerDashboard() {
     { id: 'plannings', label: t('plannings'), icon: Calendar },
     { id: 'reports', label: t('reports'), icon: BarChart3 },
     { id: 'facturations', label: t('facturations'), icon: FileText },
-    { id: 'invoice-preview', label: 'Invoice Preview', icon: FileEdit },
     { id: 'notesCredit', label: t('notesCredit'), icon: FileEdit },
     { id: 'devis', label: t('devis'), icon: FileEdit },
     { id: 'proforma', label: t('proforma'), icon: Grid3X3 },
@@ -71,8 +69,6 @@ function OwnerDashboard() {
         return <Reports />
       case 'facturations':
         return <Invoicing />
-      case 'invoice-preview':
-        return <InvoicePreview />
       case 'notesCredit':
         return <CreditNotes />
       case 'devis':

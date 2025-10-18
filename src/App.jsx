@@ -5,7 +5,6 @@ import DriverDashboard from './components/DriverDashboard'
 import OwnerDashboard from './components/OwnerDashboard'
 import NotificationCenter from './components/NotificationCenter'
 import InvoiceGenerator from './components/InvoiceGenerator'
-import InvoicePreview from './components/InvoicePreview'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { NotificationProvider } from './contexts/NotificationContext'
@@ -38,10 +37,6 @@ function AppRoutes() {
       <Route 
         path="/invoice-generator" 
         element={<InvoiceGenerator />} 
-      />
-      <Route 
-        path="/invoice-preview" 
-        element={<InvoicePreview />} 
       />
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>

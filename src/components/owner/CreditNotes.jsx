@@ -4,7 +4,7 @@ import { FileEdit, Plus, Search, Eye, Edit, FileDown, Mail, Printer, Filter } fr
 import { firestoreService } from '../../services/firestoreService'
 import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import jsPDF from 'jspdf'
+import { downloadCreditNote, createCreditNoteFromRecord } from '../../utils/invoiceGenerator'
 
 const CreditNotes = () => {
   const { t } = useLanguage()
@@ -513,118 +513,15 @@ const CreditNotes = () => {
     const creditNote = creditNotes.find(cn => cn.id === creditNoteId)
     if (!creditNote) return
 
-    const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.width
-    const pageHeight = doc.internal.pageSize.height
-    let yPosition = 30
-
-    // Professional color scheme
-    const primaryColor = [218, 165, 32] // Goldenrod
-    const secondaryColor = [52, 73, 94] // Dark gray
-    const accentColor = [230, 126, 34] // Orange
-
-    // Header with professional styling
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-    doc.rect(0, 0, pageWidth, 50, 'F')
-    
     try {
-      // Add the actual logo
-      const logoResponse = await fetch('/logo.png')
-      const logoBlob = await logoResponse.blob()
-      const logoBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(logoBlob)
-      })
+      // Use the helper function to create proper credit note data
+      const creditNoteData = createCreditNoteFromRecord(creditNote);
       
-      // Add logo to PDF (30x30 pixels)
-      doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30)
+      // Use the professional PDF generator
+      await downloadCreditNote(creditNoteData);
     } catch (error) {
-      // Fallback to text if logo not found
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text('LIMOSTAR', 20, 25)
+      alert('Error generating PDF. Please try again.');
     }
-    
-    // Company name
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(20)
-    doc.setFont('helvetica', 'bold')
-    doc.text('LIMOSTAR', 55, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Just luxury cars', 55, 28)
-    
-    // Credit Note title
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text(`NOTE DE CRÉDIT ${creditNote.number}`, pageWidth - 80, 22)
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Date: ${creditNote.date}`, pageWidth - 80, 28)
-    
-    yPosition = 70
-
-    // Client information
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text('Client:', 20, yPosition)
-    
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(creditNote.client, 20, yPosition + 8)
-    
-    yPosition += 25
-
-    // Credit Note details
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Détails de la note de crédit:', 20, yPosition)
-    yPosition += 15
-
-    // Table header
-    doc.setFillColor(240, 248, 255)
-    doc.rect(20, yPosition, pageWidth - 40, 12, 'F')
-    
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Description', 25, yPosition + 8)
-    doc.text('Montant', pageWidth - 30, yPosition + 8)
-    yPosition += 15
-
-    // Credit Note line
-    doc.setFont('helvetica', 'normal')
-    doc.text(creditNote.remark, 25, yPosition + 8)
-    doc.text(`${creditNote.totalPrice.toFixed(2)}€`, pageWidth - 30, yPosition + 8)
-    yPosition += 20
-
-    // Total
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Total: ${creditNote.totalPrice.toFixed(2)}€`, pageWidth - 30, yPosition)
-
-    // Footer
-    const footerY = pageHeight - 20
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.rect(0, footerY, pageWidth, 20, 'F')
-    
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.text('LIMOSTAR - Professional Limousine Services', 20, footerY + 6)
-    doc.text('Email: info@limostar.com | Tel: +33 1 23 45 67 89', 20, footerY + 12)
-    
-    const currentDate = new Date().toLocaleDateString('fr-FR')
-    doc.text(`Généré le ${currentDate}`, pageWidth - 50, footerY + 6)
-
-    // Save the PDF
-    const fileName = `note-credit-${creditNote.number}-${creditNote.date}.pdf`
-    doc.save(fileName)
   }
 
   const handleSendCreditNote = (creditNoteId) => {
