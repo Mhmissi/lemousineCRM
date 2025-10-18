@@ -193,20 +193,31 @@ const Proforma = () => {
         
         if (proformasData && proformasData.length > 0) {
           // Map Firebase data to expected format
-          const mappedProformas = proformasData.map(proforma => ({
-            id: proforma.id,
-            number: proforma.proformaNumber || proforma.number || `PF-${proforma.id}`,
-            date: proforma.date || proforma.proformaDate || new Date().toISOString().split('T')[0],
-            dueDate: proforma.dueDate || proforma.paymentDueDate || proforma.date || new Date().toISOString().split('T')[0],
-            client: proforma.clientName || proforma.client || proforma.clientCompany || 'Unknown Client',
-            payment: proforma.paymentMethod || proforma.payment || 'Virement',
-            remark: proforma.remark || proforma.notes || proforma.description || '',
-            totalExclVAT: proforma.totals?.priceExclVat || proforma.totalExclVAT || proforma.subtotal || 0,
-            vat: proforma.totals?.vatAmount || proforma.vat || proforma.vatAmount || 0,
-            totalInclVAT: proforma.totals?.priceInclVat || proforma.totalInclVAT || proforma.total || 0,
-            deposit: proforma.totals?.deposit || proforma.deposit || proforma.paidAmount || 0,
-            status: proforma.status || 'pending'
-          }))
+          const mappedProformas = proformasData.map(proforma => {
+            // Safely generate proforma number
+            let proformaNumber = proforma.proformaNumber || proforma.number || `PF-${proforma.id}`
+            
+            // If the number is invalid, generate a new one
+            if (!proformaNumber || proformaNumber.includes('NaN') || proformaNumber.includes('Infinity')) {
+              const currentYear = new Date().getFullYear()
+              proformaNumber = `${currentYear}0001`
+            }
+            
+            return {
+              id: proforma.id,
+              number: proformaNumber,
+              date: proforma.date || proforma.proformaDate || new Date().toISOString().split('T')[0],
+              dueDate: proforma.dueDate || proforma.paymentDueDate || proforma.date || new Date().toISOString().split('T')[0],
+              client: proforma.clientName || proforma.client || proforma.clientCompany || 'Unknown Client',
+              payment: proforma.paymentMethod || proforma.payment || 'Virement',
+              remark: proforma.remark || proforma.notes || proforma.description || '',
+              totalExclVAT: parseFloat(proforma.totals?.priceExclVat || proforma.totalExclVAT || proforma.subtotal || 0),
+              vat: parseFloat(proforma.totals?.vatAmount || proforma.vat || proforma.vatAmount || 0),
+              totalInclVAT: parseFloat(proforma.totals?.priceInclVat || proforma.totalInclVAT || proforma.total || 0),
+              deposit: parseFloat(proforma.totals?.deposit || proforma.deposit || proforma.paidAmount || 0),
+              status: proforma.status || 'pending'
+            }
+          })
           setProformas(mappedProformas)
 
         } else {
@@ -355,13 +366,30 @@ const Proforma = () => {
 
       // Generate proforma number
       const currentYear = new Date().getFullYear()
-      const nextNumber = Math.max(...proformas.map(p => {
-        const year = parseInt(p.number.substring(0, 4))
-        if (year === currentYear) {
-          return parseInt(p.number.substring(4))
-        }
-        return 0
-      })) + 1
+      
+      // Get all proforma numbers for current year
+      const currentYearNumbers = proformas
+        .map(p => {
+          try {
+            // Handle different number formats
+            if (typeof p.number === 'string' && p.number.length >= 4) {
+              const year = parseInt(p.number.substring(0, 4))
+              if (year === currentYear) {
+                const numberPart = p.number.substring(4)
+                const parsedNumber = parseInt(numberPart)
+                return isNaN(parsedNumber) ? 0 : parsedNumber
+              }
+            }
+            return 0
+          } catch (error) {
+            return 0
+          }
+        })
+        .filter(num => num > 0)
+      
+      // Get the next number, default to 1 if no existing numbers
+      const maxNumber = currentYearNumbers.length > 0 ? Math.max(...currentYearNumbers) : 0
+      const nextNumber = maxNumber + 1
       const proformaNumber = `${currentYear}${String(nextNumber).padStart(4, '0')}`
 
       // Prepare proforma data for Firebase
