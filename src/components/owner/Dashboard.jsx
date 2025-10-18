@@ -386,11 +386,11 @@ function Dashboard({ onNavigate }) {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
             {/* Pending Trips */}
             <div className="flex flex-col items-center">
-              <div className="relative w-32 h-32 mb-4">
-                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-4">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32 transform -rotate-90" viewBox="0 0 120 120">
                   <circle
                     cx="60"
                     cy="60"
@@ -426,8 +426,8 @@ function Dashboard({ onNavigate }) {
 
             {/* Completed Trips */}
             <div className="flex flex-col items-center">
-              <div className="relative w-32 h-32 mb-4">
-                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-4">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32 transform -rotate-90" viewBox="0 0 120 120">
                   <circle
                     cx="60"
                     cy="60"
@@ -467,13 +467,13 @@ function Dashboard({ onNavigate }) {
       {/* ===== TRIPS TABLE ===== */}
       <div className="mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
               {t('trips')} - {showAllTrips ? 'All Dates' : selectedDate}
             </h2>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-gray-400" />
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                 <input
                   type="date"
                   value={selectedDate}
@@ -482,61 +482,63 @@ function Dashboard({ onNavigate }) {
                     setShowAllTrips(false)
                   }}
                   disabled={showAllTrips}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="border border-gray-300 rounded-lg px-2 py-1 sm:px-3 sm:py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleTodayClick}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="px-2 py-1 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 transition-colors"
                   title="Go to today"
                 >
                   Today
                 </button>
               </div>
-              <button
-                onClick={() => setShowAllTrips(!showAllTrips)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  showAllTrips 
-                    ? 'bg-primary-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {showAllTrips ? 'Show Today' : 'Show All'}
-              </button>
-              <button 
-                onClick={handleRefreshTrips}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Refresh trips"
-                disabled={loadingTrips}
-              >
-                <RefreshCw className={`w-5 h-5 ${loadingTrips ? 'animate-spin' : ''}`} />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowAllTrips(!showAllTrips)}
+                  className={`px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                    showAllTrips 
+                      ? 'bg-primary-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {showAllTrips ? 'Show Today' : 'Show All'}
+                </button>
+                <button 
+                  onClick={handleRefreshTrips}
+                  className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Refresh trips"
+                  disabled={loadingTrips}
+                >
+                  <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loadingTrips ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Trips Count Summary */}
-          <div className="mb-4 flex items-center justify-between bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-600">
-                Total: <span className="text-lg font-bold text-gray-900">{filteredTrips.length}</span>
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium text-gray-600">
+                Total: <span className="text-sm sm:text-lg font-bold text-gray-900">{filteredTrips.length}</span>
               </span>
-              <span className="text-sm font-medium text-gray-600">
-                Assigned: <span className="text-lg font-bold text-yellow-600">
+              <span className="text-xs sm:text-sm font-medium text-gray-600">
+                Assigned: <span className="text-sm sm:text-lg font-bold text-yellow-600">
                   {filteredTrips.filter(t => t.status === 'assigned').length}
                 </span>
               </span>
-              <span className="text-sm font-medium text-gray-600">
-                Active: <span className="text-lg font-bold text-blue-600">
+              <span className="text-xs sm:text-sm font-medium text-gray-600">
+                Active: <span className="text-sm sm:text-lg font-bold text-blue-600">
                   {filteredTrips.filter(t => t.status === 'active').length}
                 </span>
               </span>
-              <span className="text-sm font-medium text-gray-600">
-                Completed: <span className="text-lg font-bold text-green-600">
+              <span className="text-xs sm:text-sm font-medium text-gray-600">
+                Completed: <span className="text-sm sm:text-lg font-bold text-green-600">
                   {filteredTrips.filter(t => t.status === 'completed').length}
                 </span>
               </span>
             </div>
-            <span className="text-sm font-medium text-gray-600">
-              Revenue: <span className="text-lg font-bold text-green-600">
+            <span className="text-xs sm:text-sm font-medium text-gray-600">
+              Revenue: <span className="text-sm sm:text-lg font-bold text-green-600">
                 ${filteredTrips.reduce((sum, t) => sum + (t.revenue || 0), 0).toLocaleString()}
               </span>
             </span>
@@ -553,25 +555,25 @@ function Dashboard({ onNavigate }) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Route
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                       Driver
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Vehicle
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                       Client
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                       Revenue
                     </th>
                   </tr>
@@ -579,41 +581,41 @@ function Dashboard({ onNavigate }) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredTrips.map((trip) => (
                     <tr key={trip.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                        <div className="flex items-center text-xs sm:text-sm text-gray-900">
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400" />
                           {trip.startTime}
                         </div>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-start text-sm">
-                          <MapPin className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <td className="px-2 sm:px-4 py-3 sm:py-4">
+                        <div className="flex items-start text-xs sm:text-sm">
+                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
                           <div>
-                            <div className="text-gray-900 font-medium">{trip.pickup}</div>
+                            <div className="text-gray-900 font-medium truncate max-w-[120px] sm:max-w-none">{trip.pickup}</div>
                             <div className="text-gray-500 text-xs">→ {trip.destination}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden sm:table-cell">
                         {trip.driver}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <Car className="w-4 h-4 mr-2 text-gray-400" />
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                        <div className="flex items-center text-xs sm:text-sm text-gray-900">
+                          <Car className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400" />
                           {trip.vehicle}
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden lg:table-cell">
                         {trip.client}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                        <span className={`px-1 sm:px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
                           {trip.status === 'completed' ? t('completedStatus') : 
                            trip.status === 'active' ? t('activeStatus') : 
                            trip.status === 'assigned' ? t('assignedStatus') : trip.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
                         ${trip.revenue?.toLocaleString() || 0}
                       </td>
                     </tr>
@@ -718,7 +720,7 @@ function Dashboard({ onNavigate }) {
               {revenueData.some(month => month.trips > 0 || month.revenue > 0 || month.unpaid > 0) && (
                 <>
                   {/* Chart Container */}
-              <div className="relative">
+              <div className="relative overflow-hidden">
                 {/* Y-Axis Label */}
                 <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -rotate-90 text-xs text-gray-600 font-medium">
                   Values
@@ -728,17 +730,17 @@ function Dashboard({ onNavigate }) {
                 <div className="ml-16 mr-4">
                   <div className="relative h-80 bg-white rounded border overflow-hidden pt-4 pb-2">
                     {/* Y-Axis Labels and Grid Lines Combined */}
-                    <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-xs text-gray-600">
+                    <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-xs text-gray-600 overflow-hidden">
                       {[120, 100, 80, 60, 40, 20, 0].map((value, index) => (
                         <div key={value} className="relative flex items-center justify-between w-full">
-                          <span className="relative z-10 bg-white px-1">{value}</span>
+                          <span className="bg-white px-1 text-xs">{value}</span>
                           <div className="absolute top-1/2 left-12 right-0 border-t border-gray-200 transform -translate-y-1/2"></div>
                         </div>
                       ))}
                     </div>
 
                     {/* Chart Bars and Line */}
-                    <div className="absolute inset-0 flex items-end justify-between px-6 pt-4">
+                    <div className="absolute inset-0 flex items-end justify-between px-6 pt-4 z-0">
                       {revenueData.map((month, index) => {
                         // Scale data to match chart (0-12 range) with realistic limits
                         // Number of Trips - scale to 0-12 range (max 120 trips = 100%)
