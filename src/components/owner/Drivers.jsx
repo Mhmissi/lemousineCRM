@@ -4,7 +4,6 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { firestoreService } from '../../services/firestoreService'
 import { auth } from '../../config/firebase'
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
-import AddExistingDriverForm from '../AddExistingDriverForm'
 
 const Drivers = () => {
   const { t } = useLanguage()
@@ -341,9 +340,6 @@ const Drivers = () => {
           </div>
         </div>
       )}
-
-      {/* Add Existing Driver Form */}
-      <AddExistingDriverForm />
 
       {/* Header */}
       <div className="mb-6">

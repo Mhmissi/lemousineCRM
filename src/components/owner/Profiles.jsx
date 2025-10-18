@@ -775,6 +775,7 @@ const Profiles = () => {
               </div>
             </div>
           </div>
+        </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
