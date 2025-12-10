@@ -105,25 +105,7 @@ function Login() {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center mb-3">{t('demoCredentials')}:</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('driver')}:</span>
-                <span className="font-mono text-gray-700">driver@lemousine.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('owner')}:</span>
-                <span className="font-mono text-gray-700">owner@lemousine.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">{t('password')}:</span>
-                <span className="font-mono text-gray-700">password</span>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
